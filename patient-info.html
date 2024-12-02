@@ -80,6 +80,35 @@
             box-shadow: 0 2px 4px rgba(55, 167, 196, 0.2);
         }
 
+        .profession-option {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(55, 167, 196, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .profession-option:hover {
+            background: rgba(55, 167, 196, 0.05);
+            transform: translateX(4px);
+        }
+
+        .profession-option.selected {
+            border-color: var(--brand-light);
+            background: rgba(55, 167, 196, 0.05);
+        }
+
+        .profession-option .checkmark {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .profession-option.selected .checkmark {
+            opacity: 1;
+        }
+
         .progress-bar {
             height: 3px;
             background: rgba(55, 167, 196, 0.1);
@@ -125,6 +154,15 @@
                 background: rgba(255, 255, 255, 0.05);
                 color: white;
                 border-color: rgba(55, 167, 196, 0.2);
+            }
+
+            .profession-option {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(55, 167, 196, 0.3);
+            }
+            
+            .profession-option:hover {
+                background: rgba(55, 167, 196, 0.15);
             }
         }
     </style>
@@ -197,10 +235,52 @@
                     <textarea class="ios-input" rows="4" placeholder="Notez ici les conditions médicales particulières, allergies, antécédents..."></textarea>
                 </div>
             </div>
+
+            <div class="feature-card">
+                <h2 class="text-xl font-semibold mb-6">Type de profession</h2>
+                <div class="space-y-3">
+                    <div class="profession-option" onclick="selectProfession(this)">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Sans emploi</h3>
+                                <p class="text-sm opacity-70">En recherche d'emploi, étudiant, retraité...</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="profession-option" onclick="selectProfession(this)">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Bureau, position assise</h3>
+                                <p class="text-sm opacity-70">Travail majoritairement sédentaire</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="profession-option" onclick="selectProfession(this)">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Activité physiquement intense</h3>
+                                <p class="text-sm opacity-70">Profession nécessitant un effort physique régulier</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
+        // Gestion des sélections de genre
         document.querySelectorAll('.frequency-control').forEach(control => {
             const options = control.querySelectorAll('.frequency-option');
             options.forEach(option => {
@@ -210,6 +290,16 @@
                 });
             });
         });
+
+        // Gestion de la sélection des professions
+        function selectProfession(element) {
+            // Retire la sélection de toutes les options
+            document.querySelectorAll('.profession-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            // Ajoute la sélection à l'option cliquée
+            element.classList.add('selected');
+        }
     </script>
 </body>
 </html>
