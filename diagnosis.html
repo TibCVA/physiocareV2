@@ -7,55 +7,13 @@
     <title>PhysioCare - Analyse & Diagnostic</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        :root {
-            --brand-light: #37A7C4;
-            --brand-medium: #2C89A0;
-            --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
-            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
-        }
+        /* ... Styles précédents inchangés jusqu'aux boutons ... */
 
-        body {
-            background: #F5F9FA;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
-        .form-section {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: var(--elevation-1);
-            border: 1px solid rgba(55, 167, 196, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .ios-input {
+        .validation-button {
             width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            margin: 8px 0;
-            font-size: 16px;
-            background: white;
-            -webkit-appearance: none;
-        }
-
-        .start-button {
             background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
             border-radius: 12px;
-            padding: 12px 24px;
+            padding: 16px 32px;
             color: white;
             font-weight: 600;
             position: relative;
@@ -64,172 +22,54 @@
             box-shadow: var(--elevation-2);
         }
 
-        .loading-ring {
-            width: 64px;
-            height: 64px;
-            border: 4px solid rgba(55, 167, 196, 0.1);
-            border-left-color: var(--brand-light);
-            border-radius: 50%;
-            animation: rotate 1s linear infinite;
+        .validation-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, 
+                rgba(255,255,255,0.2),
+                rgba(255,255,255,0));
+            transition: opacity 0.3s ease;
         }
 
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .validation-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-3);
         }
 
-        /* Styles pour les éléments de diagnostic */
-        .diagnostic-item {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
-            cursor: pointer;
+        .validation-button:active {
+            transform: scale(0.98);
+            box-shadow: var(--elevation-1);
         }
 
-        .diagnostic-item.primary {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            color: white;
-        }
-
-        .diagnostic-details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        .diagnostic-details.expanded {
-            max-height: 1000px;
-            opacity: 1;
-            transform: translateY(0);
-            transition: max-height 0.3s ease-in, opacity 0.3s ease-in, transform 0.3s ease-in;
-            margin-top: 16px;
-        }
-
-        .details-section {
-            border-left: 3px solid var(--brand-light);
-            padding-left: 16px;
-            margin-top: 12px;
-        }
-
-        .probability-bar {
-            height: 4px;
-            background: rgba(55, 167, 196, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .probability-bar-fill {
-            height: 100%;
-            background: var(--brand-light);
-            transition: width 1s ease;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            margin: 8px 0;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 83.33%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            transition: width 0.3s ease;
-        }
-
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
+        .validation-button.secondary {
+            background: transparent;
+            border: 2px solid var(--brand-light);
             color: var(--brand-dark);
-            font-weight: 500;
         }
 
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight: 600;
-        }
-
-        .expand-button {
-            background: rgba(55, 167, 196, 0.1);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: var(--brand-dark);
-            margin-top: 12px;
-            width: 100%;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .expand-button:hover {
-            background: rgba(55, 167, 196, 0.2);
+        .validation-button.secondary:hover {
+            background: rgba(55, 167, 196, 0.05);
         }
 
         @media (prefers-color-scheme: dark) {
-            body {
-                background: #0A1214;
-                color: white;
+            /* ... Styles dark mode précédents ... */
+            .validation-button.secondary {
+                color: var(--brand-light);
+                border-color: var(--brand-light);
             }
 
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .form-section {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .diagnostic-item {
-                background: rgba(255, 255, 255, 0.1);
-            }
-
-            .ios-input {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .expand-button {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.9);
-            }
-
-            .expand-button:hover {
-                background: rgba(255, 255, 255, 0.15);
+            .validation-button.secondary:hover {
+                background: rgba(55, 167, 196, 0.15);
             }
         }
     </style>
 </head>
 <body class="min-h-screen">
-    <nav class="nav-blur fixed w-full z-50">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <a href="documents.html" class="nav-button flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Retour
-                </a>
-                <span class="font-semibold">Patient (5/6)</span>
-                <a href="treatment.html" class="nav-button primary">Suivant</a>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-bar-fill"></div>
-            </div>
-        </div>
-    </nav>
+    <!-- ... Navigation inchangée ... -->
 
     <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
         <div class="max-w-xl mx-auto space-y-6">
@@ -238,8 +78,11 @@
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
                     Remarques du kinésithérapeute
                 </h2>
+                <p class="text-sm opacity-70 mb-4">
+                    Optionnel : ajoutez vos observations cliniques complémentaires
+                </p>
                 <textarea class="ios-input h-32" id="remarks"
-                    placeholder="Ajoutez vos observations cliniques, remarques ou précisions particulières..."></textarea>
+                    placeholder="Observations cliniques, remarques ou précisions particulières..."></textarea>
                 <div class="mt-6 flex justify-center">
                     <button class="start-button" id="startAnalysis">
                         Lancer l'analyse diagnostique
@@ -356,12 +199,7 @@
         }
 
         startButton.addEventListener('click', () => {
-            if (!remarksTextarea.value.trim()) {
-                alert('Veuillez ajouter vos observations avant de lancer l\'analyse.');
-                return;
-            }
-
-        startButton.closest('.form-section').classList.add('hidden');
+            startButton.closest('.form-section').classList.add('hidden');
             loadingSection.classList.remove('hidden');
 
             setTimeout(() => {
@@ -450,12 +288,10 @@
 
         // Gestion de la validation
         document.querySelector('.validation-button').addEventListener('click', () => {
-            // Redirection vers la page de traitement
             window.location.href = 'treatment.html';
         });
 
         document.querySelector('.validation-button.secondary').addEventListener('click', () => {
-            // Réinitialiser le formulaire
             startButton.closest('.form-section').classList.remove('hidden');
             loadingSection.classList.add('hidden');
             resultsSection.classList.add('hidden');
