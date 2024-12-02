@@ -246,14 +246,14 @@
     <nav class="nav-blur fixed w-full z-50">
         <div class="max-w-5xl mx-auto px-4">
             <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <button class="text-[var(--brand-dark)] font-medium px-4 py-2 flex items-center gap-2">
+                <button class="text-[var(--brand-dark)] font-medium px-4 py-2 flex items-center gap-2" onclick="window.location.href='documents.html'">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                     Retour
                 </button>
                 <span class="font-semibold">Patient (5/6)</span>
-                <button class="text-[var(--brand-light)] font-medium px-4 py-2">Suite</button>
+                <button class="text-[var(--brand-light)] font-medium px-4 py-2" onclick="window.location.href='treatment.html'">Suite</button>
             </div>
             <div class="progress-bar">
                 <div class="progress-bar-fill"></div>
@@ -337,10 +337,10 @@
                     En tant que professionnel de santé, vous pouvez valider ce diagnostic ou demander une nouvelle analyse.
                 </p>
                 <div class="space-y-4">
-                    <button class="validation-button">
+                    <button class="validation-button" onclick="window.location.href='treatment.html'">
                         Valider le diagnostic
                     </button>
-                    <button class="validation-button secondary">
+                    <button class="validation-button secondary" onclick="startAnalysis.click()">
                         Demander une nouvelle analyse
                     </button>
                 </div>
@@ -424,26 +424,49 @@
                 validationSection.classList.remove('hidden');
             }, 2000);
         });
-
+    
         // Gestion du modal
         const modal = document.getElementById('diagnosticModal');
         const diagnosticItems = document.querySelectorAll('.diagnostic-item');
         const modalClose = document.querySelector('.modal-close');
-
+    
         diagnosticItems.forEach(item => {
             item.addEventListener('click', () => {
                 modal.classList.add('visible');
             });
         });
-
+    
         modalClose.addEventListener('click', () => {
             modal.classList.remove('visible');
         });
-
+    
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.remove('visible');
             }
+        });
+    
+        // Navigation
+        document.querySelector('.text-[var(--brand-dark)]').addEventListener('click', () => {
+            window.location.href = 'documents.html';
+        });
+    
+        document.querySelector('.text-[var(--brand-light)]').addEventListener('click', () => {
+            window.location.href = 'treatment.html';
+        });
+    
+        // Gestion des boutons de validation
+        document.querySelector('.validation-button').addEventListener('click', () => {
+            window.location.href = 'treatment.html';
+        });
+    
+        document.querySelector('.validation-button.secondary').addEventListener('click', () => {
+            // Cacher les sections de résultats et validation
+            resultsSection.classList.add('hidden');
+            validationSection.classList.add('hidden');
+            
+            // Montrer la section initiale
+            startButton.closest('.form-section').classList.remove('hidden');
         });
     </script>
 </body>
