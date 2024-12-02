@@ -60,6 +60,7 @@
             background: white;
             -webkit-appearance: none;
             color: var(--brand-dark);
+            transition: all 0.3s ease;
         }
 
         .ios-input:focus {
@@ -75,13 +76,15 @@
         .start-button {
             background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
             border-radius: 12px;
-            padding: 12px 24px;
+            padding: 16px 32px;
             color: white;
             font-weight: 600;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
             box-shadow: var(--elevation-2);
+            border: none;
+            cursor: pointer;
         }
 
         .start-button::before {
@@ -125,69 +128,25 @@
             background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(55, 167, 196, 0.2);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
             transition: all 0.3s ease;
+        }
+
+        .diagnostic-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-2);
         }
 
         .diagnostic-item.primary {
             background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
             color: white;
             border: none;
+            box-shadow: var(--elevation-2);
         }
 
-        .diagnostic-item.primary .expand-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .diagnostic-item.primary .expand-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .expand-button {
-            background: rgba(55, 167, 196, 0.1);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: var(--brand-dark);
-            margin-top: 12px;
-            width: 100%;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .expand-button:hover {
-            background: rgba(55, 167, 196, 0.15);
-        }
-
-        .diagnostic-details {
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.3s ease-out;
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        .diagnostic-details.expanded {
-            max-height: 1000px;
-            opacity: 1;
-            transform: translateY(0);
-            margin-top: 16px;
-        }
-
-        .details-section {
-            border-left: 3px solid var(--brand-light);
-            padding-left: 16px;
-            margin-top: 12px;
-        }
-
-        .diagnostic-item.primary .details-section {
-            border-left-color: rgba(255, 255, 255, 0.5);
+        .diagnostic-item.primary:hover {
+            box-shadow: var(--elevation-3);
         }
 
         .probability-bar {
@@ -212,6 +171,65 @@
             background: white;
         }
 
+        .expand-button {
+            background: rgba(55, 167, 196, 0.1);
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            color: var(--brand-dark);
+            margin-top: 16px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .expand-button:hover {
+            background: rgba(55, 167, 196, 0.15);
+        }
+
+        .diagnostic-item.primary .expand-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .diagnostic-item.primary .expand-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .diagnostic-details {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease-out;
+        }
+
+        .diagnostic-details.expanded {
+            max-height: 1000px;
+            opacity: 1;
+            transform: translateY(0);
+            margin-top: 20px;
+        }
+
+        .details-section {
+            border-left: 3px solid var(--brand-light);
+            padding-left: 16px;
+            margin-top: 20px;
+        }
+
+        .diagnostic-item.primary .details-section {
+            border-left-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .details-section:first-child {
+            margin-top: 0;
+        }
+
         .progress-bar {
             height: 3px;
             background: rgba(55, 167, 196, 0.1);
@@ -230,6 +248,7 @@
             border-radius: 8px;
             color: var(--brand-dark);
             font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .nav-button.primary {
@@ -279,6 +298,7 @@
             background: transparent;
             border: 2px solid var(--brand-light);
             color: var(--brand-dark);
+            box-shadow: none;
         }
 
         .validation-button.secondary::before {
@@ -287,7 +307,6 @@
 
         .validation-button.secondary:hover {
             background: rgba(55, 167, 196, 0.05);
-            transform: translateY(-2px);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -318,6 +337,7 @@
 
             .diagnostic-item {
                 background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(55, 167, 196, 0.2);
             }
 
             .expand-button {
@@ -420,172 +440,3 @@
             </div>
         </div>
     </main>
-
-    <script>
-        const startButton = document.getElementById('startAnalysis');
-        const remarksSection = document.getElementById('remarksSection');
-        const loadingSection = document.getElementById('loadingSection');
-        const resultsSection = document.getElementById('resultsSection');
-        const validationSection = document.getElementById('validationSection');
-        const diagnosticResults = document.getElementById('diagnosticResults');
-
-        function createDiagnosticItem(diagnosis) {
-            return `
-                <div class="diagnostic-item ${diagnosis.primary ? 'primary' : ''}">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-medium">${diagnosis.name}</h3>
-                        <span class="font-semibold">${diagnosis.probability}%</span>
-                    </div>
-                    <div class="probability-bar">
-                        <div class="probability-bar-fill" style="width: ${diagnosis.probability}%"></div>
-                    </div>
-                    
-                    <button class="expand-button mt-4" onclick="toggleDetails(this)">
-                        <span>Voir les détails</span>
-                        <svg class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-                    
-                    <div class="diagnostic-details">
-                        <div class="details-section">
-                            <h4 class="font-semibold mb-2">Rationnel du diagnostic</h4>
-                            <p class="text-sm opacity-80">${diagnosis.rationale}</p>
-                        </div>
-                        
-                        <div class="details-section">
-                            <h4 class="font-semibold mb-2">Tests kinésithérapiques recommandés</h4>
-                            ${diagnosis.tests.map(test => `
-                                <div class="bg-opacity-50 rounded-lg p-3 mb-2">
-                                    <h5 class="font-medium">${test.name}</h5>
-                                    <p class="text-sm opacity-70">${test.description}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                        
-                        <div class="details-section">
-                            <h4 class="font-semibold mb-2">Examens complémentaires conseillés</h4>
-                            ${diagnosis.examinations.map(exam => `
-                                <div class="bg-opacity-50 rounded-lg p-3 mb-2">
-                                    <h5 class="font-medium">${exam.name}</h5>
-                                    <p class="text-sm opacity-70">${exam.description}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function toggleDetails(button) {
-            const details = button.nextElementSibling;
-            details.classList.toggle('expanded');
-            const text = button.querySelector('span');
-            text.textContent = details.classList.contains('expanded') ? 'Masquer les détails' : 'Voir les détails';
-            const icon = button.querySelector('svg');
-            icon.style.transform = details.classList.contains('expanded') ? 'rotate(180deg)' : '';
-        }
-
-        startButton.addEventListener('click', () => {
-            remarksSection.classList.add('hidden');
-            loadingSection.classList.remove('hidden');
-
-            setTimeout(() => {
-                loadingSection.classList.add('hidden');
-                resultsSection.classList.remove('hidden');
-                validationSection.classList.remove('hidden');
-
-                // Données de diagnostic
-                const diagnostics = [
-                    {
-                        name: "Tendinopathie de la coiffe des rotateurs",
-                        probability: 85,
-                        primary: true,
-                        rationale: "Douleur à l'abduction active, limitation des amplitudes, âge et activités du patient cohérents avec le diagnostic.",
-                        tests: [
-                            {
-                                name: "Test de Jobe",
-                                description: "Évaluation de la fonction du muscle supra-épineux"
-                            },
-                            {
-                                name: "Test de Neer",
-                                description: "Recherche d'un conflit sous-acromial"
-                            },
-                            {
-                                name: "Palm up test",
-                                description: "Évaluation du tendon du long biceps"
-                            }
-                        ],
-                        examinations: [
-                            {
-                                name: "Échographie",
-                                description: "Pour visualiser l'état des tendons et la présence d'inflammation"
-                            },
-                            {
-                                name: "IRM",
-                                description: "Si suspicion de rupture tendineuse"
-                            }
-                        ]
-                    },
-                    {
-                        name: "Capsulite rétractile",
-                        probability: 45,
-                        primary: false,
-                        rationale: "Limitation progressive des amplitudes articulaires, douleur nocturne, mais pattern de limitation différent du diagnostic principal.",
-                        tests: [
-                            {
-                                name: "Test de mobilité passive",
-                                description: "Évaluation des limitations capsulaires dans tous les plans"
-                            },
-                            {
-                                name: "Test de rotation externe",
-                                description: "Évaluation spécifique de la limitation en rotation externe"
-                            }
-                        ],
-                        examinations: [
-                            {
-                                name: "Arthroscanner",
-                                description: "Pour évaluer les modifications capsulaires"
-                            }
-                        ]
-                    },
-                    {
-                        name: "Bursite sous-acromiale",
-                        probability: 30,
-                        primary: false,
-                        rationale: "Douleur à la pression sous-acromiale, mais symptômes moins spécifiques que le diagnostic principal.",
-                        tests: [
-                            {
-                                name: "Test de Hawkins",
-                                description: "Recherche d'un conflit sous-acromial"
-                            }
-                        ],
-                        examinations: [
-                            {
-                                name: "Échographie",
-                                description: "Pour visualiser l'état de la bourse sous-acromiale"
-                            }
-                        ]
-                    }
-                ];
-
-                // Afficher les résultats
-                diagnosticResults.innerHTML = diagnostics.map(d => createDiagnosticItem(d)).join('');
-            }, 2000);
-        });
-
-        // Gestion de la validation
-        document.querySelector('.validation-button').addEventListener('click', () => {
-            window.location.href = 'treatment.html';
-        });
-
-        document.querySelector('.validation-button.secondary').addEventListener('click', () => {
-            remarksSection.classList.remove('hidden');
-            loadingSection.classList.add('hidden');
-            resultsSection.classList.add('hidden');
-            validationSection.classList.add('hidden');
-            document.getElementById('remarks').value = '';
-        });
-    </script>
-</body>
-</html>
