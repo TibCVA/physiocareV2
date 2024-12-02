@@ -160,21 +160,21 @@
 </head>
 <body>
   <nav class="nav-blur fixed w-full z-50">
-    <div class="max-w-5xl mx-auto px-4">
-      <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-        <button class="nav-button flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-          </svg>
-          Retour
-        </button>
-        <span class="font-semibold">Patient (2/4)</span>
-        <button class="nav-button primary" onclick="window.location.href='symptoms.html'">Suivant</button>
+      <div class="max-w-5xl mx-auto px-4">
+          <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+              <a href="patient-info.html" class="nav-button flex items-center gap-2">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                  </svg>
+                  Retour
+              </a>
+              <span class="font-semibold">Patient (2/6)</span>
+              <a href="symptoms.html" class="nav-button primary">Suivant</a>
+          </div>
+          <div class="progress-bar">
+              <div class="progress-bar-fill"></div>
+          </div>
       </div>
-      <div class="progress-bar">
-        <div class="progress-bar-fill"></div>
-      </div>
-    </div>
   </nav>
 
   <main class="pt-[calc(44px+var(--safe-top)+20px)] pb-[calc(20px+var(--safe-bottom))] px-6">
