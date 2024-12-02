@@ -1,1 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#37A7C4">
+  <title>PhysioCare - Symptômes</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --brand-light: #37A7C4;
+      --brand-medium: #2C89A0;
+      --brand-dark: #1E5F6E;
+      --pure-white: #FFFFFF;
+      --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
+      --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
+      --safe-top: env(safe-area-inset-top, 47px);
+      --safe-bottom: env(safe-area-inset-bottom, 34px);
+      --dynamic-island-padding: 59px;
+    }
+
+    /* Styles de base identiques au précédent */
+    body {
+      background: #F5F9FA;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .nav-blur {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+    }
+
+    .ios-input {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(55, 167, 196, 0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .ios-input:focus {
+      background: white;
+      border-color: var(--brand-light);
+      box-shadow: 0 0 0 4px rgba(55, 167, 196, 0.1);
+      outline: none;
+    }
+
+    .ios-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--brand-dark);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-section {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--elevation-1);
+      border: 1px solid rgba(55, 167, 196, 0.1);
+    }
+
+    .intensity-selector {
+      display: flex;
+      gap: 8px;
+      padding: 4px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      border: 1px solid rgba(55, 167, 196, 0.2);
+    }
+
+    .intensity-option {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .intensity-option.selected {
+      background: var(--brand-light);
+      color: white;
+    }
+
+    .pain-level {
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(55, 167, 196, 0.1);
+      outline: none;
+    }
+
+    .pain-level::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(55, 167, 196, 0.2);
+    }
+
+    .progress-bar {
+      height: 3px;
+      background: rgba(55, 167, 196, 0.1);
+      margin: 8px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 75%;
+      background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
+      transition: width 0.3s ease;
+    }
+
+    .nav-button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: var(--brand-dark);
+      font-weight: 500;
+    }
+
+    .nav-button.primary {
+      color: var(--brand-light);
+      font-weight: 600;
+    }
+
+    .body-part-option {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(55, 167, 196, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 8px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .body-part-option.selected {
+      border-color: var(--brand-light);
+      background: rgba(55, 167, 196, 0.05);
+    }
+
+    .body-part-option .checkmark {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .body-part-option.selected .checkmark {
+      opacity: 1;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0A1214;
+        color: white;
+      }
+
+      .nav-blur {
+        background: rgba(10, 18, 20, 0.85);
+        border-bottom-color: rgba(55, 167, 196, 0.2);
+      }
+
+      .form-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(55, 167, 196, 0.2);
+      }
+
+      .ios-input {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: rgba(55, 167, 196, 0.3);
+      }
+
+      .ios-input:focus {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .intensity-selector {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(55, 167, 196, 0.3);
+      }
+
+      .ios-label {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .body-part-option {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(55, 167, 196, 0.3);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-blur fixed w-full z-50">
+    <div class="max-w-5xl mx-auto px-4">
+      <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+        <button class="nav-button flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Retour
+        </button>
+        <span class="font-semibold">Patient (3/4)</span>
+        <button class="nav-button primary">Suivant</button>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill"></div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-[calc(44px+var(--safe-top)+20px)] pb-[calc(20px+var(--safe-bottom))] px-6">
+    <div class="max-w-xl mx-auto space-y-6">
+      <div class="form-section">
+        <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Localisation de la douleur</h2>
+        <div class="space-y-3">
+          <div class="body-part-option">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="font-medium mb-1">Cervicales</h3>
+                <p class="text-sm opacity-70">Nuque et haut du dos</p>
+              </div>
+              <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="body-part-option">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="font-medium mb-1">Dorsales</h3>
+                <p class="text-sm opacity-70">Milieu du dos</p>
+              </div>
+              <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="body-part-option">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="font-medium mb-1">Lombaires</h3>
+                <p class="text-sm opacity-70">Bas du dos</p>
+              </div>
+              <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="body-part-option">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="font-medium mb-1">Membres supérieurs</h3>
+                <p class="text-sm opacity-70">Épaules, bras, coudes, poignets</p>
+              </div>
+              <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="body-part-option">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="font-medium mb-1">Membres inférieurs</h3>
+                <p class="text-sm opacity-70">Hanches, genoux, chevilles</p>
+              </div>
+              <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Intensité de la douleur</h2>
+        <div class="space-y-6">
+          <div>
+            <label class="ios-label">Niveau de douleur (1-10)</label>
+            <input type="range" class="pain-level" min="1" max="10" value="5">
+            <div class="flex justify-between text-sm opacity-70 mt-2">
+              <span>Légère</span>
+              <span>Modérée</span>
+              <span>Intense</span>
+            </div>
+          </div>
+          <div>
+            <label class="ios-label">Type de douleur</label>
+            <div class="intensity-selector">
+              <div class="intensity-option">Continue</div>
+              <div class="intensity-option selected">Intermittente</div>
+              <div class="intensity-option">Ponctuelle</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Description des symptômes</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="ios-label">Depuis quand ?</label>
+            <div class="intensity-selector">
+              <div class="intensity-option">&lt; 1 semaine</div>
+              <div class="intensity-option selected">1-4 semaines</div>
+              <div class="intensity-option">&gt; 1 mois</div>
+            </div>
+          </div>
+          <div>
+            <label class="ios-label">Description détaillée</label>
+            <textarea class="ios-input w-full h-32 resize-none" placeholder="Décrivez vos symptômes, leur évolution, les circonstances d'apparition..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Gestion des body-part options avec multi-sélection
+    const bodyPartOptions = document.querySelectorAll('.body-part-option');
+
+    bodyPartOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        option.classList.toggle('selected');
+      });
+    });
+
+    // Gestion des intensity options
+    document.querySelectorAll('.intensity-selector').forEach(selector => {
+      selector.querySelectorAll('.intensity-option').forEach(option => {
+        option.addEventListener('click', () => {
+          selector.querySelectorAll('.intensity-option').forEach(o => {
+            o.classList.remove('selected');
+          });
+          option.classList.add('selected');
+        });
+      });
+    });
+
+    // Gestion du slider de douleur
+    const painLevel = document.querySelector('.pain-level');
+    painLevel.addEventListener('input', (e) => {
+      // Possibilité d'ajouter une visualisation du niveau
+      console.log('Niveau de douleur:', e.target.value);
+    });
+  </script>
+</body>
+</html>
 
