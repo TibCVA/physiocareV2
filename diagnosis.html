@@ -1,10 +1,84 @@
 <!DOCTYPE html>
 <html lang="fr">
-<!-- ... Head avec styles existants ... -->
 <head>
-    <!-- Styles existants... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#37A7C4">
+    <title>PhysioCare - Analyse & Diagnostic</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        /* Ajouter ces nouveaux styles en plus des styles existants */
+        :root {
+            --brand-light: #37A7C4;
+            --brand-medium: #2C89A0;
+            --brand-dark: #1E5F6E;
+            --pure-white: #FFFFFF;
+            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
+            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
+            --safe-top: env(safe-area-inset-top, 47px);
+            --safe-bottom: env(safe-area-inset-bottom, 34px);
+        }
+
+        body {
+            background: #F5F9FA;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .nav-blur {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--elevation-1);
+            border: 1px solid rgba(55, 167, 196, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ios-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(55, 167, 196, 0.2);
+            border-radius: 12px;
+            margin: 8px 0;
+            font-size: 16px;
+            background: white;
+            -webkit-appearance: none;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: var(--elevation-2);
+        }
+
+        .loading-ring {
+            width: 64px;
+            height: 64px;
+            border: 4px solid rgba(55, 167, 196, 0.1);
+            border-left-color: var(--brand-light);
+            border-radius: 50%;
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Styles pour les éléments de diagnostic */
         .diagnostic-item {
             background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(55, 167, 196, 0.2);
@@ -12,23 +86,27 @@
             padding: 20px;
             margin-bottom: 12px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .diagnostic-item.primary {
             background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
             color: white;
-            border: none;
         }
 
         .diagnostic-details {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out;
-            margin-top: 0;
+            opacity: 0;
+            transform: translateY(-10px);
         }
 
         .diagnostic-details.expanded {
             max-height: 1000px;
+            opacity: 1;
+            transform: translateY(0);
+            transition: max-height 0.3s ease-in, opacity 0.3s ease-in, transform 0.3s ease-in;
             margin-top: 16px;
         }
 
@@ -36,34 +114,6 @@
             border-left: 3px solid var(--brand-light);
             padding-left: 16px;
             margin-top: 12px;
-        }
-
-        .details-section h4 {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--brand-dark);
-        }
-
-        .test-item {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 8px;
-        }
-
-        .expand-button {
-            background: rgba(55, 167, 196, 0.1);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: var(--brand-dark);
-            margin-top: 12px;
-            width: 100%;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .probability-bar {
@@ -80,28 +130,110 @@
             transition: width 1s ease;
         }
 
+        .progress-bar {
+            height: 3px;
+            background: rgba(55, 167, 196, 0.1);
+            margin: 8px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 83.33%;
+            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
+            transition: width 0.3s ease;
+        }
+
+        .nav-button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--brand-dark);
+            font-weight: 500;
+        }
+
+        .nav-button.primary {
+            color: var(--brand-light);
+            font-weight: 600;
+        }
+
+        .expand-button {
+            background: rgba(55, 167, 196, 0.1);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            color: var(--brand-dark);
+            margin-top: 12px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .expand-button:hover {
+            background: rgba(55, 167, 196, 0.2);
+        }
+
         @media (prefers-color-scheme: dark) {
+            body {
+                background: #0A1214;
+                color: white;
+            }
+
+            .nav-blur {
+                background: rgba(10, 18, 20, 0.85);
+                border-bottom-color: rgba(55, 167, 196, 0.2);
+            }
+
+            .form-section {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(55, 167, 196, 0.2);
+            }
+
             .diagnostic-item {
                 background: rgba(255, 255, 255, 0.1);
             }
-            .details-section h4 {
-                color: rgba(255, 255, 255, 0.9);
+
+            .ios-input {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                border-color: rgba(55, 167, 196, 0.2);
             }
-            .test-item {
-                background: rgba(255, 255, 255, 0.05);
-            }
+
             .expand-button {
                 background: rgba(255, 255, 255, 0.1);
                 color: rgba(255, 255, 255, 0.9);
+            }
+
+            .expand-button:hover {
+                background: rgba(255, 255, 255, 0.15);
             }
         }
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Navigation reste identique -->
+    <nav class="nav-blur fixed w-full z-50">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+                <a href="documents.html" class="nav-button flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Retour
+                </a>
+                <span class="font-semibold">Patient (5/6)</span>
+                <a href="treatment.html" class="nav-button primary">Suivant</a>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill"></div>
+            </div>
+        </div>
+    </nav>
 
     <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
         <div class="max-w-xl mx-auto space-y-6">
+            <!-- Section remarques -->
             <div class="form-section">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
                     Remarques du kinésithérapeute
@@ -115,9 +247,20 @@
                 </div>
             </div>
 
-            <!-- Section loading identique -->
+            <!-- Section loading -->
+            <div class="form-section hidden" id="loadingSection">
+                <div class="text-center py-8">
+                    <div class="loading-ring mx-auto mb-6"></div>
+                    <h2 class="text-lg font-semibold text-[var(--brand-dark)]">
+                        Analyse des données en cours
+                    </h2>
+                    <p class="text-sm opacity-70 mt-2">
+                        Corrélation des symptômes et données patient
+                    </p>
+                </div>
+            </div>
 
-            <!-- Section résultats modifiée -->
+            <!-- Section résultats -->
             <div class="form-section hidden" id="resultsSection">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
                     Diagnostic différentiel
@@ -127,12 +270,33 @@
                 </div>
             </div>
 
-            <!-- Section validation identique -->
+            <!-- Section validation -->
+            <div class="form-section hidden" id="validationSection">
+                <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
+                    Validation professionnelle
+                </h2>
+                <p class="text-sm opacity-70 mb-6">
+                    En tant que professionnel de santé, vous pouvez valider ce diagnostic ou demander une nouvelle analyse.
+                </p>
+                <div class="space-y-4">
+                    <button class="validation-button">
+                        Valider le diagnostic
+                    </button>
+                    <button class="validation-button secondary">
+                        Demander une nouvelle analyse
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
-        // ... Code JavaScript existant ...
+        const startButton = document.getElementById('startAnalysis');
+        const remarksTextarea = document.getElementById('remarks');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const validationSection = document.getElementById('validationSection');
+        const diagnosticResults = document.getElementById('diagnosticResults');
 
         function createDiagnosticItem(diagnosis) {
             return `
@@ -147,21 +311,21 @@
                     
                     <button class="expand-button mt-4" onclick="toggleDetails(this)">
                         <span>Voir les détails</span>
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </button>
                     
                     <div class="diagnostic-details">
                         <div class="details-section">
-                            <h4>Rationnel du diagnostic</h4>
-                            <p>${diagnosis.rationale}</p>
+                            <h4 class="font-semibold mb-2">Rationnel du diagnostic</h4>
+                            <p class="text-sm opacity-80">${diagnosis.rationale}</p>
                         </div>
                         
                         <div class="details-section">
-                            <h4>Tests kinésithérapiques recommandés</h4>
+                            <h4 class="font-semibold mb-2">Tests kinésithérapiques recommandés</h4>
                             ${diagnosis.tests.map(test => `
-                                <div class="test-item">
+                                <div class="bg-opacity-50 rounded-lg p-3 mb-2">
                                     <h5 class="font-medium">${test.name}</h5>
                                     <p class="text-sm opacity-70">${test.description}</p>
                                 </div>
@@ -169,9 +333,9 @@
                         </div>
                         
                         <div class="details-section">
-                            <h4>Examens complémentaires conseillés</h4>
+                            <h4 class="font-semibold mb-2">Examens complémentaires conseillés</h4>
                             ${diagnosis.examinations.map(exam => `
-                                <div class="test-item">
+                                <div class="bg-opacity-50 rounded-lg p-3 mb-2">
                                     <h5 class="font-medium">${exam.name}</h5>
                                     <p class="text-sm opacity-70">${exam.description}</p>
                                 </div>
@@ -191,14 +355,13 @@
             icon.style.transform = details.classList.contains('expanded') ? 'rotate(180deg)' : '';
         }
 
-        // Modification de la partie qui gère l'affichage des résultats
         startButton.addEventListener('click', () => {
             if (!remarksTextarea.value.trim()) {
                 alert('Veuillez ajouter vos observations avant de lancer l\'analyse.');
                 return;
             }
 
-            startButton.closest('.form-section').classList.add('hidden');
+        startButton.closest('.form-section').classList.add('hidden');
             loadingSection.classList.remove('hidden');
 
             setTimeout(() => {
@@ -206,7 +369,7 @@
                 resultsSection.classList.remove('hidden');
                 validationSection.classList.remove('hidden');
 
-                // Exemple de données de diagnostic
+                // Données de diagnostic d'exemple
                 const diagnostics = [
                     {
                         name: "Tendinopathie de la coiffe des rotateurs",
@@ -221,6 +384,10 @@
                             {
                                 name: "Test de Neer",
                                 description: "Recherche d'un conflit sous-acromial"
+                            },
+                            {
+                                name: "Palm up test",
+                                description: "Évaluation du tendon du long biceps"
                             }
                         ],
                         examinations: [
@@ -234,11 +401,66 @@
                             }
                         ]
                     },
-                    // Ajoutez d'autres diagnostics...
+                    {
+                        name: "Capsulite rétractile",
+                        probability: 45,
+                        primary: false,
+                        rationale: "Limitation progressive des amplitudes articulaires, douleur nocturne, mais pattern de limitation différent du diagnostic principal.",
+                        tests: [
+                            {
+                                name: "Test de mobilité passive",
+                                description: "Évaluation des limitations capsulaires dans tous les plans"
+                            },
+                            {
+                                name: "Test de rotation externe",
+                                description: "Évaluation spécifique de la limitation en rotation externe"
+                            }
+                        ],
+                        examinations: [
+                            {
+                                name: "Arthroscanner",
+                                description: "Pour évaluer les modifications capsulaires"
+                            }
+                        ]
+                    },
+                    {
+                        name: "Bursite sous-acromiale",
+                        probability: 30,
+                        primary: false,
+                        rationale: "Douleur à la pression sous-acromiale, mais symptômes moins spécifiques que le diagnostic principal.",
+                        tests: [
+                            {
+                                name: "Test de Hawkins",
+                                description: "Recherche d'un conflit sous-acromial"
+                            }
+                        ],
+                        examinations: [
+                            {
+                                name: "Échographie",
+                                description: "Pour visualiser l'état de la bourse sous-acromiale"
+                            }
+                        ]
+                    }
                 ];
 
+                // Afficher les résultats
                 diagnosticResults.innerHTML = diagnostics.map(d => createDiagnosticItem(d)).join('');
             }, 2000);
+        });
+
+        // Gestion de la validation
+        document.querySelector('.validation-button').addEventListener('click', () => {
+            // Redirection vers la page de traitement
+            window.location.href = 'treatment.html';
+        });
+
+        document.querySelector('.validation-button.secondary').addEventListener('click', () => {
+            // Réinitialiser le formulaire
+            startButton.closest('.form-section').classList.remove('hidden');
+            loadingSection.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            validationSection.classList.add('hidden');
+            remarksTextarea.value = '';
         });
     </script>
 </body>
