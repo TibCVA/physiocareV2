@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -132,35 +131,6 @@
             opacity: 1;
         }
 
-        .profession-option {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .profession-option:hover {
-            background: rgba(55, 167, 196, 0.05);
-            transform: translateX(4px);
-        }
-
-        .profession-option.selected {
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        .profession-option .checkmark {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .profession-option.selected .checkmark {
-            opacity: 1;
-        }
-
         .progress-bar {
             height: 3px;
             background: rgba(55, 167, 196, 0.1);
@@ -208,14 +178,12 @@
                 border-color: rgba(55, 167, 196, 0.2);
             }
 
-            .activity-option,
-            .profession-option {
+            .activity-option {
                 background: rgba(255, 255, 255, 0.1);
                 border-color: rgba(55, 167, 196, 0.3);
             }
 
-            .activity-option:hover,
-            .profession-option:hover {
+            .activity-option:hover {
                 background: rgba(55, 167, 196, 0.15);
             }
         }
@@ -327,46 +295,6 @@
                         placeholder="Décrivez vos objectifs sportifs, compétitions prévues..."></textarea>
                 </div>
             </div>
-
-            <!-- Section Type de profession -->
-            <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Type de profession</h2>
-                <div class="space-y-3" id="professions-container">
-                    <div class="profession-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Sans emploi</h3>
-                                <p class="text-sm opacity-70">En recherche d'emploi, étudiant, retraité...</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="profession-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Bureau, position assise</h3>
-                                <p class="text-sm opacity-70">Travail majoritairement sédentaire</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="profession-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Activité physiquement intense</h3>
-                                <p class="text-sm opacity-70">Profession nécessitant un effort physique régulier</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
 
@@ -408,16 +336,6 @@
             });
         });
 
-        // Gestion de la sélection unique pour le type de profession
-        const professionsContainer = document.getElementById('professions-container');
-        const professionOptions = professionsContainer.querySelectorAll('.profession-option');
-
-        professionOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                professionOptions.forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-            });
-        });
     </script>
 </body>
 </html>
