@@ -208,6 +208,7 @@
         save: function(key, data) {
             try {
                 localStorage.setItem(key, JSON.stringify(data));
+                console.log(`Données sauvegardées (${key}):`, data);
             } catch (e) {
                 console.error('Error saving data:', e);
             }
@@ -224,12 +225,12 @@
         }
     };
     
-    // Variables globales
+    // Récupération des éléments du DOM
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const documentList = document.getElementById('documentList');
     
-    // Gestion du drag & drop
+    // Configuration de la zone de drop
     dropZone.addEventListener('click', () => {
         fileInput.click();
     });
@@ -256,16 +257,20 @@
         handleFiles(fileInput.files);
     });
     
-    // Gestion des fichiers avec conversion base64
+    // Gestion des fichiers
     async function handleFiles(files) {
         for (const file of Array.from(files)) {
-            const fileData = await convertFileToBase64(file);
-            addDocumentToList(file, fileData);
-            saveCurrentData();
+            try {
+                const fileData = await convertFileToBase64(file);
+                addDocumentToList(file, fileData);
+                saveCurrentData();
+            } catch (error) {
+                console.error('Erreur lors du traitement du fichier:', error);
+            }
         }
     }
     
-    // Conversion des fichiers en base64
+    // Conversion d'un fichier en base64
     function convertFileToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -275,10 +280,11 @@
         });
     }
     
-    // Ajout des documents à la liste
-    function addDocumentToList(file, base64Data) {
+    // Ajout d'un document à la liste
+    function addDocumentToList(file, fileData) {
         const item = document.createElement('div');
         item.className = 'document-item';
+        
         const size = (file.size / (1024 * 1024)).toFixed(1);
         const type = file.type.includes('pdf') ? 'PDF' : 'Image';
         
@@ -300,7 +306,8 @@
             </button>
         `;
     
-        item.dataset.fileData = base64Data;
+        // Stocker les données du fichier
+        item.dataset.fileData = fileData;
         item.dataset.fileName = file.name;
         item.dataset.fileType = file.type;
     
@@ -308,32 +315,41 @@
             item.remove();
             saveCurrentData();
         });
-        
+    
         documentList.appendChild(item);
     }
     
-    // Chargement des données au démarrage
+    // Initialisation
     document.addEventListener('DOMContentLoaded', function() {
         loadSavedData();
-        setupNavigationListeners();
+        setupAdditionalListeners();
+        checkSavedData('patient_documents');
     });
     
-    // Charger les données sauvegardées
+    // Vérification des données sauvegardées
+    function checkSavedData(key) {
+        const saved = Storage.load(key);
+        console.log(`Données chargées (${key}):`, saved);
+    }
+    
+    // Chargement des données sauvegardées
     function loadSavedData() {
         const savedData = Storage.load('patient_documents');
+        console.log("Chargement des documents:", savedData);
+    
         if (savedData) {
-            // Restaurer la liste des documents
+            // Restaurer les documents
             if (savedData.documents) {
                 savedData.documents.forEach(doc => {
                     const file = {
                         name: doc.name,
                         type: doc.type,
-                        size: doc.size
+                        size: 0 // Taille non conservée
                     };
-                    addDocumentToList(file, doc.data);
+                    addDocumentToList(file, doc.fileData);
                 });
             }
-            
+    
             // Restaurer les notes
             if (savedData.notes) {
                 document.querySelector('textarea').value = savedData.notes;
@@ -341,46 +357,48 @@
         }
     }
     
-    // Configuration de la navigation
-    function setupNavigationListeners() {
-        // Gérer uniquement les boutons de navigation
+    // Configuration des écouteurs supplémentaires
+    function setupAdditionalListeners() {
+        // Écouter les changements des notes
+        const textarea = document.querySelector('textarea');
+        if (textarea) {
+            textarea.addEventListener('input', saveCurrentData);
+            textarea.addEventListener('change', saveCurrentData);
+            textarea.addEventListener('blur', saveCurrentData);
+        }
+    
+        // Navigation
         const prevButton = document.querySelector('a[href="symptoms.html"]');
         const nextButton = document.querySelector('a[href="diagnosis.html"]');
-        
+    
         if (prevButton) {
-            prevButton.addEventListener('click', function(e) {
-                e.preventDefault();
+            prevButton.addEventListener('click', function() {
                 saveCurrentData();
-                window.location.href = this.href;
-            });
-        }
-        
-        if (nextButton) {
-            nextButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                saveCurrentData();
-                window.location.href = this.href;
             });
         }
     
-        // Sauvegarder lors de la modification du textarea
-        document.querySelector('textarea').addEventListener('input', saveCurrentData);
+        if (nextButton) {
+            nextButton.addEventListener('click', function() {
+                saveCurrentData();
+            });
+        }
     }
     
-    // Sauvegarder les données
+    // Sauvegarde des données
     function saveCurrentData() {
-        const documents = Array.from(documentList.querySelectorAll('.document-item')).map(item => ({
-            name: item.dataset.fileName,
-            type: item.dataset.fileType,
-            data: item.dataset.fileData,
-            size: parseFloat(item.querySelector('.text-sm').textContent.split(' - ')[1])
-        }));
-    
         const data = {
-            documents: documents,
-            notes: document.querySelector('textarea').value
+            // Liste des documents
+            documents: Array.from(document.querySelectorAll('.document-item')).map(item => ({
+                name: item.dataset.fileName || '',
+                type: item.dataset.fileType || '',
+                fileData: item.dataset.fileData || ''
+            })),
+    
+            // Notes complémentaires
+            notes: document.querySelector('textarea')?.value || ''
         };
-        
+    
+        console.log("Sauvegarde des documents:", data);
         Storage.save('patient_documents', data);
     }
     </script>
