@@ -348,16 +348,37 @@
     </main>
 
     <script>
-        // Gestion des body-part options avec multi-sélection
+        // Utilitaires de stockage
+        const Storage = {
+            save: function(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    console.error('Error saving data:', e);
+                }
+            },
+            
+            load: function(key) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : null;
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                    return null;
+                }
+            }
+        };
+        
+        // Garder le code existant de gestion des parties du corps
         const bodyPartOptions = document.querySelectorAll('.body-part-option');
-
         bodyPartOptions.forEach(option => {
             option.addEventListener('click', () => {
                 option.classList.toggle('selected');
+                saveCurrentData(); // Ajouter sauvegarde après sélection
             });
         });
-
-        // Gestion des intensity options
+        
+        // Garder la gestion des intensity options avec sauvegarde
         document.querySelectorAll('.intensity-selector').forEach(selector => {
             selector.querySelectorAll('.intensity-option').forEach(option => {
                 option.addEventListener('click', () => {
@@ -365,14 +386,15 @@
                         o.classList.remove('selected');
                     });
                     option.classList.add('selected');
+                    saveCurrentData(); // Ajouter sauvegarde après sélection
                 });
             });
         });
-
-        // Gestion du slider de douleur avec affichage de la valeur
+        
+        // Garder la gestion du slider de douleur avec sauvegarde
         const painLevel = document.querySelector('.pain-level');
         const painValue = document.getElementById('painValue');
-
+        
         painLevel.addEventListener('input', (e) => {
             const value = e.target.value;
             painValue.textContent = `${value}/10`;
@@ -388,7 +410,100 @@
             } else {
                 labels[2].style.fontWeight = '600';
             }
+            
+            saveCurrentData(); // Ajouter sauvegarde après changement
         });
-    </script>
+        
+        // Charger les données au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            setupAdditionalListeners();
+        });
+        
+        // Fonction de chargement des données sauvegardées
+        function loadSavedData() {
+            const savedData = Storage.load('patient_symptoms');
+            if (savedData) {
+                // Restaurer les parties du corps sélectionnées
+                if (savedData.bodyParts) {
+                    savedData.bodyParts.forEach(part => {
+                        bodyPartOptions.forEach(option => {
+                            if (option.querySelector('h3').textContent === part) {
+                                option.classList.add('selected');
+                            }
+                        });
+                    });
+                }
+                
+                // Restaurer la durée et le type de douleur
+                if (savedData.duration) {
+                    document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                        if (index === 0) { // Premier sélecteur (durée)
+                            selector.querySelectorAll('.intensity-option').forEach(option => {
+                                if (option.textContent === savedData.duration) {
+                                    option.classList.add('selected');
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                if (savedData.painType) {
+                    document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                        if (index === 1) { // Deuxième sélecteur (type de douleur)
+                            selector.querySelectorAll('.intensity-option').forEach(option => {
+                                if (option.textContent === savedData.painType) {
+                                    option.classList.add('selected');
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                // Restaurer le niveau de douleur
+                if (savedData.painLevel) {
+                    painLevel.value = savedData.painLevel;
+                    // Déclencher l'événement input pour mettre à jour l'affichage
+                    const event = new Event('input');
+                    painLevel.dispatchEvent(event);
+                }
+                
+                // Restaurer la description
+                if (savedData.description) {
+                    document.querySelector('textarea').value = savedData.description;
+                }
+            }
+        }
+        
+        // Configuration des écouteurs supplémentaires
+        function setupAdditionalListeners() {
+            // Sauvegarder lors de la modification du textarea
+            document.querySelector('textarea').addEventListener('input', saveCurrentData);
+            
+            // Intercepter la navigation
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    saveCurrentData();
+                    window.location.href = this.href;
+                });
+            });
+        }
+        
+        // Fonction de sauvegarde des données
+        function saveCurrentData() {
+            const data = {
+                bodyParts: Array.from(document.querySelectorAll('.body-part-option.selected')).map(
+                    el => el.querySelector('h3').textContent
+                ),
+                duration: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
+                painType: document.querySelector('.intensity-selector:last-child .intensity-option.selected')?.textContent || '',
+                painLevel: painLevel.value,
+                description: document.querySelector('textarea').value
+            };
+            
+            Storage.save('patient_symptoms', data);
+        }
+        </script>
 </body>
 </html>
