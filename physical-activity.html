@@ -320,12 +320,12 @@
         }
     };
     
-    // Garder le code existant de gestion des activités
+    // Code existant de gestion des activités
     const activitiesContainer = document.getElementById('activities-container');
     const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
     const noActivityOption = activitiesContainer.querySelector('[data-no-activity]');
     
-    // Modifier les gestionnaires d'événements pour inclure la sauvegarde
+    // Gestion des activités avec sauvegarde
     activityOptions.forEach(option => {
         option.addEventListener('click', () => {
             const isNoActivity = option.hasAttribute('data-no-activity');
@@ -341,12 +341,12 @@
             }
             option.classList.toggle('selected');
             
-            // Sauvegarder après chaque sélection
+            // Sauvegarder après modification
             saveCurrentData();
         });
     });
     
-    // Modifier la gestion des intensity options pour inclure la sauvegarde
+    // Gestion des intensity options avec sauvegarde
     document.querySelectorAll('.intensity-selector').forEach(selector => {
         selector.querySelectorAll('.intensity-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -355,7 +355,7 @@
                 });
                 option.classList.add('selected');
                 
-                // Sauvegarder après chaque sélection
+                // Sauvegarder après modification
                 saveCurrentData();
             });
         });
@@ -372,20 +372,19 @@
         const savedData = Storage.load('patient_physical_activity');
         if (savedData) {
             // Restaurer les activités sélectionnées
-            if (savedData.activities) {
-                savedData.activities.forEach(activity => {
-                    activityOptions.forEach(option => {
-                        if (option.querySelector('h3')?.textContent === activity) {
-                            option.classList.add('selected');
-                        }
-                    });
+            if (savedData.activities && savedData.activities.length > 0) {
+                activityOptions.forEach(option => {
+                    const activityName = option.querySelector('h3')?.textContent;
+                    if (savedData.activities.includes(activityName)) {
+                        option.classList.add('selected');
+                    }
                 });
             }
             
-            // Restaurer la fréquence et l'intensité
+            // Restaurer la fréquence
             if (savedData.frequency) {
                 document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                    if (index === 0) { // Premier sélecteur (fréquence)
+                    if (index === 0) {
                         selector.querySelectorAll('.intensity-option').forEach(option => {
                             if (option.textContent === savedData.frequency) {
                                 option.classList.add('selected');
@@ -395,9 +394,10 @@
                 });
             }
             
+            // Restaurer l'intensité
             if (savedData.intensity) {
                 document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                    if (index === 1) { // Deuxième sélecteur (intensité)
+                    if (index === 1) {
                         selector.querySelectorAll('.intensity-option').forEach(option => {
                             if (option.textContent === savedData.intensity) {
                                 option.classList.add('selected');
@@ -414,19 +414,30 @@
         }
     }
     
-    // Configuration des écouteurs supplémentaires
+    // Configuration des écouteurs additionnels
     function setupAdditionalListeners() {
         // Sauvegarder lors de la modification du textarea
         document.querySelector('textarea').addEventListener('input', saveCurrentData);
         
-        // Intercepter la navigation
-        document.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function(e) {
+        // Gestion des boutons de navigation
+        const prevButton = document.querySelector('a[href="patient-info.html"]');
+        const nextButton = document.querySelector('a[href="symptoms.html"]');
+        
+        if (prevButton) {
+            prevButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 saveCurrentData();
                 window.location.href = this.href;
             });
-        });
+        }
+        
+        if (nextButton) {
+            nextButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
+            });
+        }
     }
     
     // Fonction de sauvegarde des données
