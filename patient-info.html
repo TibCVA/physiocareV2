@@ -280,26 +280,131 @@
     </main>
 
     <script>
-        // Gestion des sélections de genre
-        document.querySelectorAll('.frequency-control').forEach(control => {
-            const options = control.querySelectorAll('.frequency-option');
-            options.forEach(option => {
-                option.addEventListener('click', () => {
-                    options.forEach(o => o.classList.remove('selected'));
-                    option.classList.add('selected');
-                });
+    // Utilitaires de stockage
+    const Storage = {
+        save: function(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        },
+        
+        load: function(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                console.error('Error loading data:', e);
+                return null;
+            }
+        }
+    };
+    
+    // Préserver le code existant pour la gestion des sélections de genre
+    document.querySelectorAll('.frequency-control').forEach(control => {
+        const options = control.querySelectorAll('.frequency-option');
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                options.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                saveCurrentData(); // Ajouter la sauvegarde après la sélection
             });
         });
-
-        // Gestion de la sélection des professions
-        function selectProfession(element) {
-            // Retire la sélection de toutes les options
-            document.querySelectorAll('.profession-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            // Ajoute la sélection à l'option cliquée
-            element.classList.add('selected');
+    });
+    
+    // Préserver la fonction existante de sélection des professions avec sauvegarde
+    function selectProfession(element) {
+        document.querySelectorAll('.profession-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        saveCurrentData(); // Ajouter la sauvegarde après la sélection
+    }
+    
+    // Ajouter le chargement initial des données
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSavedData();
+        setupAdditionalListeners();
+    });
+    
+    // Charger les données sauvegardées
+    function loadSavedData() {
+        const savedData = Storage.load('patient_personal_info');
+        if (savedData) {
+            // Remplir les champs avec les données sauvegardées
+            document.querySelector('input[placeholder="Nom"]').value = savedData.lastName || '';
+            document.querySelector('input[placeholder="Prénom"]').value = savedData.firstName || '';
+            document.querySelector('input[type="date"]').value = savedData.birthDate || '';
+            
+            // Genre
+            if (savedData.gender) {
+                document.querySelectorAll('.frequency-option').forEach(option => {
+                    if (option.textContent === savedData.gender) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+            
+            // Mensurations
+            if (savedData.weight) {
+                document.querySelector('input[placeholder="70"]').value = savedData.weight;
+            }
+            if (savedData.height) {
+                document.querySelector('input[placeholder="175"]').value = savedData.height;
+            }
+            
+            // Antécédents
+            if (savedData.medicalHistory) {
+                document.querySelector('textarea').value = savedData.medicalHistory;
+            }
+            
+            // Profession
+            if (savedData.profession) {
+                document.querySelectorAll('.profession-option').forEach(option => {
+                    const title = option.querySelector('h3').textContent;
+                    if (title === savedData.profession) {
+                        option.classList.add('selected');
+                    }
+                });
+            }
         }
+    }
+    
+    // Configuration des écouteurs supplémentaires
+    function setupAdditionalListeners() {
+        // Sauvegarder lors de la modification des champs
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('change', saveCurrentData);
+            input.addEventListener('blur', saveCurrentData);
+        });
+        
+        // Intercepter la navigation
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
+            });
+        });
+    }
+    
+    // Sauvegarder les données actuelles
+    function saveCurrentData() {
+        const data = {
+            lastName: document.querySelector('input[placeholder="Nom"]').value,
+            firstName: document.querySelector('input[placeholder="Prénom"]').value,
+            birthDate: document.querySelector('input[type="date"]').value,
+            gender: document.querySelector('.frequency-option.selected')?.textContent || '',
+            weight: document.querySelector('input[placeholder="70"]').value,
+            height: document.querySelector('input[placeholder="175"]').value,
+            medicalHistory: document.querySelector('textarea').value,
+            profession: document.querySelector('.profession-option.selected')?.querySelector('h3')?.textContent || ''
+        };
+        
+        Storage.save('patient_personal_info', data);
+    }
     </script>
 </body>
 </html>
