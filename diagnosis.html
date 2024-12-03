@@ -441,31 +441,30 @@
     </main>
 
 <!-- Garder tout le HTML/CSS existant jusqu'au script -->
-
 <script>
     // Utilitaires de stockage
     const Storage = {
-        save: function(key, data) {
+        save: function (key, data) {
             try {
                 localStorage.setItem(key, JSON.stringify(data));
                 console.log(`Données sauvegardées (${key}):`, data);
             } catch (e) {
-                console.error('Error saving data:', e);
+                console.error('Erreur lors de la sauvegarde des données:', e);
             }
         },
-        
-        load: function(key) {
+
+        load: function (key) {
             try {
                 const item = localStorage.getItem(key);
                 return item ? JSON.parse(item) : null;
             } catch (e) {
-                console.error('Error loading data:', e);
+                console.error('Erreur lors du chargement des données:', e);
                 return null;
             }
         }
     };
 
-    // Fonction pour valider la réponse de l'API (Point 4)
+    // Fonction pour valider la réponse de l'API
     function validateApiResponse(response) {
         if (!response.diagnoses || !Array.isArray(response.diagnoses)) {
             throw new Error('Réponse API invalide : le champ "diagnoses" est absent ou mal formé.');
@@ -479,17 +478,62 @@
 
     // Fonction pour récupérer toutes les données patient
     function getAllPatientData() {
+        const patientDocuments = Storage.load('patient_documents') || {};
+        const documents = Array.isArray(patientDocuments.documents) ? patientDocuments.documents : [];
         return {
             personalInfo: Storage.load('patient_personal_info') || {},
             physicalActivity: Storage.load('patient_physical_activity') || {},
             symptoms: Storage.load('patient_symptoms') || {},
-            documents: Storage.load('patient_documents') || {},
+            documents: documents, // Assure un tableau
             remarks: document.getElementById('remarks')?.value || ''
         };
     }
 
+    // Fonction pour créer un élément de diagnostic
+    function createDiagnosticElement(diagnostic) {
+        const isPrimary = diagnostic.probability >= 80;
+        const div = document.createElement('div');
+        div.className = `diagnostic-item ${isPrimary ? 'primary' : ''}`;
+
+        div.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-semibold text-lg">${diagnostic.name}</h3>
+                    <p class="text-sm opacity-70">${diagnostic.shortDescription}</p>
+                </div>
+                <span class="font-semibold">${diagnostic.probability}%</span>
+            </div>
+            <div class="probability-bar">
+                <div class="probability-bar-fill" style="width: ${diagnostic.probability}%"></div>
+            </div>
+            <button class="expand-button" onclick="toggleDetails(this)">
+                Voir les détails
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+            <div class="diagnostic-details">
+                ${diagnostic.details.map(detail => `
+                    <div class="details-section">
+                        <h4 class="font-medium mb-2">${detail.title}</h4>
+                        <p class="text-sm opacity-80">${detail.content}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        return div;
+    }
+
+    // Fonction pour basculer l'affichage des détails
+    function toggleDetails(button) {
+        const details = button.nextElementSibling;
+        details.classList.toggle('expanded');
+        const svg = button.querySelector('svg');
+        svg.style.transform = details.classList.contains('expanded') ? 'rotate(180deg)' : '';
+    }
+
     // Gestionnaire du bouton d'analyse
-    document.getElementById('startAnalysis').addEventListener('click', async function() {
+    document.getElementById('startAnalysis').addEventListener('click', async function () {
         try {
             // Afficher le loader
             document.getElementById('remarksSection').classList.add('hidden');
@@ -499,7 +543,7 @@
             const allPatientData = getAllPatientData();
             console.log("Données pour l'analyse:", allPatientData);
 
-            // Point 2 : Préparer les messages pour l'API
+            // Préparer les messages pour l'API
             const messages = [
                 {
                     role: 'user',
@@ -518,18 +562,15 @@
             ];
             console.log("Messages préparés pour l'API :", JSON.stringify(messages, null, 2));
 
-            // Appel à l'API Claude (Point 3)
+            // Appel à l'API
             const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': 'votre_cle_API',
-                    'anthropic-beta': 'pdfs-2024-09-25'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'claude-3-5-sonnet-20241022',
-                    max_tokens: 8192,
-                    messages
+                    type: 'diagnosis',
+                    data: allPatientData
                 })
             });
 
@@ -543,7 +584,7 @@
             const data = await response.json();
             console.log("Réponse brute de l'API :", JSON.stringify(data, null, 2));
 
-            // Valider la réponse de l'API (Point 4)
+            // Valider la réponse de l'API
             validateApiResponse(data);
 
             // Masquer le loader
@@ -591,6 +632,8 @@
         Storage.save('patient_diagnosis', data);
     }
 </script>
+
+    
     
 </body>
 </html>
