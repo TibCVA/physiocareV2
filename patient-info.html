@@ -380,13 +380,18 @@
             input.addEventListener('blur', saveCurrentData);
         });
         
-        // Intercepter la navigation
-        document.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                saveCurrentData();
-                window.location.href = this.href;
-            });
+        // Gérer uniquement les boutons de navigation
+        const prevButton = document.querySelector('a[href="index.html"]');
+        const nextButton = document.querySelector('a[href="physical-activity.html"]');
+        
+        [prevButton, nextButton].forEach(button => {
+            if (button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    saveCurrentData();
+                    window.location.href = this.href;
+                });
+            }
         });
     }
     
