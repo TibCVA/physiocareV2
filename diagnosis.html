@@ -443,7 +443,28 @@
 <!-- Garder tout le HTML/CSS existant jusqu'au script -->
 
 <script>
-// Fonction pour créer un élément de diagnostic
+// Utilitaires de stockage
+const Storage = {
+    save: function(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify(data));
+        } catch (e) {
+            console.error('Error saving data:', e);
+        }
+    },
+    
+    load: function(key) {
+        try {
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : null;
+        } catch (e) {
+            console.error('Error loading data:', e);
+            return null;
+        }
+    }
+};
+
+// Garder la fonction de création d'élément de diagnostic
 function createDiagnosticElement(diagnostic) {
     const isPrimary = diagnostic.probability >= 80;
     const div = document.createElement('div');
@@ -478,7 +499,7 @@ function createDiagnosticElement(diagnostic) {
     return div;
 }
 
-// Fonction pour basculer l'affichage des détails
+// Garder la fonction de basculement des détails
 function toggleDetails(button) {
     const details = button.nextElementSibling;
     details.classList.toggle('expanded');
@@ -487,14 +508,92 @@ function toggleDetails(button) {
     svg.style.transform = details.classList.contains('expanded') ? 'rotate(180deg)' : '';
 }
 
-// Gestionnaire du clic sur le bouton d'analyse
+// Fonction pour récupérer toutes les données patient
+function getAllPatientData() {
+    return {
+        personalInfo: Storage.load('patient_personal_info') || {},
+        physicalActivity: Storage.load('patient_physical_activity') || {},
+        symptoms: Storage.load('patient_symptoms') || {},
+        documents: Storage.load('patient_documents') || {},
+        remarks: document.getElementById('remarks').value
+    };
+}
+
+// Charger les données au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedData();
+    setupAdditionalListeners();
+});
+
+// Fonction de chargement des données sauvegardées
+function loadSavedData() {
+    const savedData = Storage.load('patient_diagnosis');
+    if (savedData) {
+        // Restaurer les remarques
+        if (savedData.remarks) {
+            document.getElementById('remarks').value = savedData.remarks;
+        }
+        
+        // Restaurer les diagnostics si présents
+        if (savedData.diagnoses && savedData.diagnoses.length > 0) {
+            const diagnosticResults = document.getElementById('diagnosticResults');
+            diagnosticResults.innerHTML = '';
+            
+            savedData.diagnoses.forEach(diagnostic => {
+                diagnosticResults.appendChild(createDiagnosticElement(diagnostic));
+            });
+            
+            // Afficher les sections appropriées
+            document.getElementById('remarksSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('validationSection').classList.remove('hidden');
+        }
+    }
+}
+
+// Configuration des écouteurs supplémentaires
+function setupAdditionalListeners() {
+    // Sauvegarder lors de la modification des remarques
+    document.getElementById('remarks').addEventListener('input', saveCurrentData);
+    
+    // Intercepter la navigation
+    document.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            saveCurrentData();
+            window.location.href = this.href;
+        });
+    });
+}
+
+// Fonction de sauvegarde des données
+function saveCurrentData() {
+    const diagnosticElements = Array.from(document.querySelectorAll('.diagnostic-item'));
+    const data = {
+        remarks: document.getElementById('remarks').value,
+        diagnoses: diagnosticElements.map(el => ({
+            name: el.querySelector('h3').textContent,
+            shortDescription: el.querySelector('p.opacity-70').textContent,
+            probability: parseInt(el.querySelector('.probability-bar-fill').style.width),
+            details: Array.from(el.querySelectorAll('.details-section')).map(detail => ({
+                title: detail.querySelector('h4').textContent,
+                content: detail.querySelector('p').textContent
+            }))
+        }))
+    };
+    
+    Storage.save('patient_diagnosis', data);
+}
+
+// Modifier le gestionnaire du bouton d'analyse
 document.getElementById('startAnalysis').addEventListener('click', async function() {
     try {
-        // Afficher le loader
         document.getElementById('remarksSection').classList.add('hidden');
         document.getElementById('loadingSection').classList.remove('hidden');
 
-        // Appel au worker
+        // Récupérer toutes les données patient
+        const allPatientData = getAllPatientData();
+
         const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
             method: 'POST',
             headers: {
@@ -502,9 +601,7 @@ document.getElementById('startAnalysis').addEventListener('click', async functio
             },
             body: JSON.stringify({
                 type: 'diagnosis',
-                data: {
-                    remarks: document.getElementById('remarks').value
-                }
+                data: allPatientData
             })
         });
 
@@ -513,11 +610,9 @@ document.getElementById('startAnalysis').addEventListener('click', async functio
         }
 
         const data = await response.json();
-
-        // Masquer le loader
+        
         document.getElementById('loadingSection').classList.add('hidden');
-
-        // Afficher les résultats
+        
         const diagnosticResults = document.getElementById('diagnosticResults');
         diagnosticResults.innerHTML = '';
 
@@ -525,9 +620,11 @@ document.getElementById('startAnalysis').addEventListener('click', async functio
             diagnosticResults.appendChild(createDiagnosticElement(diagnostic));
         });
 
-        // Afficher les sections de résultats
         document.getElementById('resultsSection').classList.remove('hidden');
         document.getElementById('validationSection').classList.remove('hidden');
+
+        // Sauvegarder après réception du diagnostic
+        saveCurrentData();
 
     } catch (error) {
         console.error('Error during diagnosis:', error);
@@ -537,8 +634,9 @@ document.getElementById('startAnalysis').addEventListener('click', async functio
     }
 });
 
-// Gestion des boutons de validation
+// Modifier les gestionnaires des boutons de validation
 document.querySelector('.validation-button').addEventListener('click', function() {
+    saveCurrentData();
     window.location.href = 'treatment.html';
 });
 
