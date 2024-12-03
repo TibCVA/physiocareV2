@@ -396,17 +396,20 @@
     
     // Sauvegarder les données actuelles
     function saveCurrentData() {
+        console.log("Sauvegarde en cours..."); // Debug
+    
         const data = {
-            lastName: document.querySelector('input[placeholder="Nom"]').value,
-            firstName: document.querySelector('input[placeholder="Prénom"]').value,
-            birthDate: document.querySelector('input[type="date"]').value,
+            lastName: document.querySelector('input[placeholder="Nom de famille"]')?.value || '',
+            firstName: document.querySelector('input[placeholder="Prénom"]')?.value || '',
+            birthDate: document.querySelector('input[type="date"]')?.value || '',
             gender: document.querySelector('.frequency-option.selected')?.textContent || '',
-            weight: document.querySelector('input[placeholder="70"]').value,
-            height: document.querySelector('input[placeholder="175"]').value,
-            medicalHistory: document.querySelector('textarea').value,
+            weight: document.querySelector('input[placeholder="70"]')?.value || '',
+            height: document.querySelector('input[placeholder="175"]')?.value || '',
+            medicalHistory: document.querySelector('textarea')?.value || '',
             profession: document.querySelector('.profession-option.selected')?.querySelector('h3')?.textContent || ''
         };
-        
+    
+        console.log("Données à sauvegarder:", data); // Debug
         Storage.save('patient_personal_info', data);
     }
     </script>
