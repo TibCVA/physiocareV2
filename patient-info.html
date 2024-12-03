@@ -285,6 +285,7 @@
         save: function(key, data) {
             try {
                 localStorage.setItem(key, JSON.stringify(data));
+                console.log(`Données sauvegardées (${key}):`, data);
             } catch (e) {
                 console.error('Error saving data:', e);
             }
@@ -301,68 +302,81 @@
         }
     };
     
-    // Préserver le code existant pour la gestion des sélections de genre
+    // Gestion des sélections de genre
     document.querySelectorAll('.frequency-control').forEach(control => {
         const options = control.querySelectorAll('.frequency-option');
         options.forEach(option => {
             option.addEventListener('click', () => {
                 options.forEach(o => o.classList.remove('selected'));
                 option.classList.add('selected');
-                saveCurrentData(); // Ajouter la sauvegarde après la sélection
+                saveCurrentData();
             });
         });
     });
     
-    // Préserver la fonction existante de sélection des professions avec sauvegarde
+    // Gestion de la sélection des professions
     function selectProfession(element) {
         document.querySelectorAll('.profession-option').forEach(option => {
             option.classList.remove('selected');
         });
         element.classList.add('selected');
-        saveCurrentData(); // Ajouter la sauvegarde après la sélection
+        saveCurrentData();
     }
     
-    // Ajouter le chargement initial des données
+    // Initialisation au chargement de la page
     document.addEventListener('DOMContentLoaded', function() {
         loadSavedData();
         setupAdditionalListeners();
+        checkSavedData('patient_personal_info');
     });
     
-    // Charger les données sauvegardées
+    // Vérification des données sauvegardées
+    function checkSavedData(key) {
+        const saved = Storage.load(key);
+        console.log(`Données chargées (${key}):`, saved);
+    }
+    
+    // Chargement des données sauvegardées
     function loadSavedData() {
         const savedData = Storage.load('patient_personal_info');
+        console.log("Chargement des données:", savedData);
+    
         if (savedData) {
-            // Remplir les champs avec les données sauvegardées
-            document.querySelector('input[placeholder="Nom"]').value = savedData.lastName || '';
-            document.querySelector('input[placeholder="Prénom"]').value = savedData.firstName || '';
-            document.querySelector('input[type="date"]').value = savedData.birthDate || '';
+            // Informations personnelles
+            const lastNameInput = document.querySelector('input[placeholder="Nom de famille"]');
+            const firstNameInput = document.querySelector('input[placeholder="Prénom"]');
+            const birthDateInput = document.querySelector('input[type="date"]');
             
+            if (lastNameInput) lastNameInput.value = savedData.lastName || '';
+            if (firstNameInput) firstNameInput.value = savedData.firstName || '';
+            if (birthDateInput) birthDateInput.value = savedData.birthDate || '';
+    
             // Genre
             if (savedData.gender) {
                 document.querySelectorAll('.frequency-option').forEach(option => {
+                    option.classList.remove('selected');
                     if (option.textContent === savedData.gender) {
                         option.classList.add('selected');
                     }
                 });
             }
-            
+    
             // Mensurations
-            if (savedData.weight) {
-                document.querySelector('input[placeholder="70"]').value = savedData.weight;
-            }
-            if (savedData.height) {
-                document.querySelector('input[placeholder="175"]').value = savedData.height;
-            }
+            const weightInput = document.querySelector('input[placeholder="70"]');
+            const heightInput = document.querySelector('input[placeholder="175"]');
             
-            // Antécédents
-            if (savedData.medicalHistory) {
-                document.querySelector('textarea').value = savedData.medicalHistory;
-            }
-            
+            if (weightInput) weightInput.value = savedData.weight || '';
+            if (heightInput) heightInput.value = savedData.height || '';
+    
+            // Antécédents médicaux
+            const medicalHistoryInput = document.querySelector('textarea');
+            if (medicalHistoryInput) medicalHistoryInput.value = savedData.medicalHistory || '';
+    
             // Profession
             if (savedData.profession) {
                 document.querySelectorAll('.profession-option').forEach(option => {
-                    const title = option.querySelector('h3').textContent;
+                    const title = option.querySelector('h3')?.textContent;
+                    option.classList.remove('selected');
                     if (title === savedData.profession) {
                         option.classList.add('selected');
                     }
@@ -372,32 +386,34 @@
     }
     
     // Configuration des écouteurs supplémentaires
-    // Configuration des écouteurs supplémentaires
     function setupAdditionalListeners() {
-        // Sauvegarder lors de la modification des champs
+        // Écouter les changements sur tous les champs
         const inputs = document.querySelectorAll('input, textarea');
         inputs.forEach(input => {
+            input.addEventListener('input', saveCurrentData);
             input.addEventListener('change', saveCurrentData);
             input.addEventListener('blur', saveCurrentData);
         });
     
-        // Sélectionner spécifiquement les liens de navigation
+        // Navigation
         const prevButton = document.querySelector('a[href="index.html"]');
         const nextButton = document.querySelector('a[href="physical-activity.html"]');
     
-        prevButton?.addEventListener('click', function() {
-            saveCurrentData();
-        });
+        if (prevButton) {
+            prevButton.addEventListener('click', function() {
+                saveCurrentData();
+            });
+        }
     
-        nextButton?.addEventListener('click', function() {
-            saveCurrentData();
-        });
+        if (nextButton) {
+            nextButton.addEventListener('click', function() {
+                saveCurrentData();
+            });
+        }
     }
     
-    // Sauvegarder les données actuelles
+    // Sauvegarde des données
     function saveCurrentData() {
-        console.log("Sauvegarde en cours..."); // Debug
-    
         const data = {
             lastName: document.querySelector('input[placeholder="Nom de famille"]')?.value || '',
             firstName: document.querySelector('input[placeholder="Prénom"]')?.value || '',
@@ -409,7 +425,7 @@
             profession: document.querySelector('.profession-option.selected')?.querySelector('h3')?.textContent || ''
         };
     
-        console.log("Données à sauvegarder:", data); // Debug
+        console.log("Sauvegarde des données:", data);
         Storage.save('patient_personal_info', data);
     }
     </script>
