@@ -212,46 +212,54 @@
        }
 
        async function compressAndConvertToBase64(file) {
-           if (file.type.startsWith('image/')) {
-               const img = await createImageBitmap(file);
-               const canvas = document.createElement('canvas');
-               const ctx = canvas.getContext('2d');
-               
-               let quality = 0.7;
-               let output;
-               let currentSize = file.size;
-               
-               do {
-                   const dimensions = getOptimalDimensions(img, 2048);
-                   canvas.width = dimensions.width;
-                   canvas.height = dimensions.height;
-                   ctx.drawImage(img, 0, 0, dimensions.width, dimensions.height);
-                   
-                   output = canvas.toDataURL(file.type, quality);
-                   currentSize = getBase64Size(output);
-                   quality -= 0.1;
-               } while (currentSize > MAX_FILE_SIZE && quality > 0.1);
-
-               if (currentSize > MAX_FILE_SIZE) {
-                   throw new Error('Image trop volumineuse après compression');
-               }
-               
-               return output;
-           }
-           
-           return new Promise((resolve, reject) => {
-               const reader = new FileReader();
-               reader.onload = () => {
-                   const result = reader.result;
-                   if (getBase64Size(result) > MAX_FILE_SIZE) {
-                       reject(new Error('PDF trop volumineux'));
-                   }
-                   resolve(result);
-               };
-               reader.onerror = reject;
-               reader.readAsDataURL(file);
-           });
-       }
+          if (file.type.startsWith('image/')) {
+              const img = await createImageBitmap(file);
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              
+              let quality = 0.7;
+              let output;
+              let success = false;
+              
+              while (!success && quality >= 0.1) {
+                  try {
+                      const dimensions = getOptimalDimensions(img, 2048);
+                      canvas.width = dimensions.width;
+                      canvas.height = dimensions.height;
+                      
+                      // Nettoyage du canvas
+                      ctx.clearRect(0, 0, canvas.width, canvas.height);
+                      ctx.drawImage(img, 0, 0, dimensions.width, dimensions.height);
+                      
+                      // Conversion avec préservation complète
+                      output = canvas.toDataURL(file.type, quality);
+                      
+                      // Vérifie que l'output est complet
+                      if (output.length > 100) { // Vérifie minimum viable
+                          success = true;
+                      } else {
+                          quality -= 0.1;
+                      }
+                  } catch (e) {
+                      quality -= 0.1;
+                  }
+              }
+      
+              if (!success) {
+                  throw new Error('Échec compression image');
+              }
+      
+              return output;
+          }
+          
+          // Pour les PDFs - lecture directe
+          return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => reject(new Error('Erreur lecture PDF'));
+          });
+      }
 
        function getOptimalDimensions(img, maxDim) {
            let { width, height } = img;
