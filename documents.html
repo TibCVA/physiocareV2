@@ -12,10 +12,8 @@
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
             --pure-white: #FFFFFF;
-
             --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
             --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-
             --safe-top: env(safe-area-inset-top, 47px);
             --safe-bottom: env(safe-area-inset-bottom, 34px);
         }
@@ -36,11 +34,10 @@
         .form-section {
             background: white;
             border-radius: 20px;
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 16px;
             box-shadow: var(--elevation-1);
             border: 1px solid rgba(55, 167, 196, 0.1);
-            width: 100%;
         }
 
         .upload-zone {
@@ -78,10 +75,6 @@
             transition: all 0.3s ease;
         }
 
-        .upload-button:active {
-            transform: scale(0.98);
-        }
-
         .ios-input {
             background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(55, 167, 196, 0.2);
@@ -90,12 +83,6 @@
             font-size: 16px;
             width: 100%;
             transition: all 0.3s ease;
-        }
-
-        .ios-input:focus {
-            border-color: var(--brand-light);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(55, 167, 196, 0.1);
         }
 
         .progress-bar {
@@ -109,52 +96,28 @@
             background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
         }
 
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--brand-dark);
-            font-weight: 500;
-        }
-
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight: 600;
-        }
-
         @media (prefers-color-scheme: dark) {
             body {
                 background: #0A1214;
                 color: white;
             }
-
             .nav-blur {
                 background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
             }
-
             .form-section {
                 background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
             }
-
             .document-item {
                 background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.3);
             }
-
             .ios-input {
                 background: rgba(255, 255, 255, 0.1);
                 color: white;
-                border-color: rgba(55, 167, 196, 0.3);
-            }
-
-            .upload-zone {
-                background: rgba(255, 255, 255, 0.05);
             }
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen">
     <nav class="nav-blur fixed w-full z-50">
         <div class="max-w-5xl mx-auto px-4">
             <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
@@ -179,228 +142,220 @@
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
                 <div class="upload-zone mb-6" id="dropZone">
                     <svg class="w-12 h-12 mx-auto mb-4 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
                     <p class="text-sm opacity-70">ou</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf">
-                    <button class="upload-button mt-4">
-                        Choisir des fichiers
-                    </button>
+                    <button class="upload-button mt-4">Choisir des fichiers</button>
                 </div>
-                <div class="space-y-3" id="documentList">
-                    <!-- La liste des documents sera ajoutée ici dynamiquement -->
-                </div>
+                <div class="space-y-3" id="documentList"></div>
             </div>
 
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-4">Notes complémentaires</h2>
-                <textarea class="ios-input h-24"
+                <textarea class="ios-input h-24" id="notes"
                     placeholder="Ajoutez des informations sur les documents fournis (date des examens, contexte...)"></textarea>
             </div>
         </div>
     </main>
 
     <script>
-    // Utilitaires de stockage
-    const Storage = {
-        save: function(key, data) {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-                console.log(`Données sauvegardées (${key}):`, data);
-            } catch (e) {
-                console.error('Error saving data:', e);
+        const Storage = {
+            save: function(key, data) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                    console.log(`Sauvegarde (${key}):`, data);
+                    return true;
+                } catch (error) {
+                    console.error('Erreur sauvegarde:', error);
+                    return false;
+                }
+            },
+            
+            load: function(key) {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : null;
+                } catch (error) {
+                    console.error('Erreur chargement:', error);
+                    return null;
+                }
             }
-        },
-        
-        load: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                console.error('Error loading data:', e);
-                return null;
-            }
-        }
-    };
-    
-    // Récupération des éléments du DOM
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const documentList = document.getElementById('documentList');
-    
-    // Configuration de la zone de drop
-    dropZone.addEventListener('click', () => {
-        fileInput.click();
-    });
-    
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'var(--brand-light)';
-        dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
-    });
-    
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-        dropZone.style.background = '';
-    });
-    
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-        dropZone.style.background = '';
-        handleFiles(e.dataTransfer.files);
-    });
-    
-    fileInput.addEventListener('change', () => {
-        handleFiles(fileInput.files);
-    });
-    
-    // Gestion des fichiers
-    async function handleFiles(files) {
-        for (const file of Array.from(files)) {
-            try {
-                const fileData = await convertFileToBase64(file);
-                addDocumentToList(file, fileData);
-                saveCurrentData();
-            } catch (error) {
-                console.error('Erreur lors du traitement du fichier:', error);
-            }
-        }
-    }
-    
-    // Conversion d'un fichier en base64
-    function convertFileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-    
-    // Ajout d'un document à la liste
-    function addDocumentToList(file, fileData) {
-        const item = document.createElement('div');
-        item.className = 'document-item';
-        
-        const size = (file.size / (1024 * 1024)).toFixed(1);
-        const type = file.type.includes('pdf') ? 'PDF' : 'Image';
-        
-        item.innerHTML = `
-            <div class="flex items-center gap-3">
-                <svg class="w-6 h-6 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <div>
-                    <p class="font-medium">${file.name}</p>
-                    <p class="text-sm opacity-70">${type} - ${size} MB</p>
-                </div>
-            </div>
-            <button class="text-red-500 delete-btn">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        `;
-    
-        // Stocker les données du fichier
-        item.dataset.fileData = fileData;
-        item.dataset.fileName = file.name;
-        item.dataset.fileType = file.type;
-    
-        item.querySelector('.delete-btn').addEventListener('click', () => {
-            item.remove();
-            saveCurrentData();
-        });
-    
-        documentList.appendChild(item);
-    }
-    
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSavedData();
-        setupAdditionalListeners();
-        checkSavedData('patient_documents');
-    });
-    
-    // Vérification des données sauvegardées
-    function checkSavedData(key) {
-        const saved = Storage.load(key);
-        console.log(`Données chargées (${key}):`, saved);
-    }
-    
-    // Chargement des données sauvegardées
-    function loadSavedData() {
-        const savedData = Storage.load('patient_documents');
-        console.log("Chargement des documents:", savedData);
-    
-        if (savedData) {
-            // Restaurer les documents
-            if (savedData.documents) {
-                savedData.documents.forEach(doc => {
-                    const file = {
-                        name: doc.name,
-                        type: doc.type,
-                        size: 0 // Taille non conservée
-                    };
-                    addDocumentToList(file, doc.fileData);
-                });
-            }
-    
-            // Restaurer les notes
-            if (savedData.notes) {
-                document.querySelector('textarea').value = savedData.notes;
-            }
-        }
-    }
-    
-    // Configuration des écouteurs supplémentaires
-    function setupAdditionalListeners() {
-        // Écouter les changements des notes
-        const textarea = document.querySelector('textarea');
-        if (textarea) {
-            textarea.addEventListener('input', saveCurrentData);
-            textarea.addEventListener('change', saveCurrentData);
-            textarea.addEventListener('blur', saveCurrentData);
-        }
-    
-        // Navigation
-        const prevButton = document.querySelector('a[href="symptoms.html"]');
-        const nextButton = document.querySelector('a[href="diagnosis.html"]');
-    
-        if (prevButton) {
-            prevButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    
-        if (nextButton) {
-            nextButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    }
-    
-    // Sauvegarde des données
-    function saveCurrentData() {
-        const data = {
-            // Liste des documents
-            documents: Array.from(document.querySelectorAll('.document-item')).map(item => ({
-                name: item.dataset.fileName || '',
-                type: item.dataset.fileType || '',
-                fileData: item.dataset.fileData || ''
-            })),
-    
-            // Notes complémentaires
-            notes: document.querySelector('textarea')?.value || ''
         };
-    
-        console.log("Sauvegarde des documents:", data);
-        Storage.save('patient_documents', data);
-    }
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const documentList = document.getElementById('documentList');
+        const notesTextarea = document.getElementById('notes');
+
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', handleDragOver);
+        dropZone.addEventListener('dragleave', handleDragLeave);
+        dropZone.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
+
+        // Navigation handlers
+        document.querySelectorAll('a[href]').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await saveCurrentData();
+                window.location.href = link.getAttribute('href');
+            });
+        });
+
+        // File Handling
+        async function handleFiles(files) {
+            const maxSize = 5 * 1024 * 1024; // 5MB limit
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+
+            for (const file of Array.from(files)) {
+                if (file.size > maxSize) {
+                    alert(`Le fichier ${file.name} dépasse 5MB`);
+                    continue;
+                }
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`Type de fichier non supporté: ${file.name}`);
+                    continue;
+                }
+
+                try {
+                    const fileData = await convertToBase64(file);
+                    addDocumentToList(file, fileData);
+                    await saveCurrentData();
+                } catch (error) {
+                    console.error('Erreur traitement fichier:', error);
+                    alert(`Erreur lors du traitement de ${file.name}`);
+                }
+            }
+        }
+
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function addDocumentToList(file, fileData) {
+            const item = document.createElement('div');
+            item.className = 'document-item';
+            
+            const size = (file.size / (1024 * 1024)).toFixed(1);
+            const type = file.type.includes('pdf') ? 'PDF' : 'Image';
+            
+            item.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <div>
+                        <p class="font-medium">${file.name}</p>
+                        <p class="text-sm opacity-70">${type} - ${size} MB</p>
+                    </div>
+                </div>
+                <button class="text-red-500 delete-btn">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
+
+            item.dataset.fileData = fileData;
+            item.dataset.fileName = file.name;
+            item.dataset.fileType = file.type;
+
+            item.querySelector('.delete-btn').addEventListener('click', async () => {
+                item.remove();
+                await saveCurrentData();
+            });
+
+            documentList.appendChild(item);
+        }
+
+        async function saveCurrentData() {
+            const documents = Array.from(document.querySelectorAll('.document-item')).map(item => ({
+                name: item.dataset.fileName,
+                type: item.dataset.fileType,
+                fileData: item.dataset.fileData
+            }));
+
+            const data = {
+                documents,
+                notes: notesTextarea.value
+            };
+
+            if (!Storage.save('patient_documents', data)) {
+                alert('Erreur lors de la sauvegarde des documents');
+            }
+        }
+
+        async function loadSavedData() {
+            const data = Storage.load('patient_documents');
+            if (data) {
+                if (data.documents) {
+                    documentList.innerHTML = '';
+                    data.documents.forEach(doc => {
+                        if (doc.fileData && doc.name) {
+                            const file = {
+                                name: doc.name,
+                                type: doc.type,
+                                size: approximateFileSize(doc.fileData)
+                            };
+                            addDocumentToList(file, doc.fileData);
+                        }
+                    });
+                }
+                if (data.notes) {
+                    notesTextarea.value = data.notes;
+                }
+            }
+        }
+
+        // Utility functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--brand-light)';
+            dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
+        }
+
+        function handleDragLeave() {
+            dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+            dropZone.style.background = '';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            handleDragLeave();
+            handleFiles(e.dataTransfer.files);
+        }
+
+        function handleFileSelect() {
+            handleFiles(fileInput.files);
+        }
+
+        function approximateFileSize(base64String) {
+            const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
+            return (base64String.length * 3/4) - padding;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadSavedData);
     </script>
 </body>
 </html>
