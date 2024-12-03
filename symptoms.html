@@ -348,162 +348,172 @@
     </main>
 
     <script>
-        // Utilitaires de stockage
-        const Storage = {
-            save: function(key, data) {
-                try {
-                    localStorage.setItem(key, JSON.stringify(data));
-                } catch (e) {
-                    console.error('Error saving data:', e);
-                }
-            },
-            
-            load: function(key) {
-                try {
-                    const item = localStorage.getItem(key);
-                    return item ? JSON.parse(item) : null;
-                } catch (e) {
-                    console.error('Error loading data:', e);
-                    return null;
-                }
+    // Utilitaires de stockage
+    const Storage = {
+        save: function(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('Error saving data:', e);
             }
-        };
+        },
         
-        // Garder le code existant de gestion des parties du corps
-        const bodyPartOptions = document.querySelectorAll('.body-part-option');
-        bodyPartOptions.forEach(option => {
+        load: function(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                console.error('Error loading data:', e);
+                return null;
+            }
+        }
+    };
+    
+    // Gestion des body-part options avec multi-sélection
+    const bodyPartOptions = document.querySelectorAll('.body-part-option');
+    bodyPartOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            option.classList.toggle('selected');
+            saveCurrentData();
+        });
+    });
+    
+    // Gestion des intensity options
+    document.querySelectorAll('.intensity-selector').forEach(selector => {
+        selector.querySelectorAll('.intensity-option').forEach(option => {
             option.addEventListener('click', () => {
-                option.classList.toggle('selected');
-                saveCurrentData(); // Ajouter sauvegarde après sélection
-            });
-        });
-        
-        // Garder la gestion des intensity options avec sauvegarde
-        document.querySelectorAll('.intensity-selector').forEach(selector => {
-            selector.querySelectorAll('.intensity-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    selector.querySelectorAll('.intensity-option').forEach(o => {
-                        o.classList.remove('selected');
-                    });
-                    option.classList.add('selected');
-                    saveCurrentData(); // Ajouter sauvegarde après sélection
+                selector.querySelectorAll('.intensity-option').forEach(o => {
+                    o.classList.remove('selected');
                 });
+                option.classList.add('selected');
+                saveCurrentData();
             });
         });
+    });
+    
+    // Gestion du slider de douleur avec affichage de la valeur
+    const painLevel = document.querySelector('.pain-level');
+    const painValue = document.getElementById('painValue');
+    painLevel.addEventListener('input', (e) => {
+        const value = e.target.value;
+        painValue.textContent = `${value}/10`;
         
-        // Garder la gestion du slider de douleur avec sauvegarde
-        const painLevel = document.querySelector('.pain-level');
-        const painValue = document.getElementById('painValue');
+        // Mise à jour des labels en fonction de la valeur
+        const labels = document.querySelectorAll('.flex.justify-between span');
+        labels.forEach(label => label.style.fontWeight = '400');
         
-        painLevel.addEventListener('input', (e) => {
-            const value = e.target.value;
-            painValue.textContent = `${value}/10`;
-            
-            // Mise à jour des labels en fonction de la valeur
-            const labels = document.querySelectorAll('.flex.justify-between span');
-            labels.forEach(label => label.style.fontWeight = '400');
-            
-            if (value <= 3) {
-                labels[0].style.fontWeight = '600';
-            } else if (value <= 7) {
-                labels[1].style.fontWeight = '600';
-            } else {
-                labels[2].style.fontWeight = '600';
+        if (value <= 3) {
+            labels[0].style.fontWeight = '600';
+        } else if (value <= 7) {
+            labels[1].style.fontWeight = '600';
+        } else {
+            labels[2].style.fontWeight = '600';
+        }
+        
+        saveCurrentData();
+    });
+    
+    // Chargement initial des données
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSavedData();
+        setupNavigationListeners();
+    });
+    
+    // Charger les données sauvegardées
+    function loadSavedData() {
+        const savedData = Storage.load('patient_symptoms');
+        if (savedData) {
+            // Restaurer les parties du corps sélectionnées
+            if (savedData.bodyParts) {
+                savedData.bodyParts.forEach(part => {
+                    bodyPartOptions.forEach(option => {
+                        if (option.querySelector('h3').textContent === part) {
+                            option.classList.add('selected');
+                        }
+                    });
+                });
             }
             
-            saveCurrentData(); // Ajouter sauvegarde après changement
-        });
-        
-        // Charger les données au démarrage
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSavedData();
-            setupAdditionalListeners();
-        });
-        
-        // Fonction de chargement des données sauvegardées
-        function loadSavedData() {
-            const savedData = Storage.load('patient_symptoms');
-            if (savedData) {
-                // Restaurer les parties du corps sélectionnées
-                if (savedData.bodyParts) {
-                    savedData.bodyParts.forEach(part => {
-                        bodyPartOptions.forEach(option => {
-                            if (option.querySelector('h3').textContent === part) {
+            // Restaurer la durée et le type de douleur
+            if (savedData.duration) {
+                document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                    if (index === 0) {
+                        selector.querySelectorAll('.intensity-option').forEach(option => {
+                            if (option.textContent === savedData.duration) {
                                 option.classList.add('selected');
                             }
                         });
-                    });
-                }
-                
-                // Restaurer la durée et le type de douleur
-                if (savedData.duration) {
-                    document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                        if (index === 0) { // Premier sélecteur (durée)
-                            selector.querySelectorAll('.intensity-option').forEach(option => {
-                                if (option.textContent === savedData.duration) {
-                                    option.classList.add('selected');
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                if (savedData.painType) {
-                    document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                        if (index === 1) { // Deuxième sélecteur (type de douleur)
-                            selector.querySelectorAll('.intensity-option').forEach(option => {
-                                if (option.textContent === savedData.painType) {
-                                    option.classList.add('selected');
-                                }
-                            });
-                        }
-                    });
-                }
-                
-                // Restaurer le niveau de douleur
-                if (savedData.painLevel) {
-                    painLevel.value = savedData.painLevel;
-                    // Déclencher l'événement input pour mettre à jour l'affichage
-                    const event = new Event('input');
-                    painLevel.dispatchEvent(event);
-                }
-                
-                // Restaurer la description
-                if (savedData.description) {
-                    document.querySelector('textarea').value = savedData.description;
-                }
+                    }
+                });
+            }
+            
+            if (savedData.painType) {
+                document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                    if (index === 1) {
+                        selector.querySelectorAll('.intensity-option').forEach(option => {
+                            if (option.textContent === savedData.painType) {
+                                option.classList.add('selected');
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Restaurer le niveau de douleur
+            if (savedData.painLevel) {
+                painLevel.value = savedData.painLevel;
+                // Déclencher l'événement input pour mettre à jour l'affichage
+                const event = new Event('input');
+                painLevel.dispatchEvent(event);
+            }
+            
+            // Restaurer la description
+            if (savedData.description) {
+                document.querySelector('textarea').value = savedData.description;
             }
         }
+    }
+    
+    // Configuration des écouteurs de navigation
+    function setupNavigationListeners() {
+        // Gérer uniquement les boutons de navigation spécifiques
+        const prevButton = document.querySelector('a[href="physical-activity.html"]');
+        const nextButton = document.querySelector('a[href="documents.html"]');
         
-        // Configuration des écouteurs supplémentaires
-        function setupAdditionalListeners() {
-            // Sauvegarder lors de la modification du textarea
-            document.querySelector('textarea').addEventListener('input', saveCurrentData);
-            
-            // Intercepter la navigation
-            document.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    saveCurrentData();
-                    window.location.href = this.href;
-                });
+        if (prevButton) {
+            prevButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
             });
         }
         
-        // Fonction de sauvegarde des données
-        function saveCurrentData() {
-            const data = {
-                bodyParts: Array.from(document.querySelectorAll('.body-part-option.selected')).map(
-                    el => el.querySelector('h3').textContent
-                ),
-                duration: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
-                painType: document.querySelector('.intensity-selector:last-child .intensity-option.selected')?.textContent || '',
-                painLevel: painLevel.value,
-                description: document.querySelector('textarea').value
-            };
-            
-            Storage.save('patient_symptoms', data);
+        if (nextButton) {
+            nextButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
+            });
         }
-        </script>
+        
+        // Sauvegarder lors de la modification de la description
+        document.querySelector('textarea').addEventListener('input', saveCurrentData);
+    }
+    
+    // Sauvegarder les données actuelles
+    function saveCurrentData() {
+        const data = {
+            bodyParts: Array.from(document.querySelectorAll('.body-part-option.selected')).map(
+                el => el.querySelector('h3').textContent
+            ),
+            duration: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
+            painType: document.querySelector('.intensity-selector:last-child .intensity-option.selected')?.textContent || '',
+            painLevel: painLevel.value,
+            description: document.querySelector('textarea').value
+        };
+        
+        Storage.save('patient_symptoms', data);
+    }
+    </script>
 </body>
 </html>
