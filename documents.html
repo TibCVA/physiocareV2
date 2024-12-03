@@ -172,187 +172,178 @@
    </main>
 
    <script>
-       const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
-       const MAX_FILE_SIZE = 10 * 1024 * 1024;
-       const MAX_FILES = 5;
-       const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
-
-       const Storage = {
-           save: async function(key, data) {
-               try {
-                   const serialized = JSON.stringify(data);
-                   const size = new Blob([serialized]).size;
-                   if (size > MAX_TOTAL_SIZE) {
-                       throw new Error('Taille totale dépassée');
-                   }
-                   localStorage.setItem(key, serialized);
-                   return true;
-               } catch (error) {
-                   console.error('Erreur sauvegarde:', error);
-                   return false;
-               }
-           },
-           
-           load: function(key) {
-               try {
-                   const data = localStorage.getItem(key);
-                   return data ? JSON.parse(data) : null;
-               } catch (error) {
-                   console.error('Erreur chargement:', error);
-                   return null;
-               }
-           }
-       };
-
-       function validateFile(file) {
-           if (!ALLOWED_TYPES.includes(file.type)) {
-               throw new Error('Format de fichier non supporté');
-           }
-           return true;
-       }
-
-       async function compressAndConvertToBase64(file) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = async () => {
-            const base64Data = reader.result;
-            const sizeInBytes = getBase64Size(base64Data);
-            if (sizeInBytes > MAX_FILE_SIZE) {
-              reject(new Error(`Le fichier ${file.name} dépasse la taille autorisée après encodage (10 Mo).`));
-            } else {
-              resolve(base64Data);
-            }
-          };
-          reader.onerror = () => reject(new Error(`Erreur lors de la lecture du fichier ${file.name}`));
-          reader.readAsDataURL(file);
-        });
+      // Constants for file handling
+      const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50 MB total storage limit
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB per file
+      const MAX_FILES = 5; // Maximum number of files
+      const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+   
+      // Storage utility for saving and loading data from localStorage
+      const Storage = {
+          save: async function (key, data) {
+              try {
+                  const serialized = JSON.stringify(data);
+                  const size = new Blob([serialized]).size;
+                  if (size > MAX_TOTAL_SIZE) {
+                      throw new Error('La taille totale des fichiers dépasse la limite autorisée.');
+                  }
+                  localStorage.setItem(key, serialized);
+                  return true;
+              } catch (error) {
+                  console.error('Erreur de sauvegarde :', error);
+                  return false;
+              }
+          },
+   
+          load: function (key) {
+              try {
+                  const data = localStorage.getItem(key);
+                  return data ? JSON.parse(data) : null;
+              } catch (error) {
+                  console.error('Erreur de chargement :', error);
+                  return null;
+              }
+          }
+      };
+   
+      // Utility functions
+      function getBase64Size(base64String) {
+          const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
+          return (base64String.length * 3) / 4 - padding;
       }
-      
-       function getOptimalDimensions(img, maxDim) {
-           let { width, height } = img;
-           if (width > maxDim || height > maxDim) {
-               if (width > height) {
-                   height *= (maxDim / width);
-                   width = maxDim;
-               } else {
-                   width *= (maxDim / height);
-                   height = maxDim;
-               }
-           }
-           return { width: Math.floor(width), height: Math.floor(height) };
-       }
-
-       function getBase64Size(base64String) {
-           const base64Length = base64String.substring(base64String.indexOf(',') + 1).length;
-           return (base64Length * 3) / 4;
-       }
-
-       const dropZone = document.getElementById('dropZone');
-       const fileInput = document.getElementById('fileInput');
-       const documentList = document.getElementById('documentList');
-       const notesTextarea = document.getElementById('notes');
-       const errorMessage = document.getElementById('errorMessage');
-
-       async function handleFiles(files) {
-           const currentFiles = documentList.children.length;
-           
-           if (currentFiles + files.length > MAX_FILES) {
-               showError(`Maximum ${MAX_FILES} fichiers autorisés`);
-               return;
-           }
-
-           for (const file of Array.from(files)) {
-               try {
-                   validateFile(file);
-                   
-                   if (file.size > MAX_FILE_SIZE) {
-                       showError(`${file.name} dépasse 10MB`);
-                       continue;
-                   }
-
-                   const fileData = await compressAndConvertToBase64(file);
-                   const newSize = new Blob([fileData]).size;
-                   
-                   const currentData = Storage.load('patient_documents');
-                   const currentSize = currentData ? 
-                       new Blob([JSON.stringify(currentData)]).size : 0;
-
-                   if ((currentSize + newSize) > MAX_TOTAL_SIZE) {
-                       showError('Stockage plein. Supprimez des documents.');
-                       break;
-                   }
-
-                   addDocumentToList(file, fileData);
-                   await saveCurrentData();
-               } catch (error) {
-                   showError(`Erreur: ${error.message || file.name}`);
-                   console.error(error);
-               }
-           }
-       }
-
-       function addDocumentToList(file, fileData) {
-           const item = document.createElement('div');
-           item.className = 'document-item';
-           
-           const size = (file.size / (1024 * 1024)).toFixed(1);
-           const type = file.type.includes('pdf') ? 'PDF' : 'Image';
-           
-           item.innerHTML = `
-               <div class="flex items-center gap-3">
-                   <svg class="w-6 h-6 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                   </svg>
-                   <div>
-                       <p class="font-medium">${file.name}</p>
-                       <p class="text-sm opacity-70">${type} - ${size} MB</p>
-                   </div>
-               </div>
-               <button class="text-red-500 delete-btn">
-                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                   </svg>
-               </button>
-           `;
-
-           item.dataset.fileData = fileData;
-           item.dataset.fileName = file.name;
-           item.dataset.fileType = file.type;
-
-           item.querySelector('.delete-btn').addEventListener('click', async () => {
-               item.remove();
-               await saveCurrentData();
-           });
-
-           documentList.appendChild(item);
-       }
-
-       async function saveCurrentData() {
-           const documents = Array.from(documentList.querySelectorAll('.document-item')).map(item => ({
-               name: item.dataset.fileName,
-               type: item.dataset.fileType,
-               fileData: item.dataset.fileData
-           }));
-
-           const data = {
-               documents,
-               notes: notesTextarea.value
-           };
-
-           if (!await Storage.save('patient_documents', data)) {
-               showError('Erreur de sauvegarde');
-           }
-       }
-
-       function showError(message) {
+   
+      function validateFile(file) {
+          if (!file || !file.name || !file.size) {
+              throw new Error('Fichier invalide ou corrompu.');
+          }
+          if (!ALLOWED_TYPES.includes(file.type)) {
+              throw new Error('Format de fichier non supporté.');
+          }
+          if (file.size > MAX_FILE_SIZE) {
+              throw new Error('La taille du fichier dépasse la limite de 10 Mo.');
+          }
+          return true;
+      }
+   
+      async function compressAndConvertToBase64(file) {
+          return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                  const base64Data = reader.result;
+                  const sizeInBytes = getBase64Size(base64Data);
+                  if (sizeInBytes > MAX_FILE_SIZE) {
+                      reject(new Error(`Le fichier ${file.name} dépasse la taille autorisée après encodage (10 Mo).`));
+                  } else {
+                      resolve(base64Data);
+                  }
+              };
+              reader.onerror = () => reject(new Error(`Erreur lors de la lecture du fichier ${file.name}`));
+              reader.readAsDataURL(file);
+          });
+      }
+   
+      // DOM Elements
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      const documentList = document.getElementById('documentList');
+      const notesTextarea = document.getElementById('notes');
+      const errorMessage = document.getElementById('errorMessage');
+   
+      // Handle file uploads
+      async function handleFiles(files) {
+          const currentFiles = documentList.children.length;
+   
+          if (currentFiles + files.length > MAX_FILES) {
+              showError(`Vous ne pouvez pas télécharger plus de ${MAX_FILES} fichiers.`);
+              return;
+          }
+   
+          for (const file of files) {
+              try {
+                  validateFile(file);
+                  const fileData = await compressAndConvertToBase64(file);
+   
+                  const currentData = Storage.load('patient_documents') || {};
+                  const currentSize = currentData.documents
+                      ? new Blob([JSON.stringify(currentData.documents)]).size
+                      : 0;
+   
+                  if (currentSize + getBase64Size(fileData) > MAX_TOTAL_SIZE) {
+                      showError('La taille totale des fichiers dépasse la limite autorisée (50 Mo).');
+                      return;
+                  }
+   
+                  addDocumentToList(file, fileData);
+                  await saveCurrentData();
+              } catch (error) {
+                  showError(error.message);
+                  console.error(error);
+              }
+          }
+      }
+   
+      function addDocumentToList(file, fileData) {
+          const item = document.createElement('div');
+          item.className = 'document-item';
+   
+          const size = (file.size / (1024 * 1024)).toFixed(1);
+          const type = file.type.includes('pdf') ? 'PDF' : 'Image';
+   
+          item.innerHTML = `
+              <div class="flex items-center gap-3">
+                  <svg class="w-6 h-6 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <div>
+                      <p class="font-medium">${file.name}</p>
+                      <p class="text-sm opacity-70">${type} - ${size} Mo</p>
+                  </div>
+              </div>
+              <button class="text-red-500 delete-btn">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+              </button>
+          `;
+   
+          item.dataset.fileData = fileData;
+          item.dataset.fileName = file.name;
+          item.dataset.fileType = file.type;
+   
+          item.querySelector('.delete-btn').addEventListener('click', async () => {
+              item.remove();
+              await saveCurrentData();
+          });
+   
+          documentList.appendChild(item);
+      }
+   
+      async function saveCurrentData() {
+          const documents = Array.from(documentList.querySelectorAll('.document-item')).map(item => ({
+              name: item.dataset.fileName,
+              type: item.dataset.fileType,
+              fileData: item.dataset.fileData
+          }));
+   
+          const data = {
+              documents,
+              notes: notesTextarea.value
+          };
+   
+          if (!await Storage.save('patient_documents', data)) {
+              showError('Erreur lors de la sauvegarde des données.');
+          }
+      }
+   
+      function showError(message) {
           errorMessage.textContent = message;
           errorMessage.style.display = 'block';
           setTimeout(() => {
               errorMessage.style.display = 'none';
           }, 5000);
-       }
-
+      }
+   
       // Event Listeners
       dropZone.addEventListener('click', () => fileInput.click());
       dropZone.addEventListener('dragover', (e) => {
@@ -360,56 +351,48 @@
           dropZone.style.borderColor = 'var(--brand-light)';
           dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
       });
+      dropZone.addEventListener('dragleave', () => {
+          dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+          dropZone.style.background = '';
+      });
       dropZone.addEventListener('drop', (e) => {
-         e.preventDefault();
-         dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-         dropZone.style.background = '';
-         handleFiles(e.dataTransfer.files);
-     });
+          e.preventDefault();
+          dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+          dropZone.style.background = '';
+          handleFiles(e.dataTransfer.files);
+      });
+   
+      fileInput.addEventListener('change', () => {
+          handleFiles(fileInput.files);
+      });
+   
+      notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
+   
+      document.addEventListener('DOMContentLoaded', async () => {
+          const savedData = Storage.load('patient_documents');
+          if (savedData) {
+              if (savedData.documents) {
+                  documentList.innerHTML = '';
+                  savedData.documents.forEach(doc => {
+                      if (doc.fileData && doc.name) {
+                          addDocumentToList({ name: doc.name, type: doc.type, size: getBase64Size(doc.fileData) }, doc.fileData);
+                      }
+                  });
+              }
+              if (savedData.notes) {
+                  notesTextarea.value = savedData.notes;
+              }
+          }
+      });
+   
+      function debounce(func, wait) {
+          let timeout;
+          return function (...args) {
+              clearTimeout(timeout);
+              timeout = setTimeout(() => func.apply(this, args), wait);
+          };
+      }
+   </script>
 
-     fileInput.addEventListener('change', () => {
-         handleFiles(fileInput.files);
-     });
-
-     notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
-
-     document.querySelectorAll('a[href]').forEach(link => {
-         link.addEventListener('click', async (e) => {
-             e.preventDefault();
-             await saveCurrentData();
-             window.location.href = link.getAttribute('href');
-         });
-     });
-
-     function debounce(func, wait) {
-         let timeout;
-         return function(...args) {
-             clearTimeout(timeout);
-             timeout = setTimeout(() => func.apply(this, args), wait);
-         };
-     }
-
-     document.addEventListener('DOMContentLoaded', async () => {
-         const savedData = Storage.load('patient_documents');
-         if (savedData) {
-             if (savedData.documents) {
-                 documentList.innerHTML = '';
-                 savedData.documents.forEach(doc => {
-                     if (doc.fileData && doc.name) {
-                         const file = {
-                             name: doc.name,
-                             type: doc.type,
-                             size: getBase64Size(doc.fileData)
-                         };
-                         addDocumentToList(file, doc.fileData);
-                     }
-                 });
-             }
-             if (savedData.notes) {
-                 notesTextarea.value = savedData.notes;
-             }
-         }
-     });
- </script>
 </body>
 </html>
