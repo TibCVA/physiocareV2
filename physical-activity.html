@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#37A7C4">
     <title>PhysioCare - Activité Physique</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -11,70 +11,23 @@
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
-            
             --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-            --elevation-3: 0 10px 20px rgba(30, 95, 110, 0.15), 0 3px 6px rgba(30, 95, 110, 0.1);
-            
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
         }
-
         body {
             background: #F5F9FA;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
         }
-
         .nav-blur {
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
             border-bottom: 1px solid rgba(55, 167, 196, 0.1);
         }
-
         .form-section {
             background: white;
             border-radius: 20px;
             padding: 24px;
             margin-bottom: 16px;
             box-shadow: var(--elevation-1);
-            border: 1px solid rgba(55, 167, 196, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
-        .form-section:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-2);
-        }
-
-        .ios-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            margin: 8px 0;
-            font-size: 16px;
-            background: white;
-            -webkit-appearance: none;
-            transition: all 0.3s ease;
-        }
-
-        .ios-input:focus {
-            border-color: var(--brand-light);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(55, 167, 196, 0.1);
-        }
-
-        .ios-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--brand-dark);
-            margin-bottom: 6px;
-            display: block;
-        }
-
         .intensity-selector {
             display: flex;
             gap: 4px;
@@ -83,7 +36,6 @@
             border-radius: 12px;
             margin: 8px 0;
         }
-
         .intensity-option {
             flex: 1;
             padding: 12px 8px;
@@ -92,365 +44,118 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            transition: all 0.2s ease;
         }
-
         .intensity-option.selected {
             background: var(--brand-light);
             color: white;
-            box-shadow: 0 2px 4px rgba(55, 167, 196, 0.2);
-        }
-
-        .activity-option {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .activity-option:hover {
-            transform: translateX(4px);
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        .activity-option.selected {
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        .activity-option .checkmark {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .activity-option.selected .checkmark {
-            opacity: 1;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            margin: 8px 0;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 33.33%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            transition: width 0.3s ease;
-        }
-
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--brand-dark);
-            font-weight: 500;
-        }
-
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight: 600;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0A1214;
-                color: white;
-            }
-
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .form-section {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .ios-input {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .activity-option {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.3);
-            }
-
-            .activity-option:hover {
-                background: rgba(55, 167, 196, 0.15);
-            }
         }
     </style>
 </head>
-<body class="min-h-screen">
-    <nav class="nav-blur fixed w-full z-50">
+<body>
+    <nav class="nav-blur fixed w-full">
         <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <a href="patient-info.html" class="nav-button flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Retour
-                </a>
-                <span class="font-semibold">Patient (2/6)</span>
-                <a href="symptoms.html" class="nav-button primary">Suivant</a>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-bar-fill"></div>
+            <div class="flex items-center justify-between h-12">
+                <a href="patient-info.html">Retour</a>
+                <span>Patient (2/6)</span>
+                <a href="symptoms.html">Suivant</a>
             </div>
         </div>
     </nav>
-
-    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
-        <div class="max-w-xl mx-auto space-y-6">
-            <!-- Section Type d'activité -->
+    <main class="pt-16 pb-6 px-4">
+        <div class="max-w-xl mx-auto">
             <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Type d'activité</h2>
-                <div class="space-y-3" id="activities-container">
-                    <div class="activity-option" data-no-activity>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Aucune activité</h3>
-                                <p class="text-sm opacity-70">Pas de pratique sportive régulière</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="activity-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Endurance</h3>
-                                <p class="text-sm opacity-70">Course à pied, vélo, natation...</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="activity-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Sports collectifs</h3>
-                                <p class="text-sm opacity-70">Football, basketball, handball...</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="activity-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Musculation</h3>
-                                <p class="text-sm opacity-70">Musculation, CrossFit, fitness...</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section Fréquence et intensité -->
-            <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Fréquence et intensité</h2>
-                <div class="space-y-6">
-                    <div>
-                        <label class="ios-label">Fréquence hebdomadaire</label>
-                        <div class="intensity-selector">
-                            <div class="intensity-option">Aucune</div>
-                            <div class="intensity-option">1-2x</div>
-                            <div class="intensity-option selected">3-4x</div>
-                            <div class="intensity-option">5x ou +</div>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="ios-label">Intensité habituelle</label>
-                        <div class="intensity-selector">
-                            <div class="intensity-option">Aucune</div>
-                            <div class="intensity-option">Légère</div>
-                            <div class="intensity-option selected">Modérée</div>
-                            <div class="intensity-option">Intense</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Section Objectifs -->
-            <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Objectifs</h2>
+                <h2>Fréquence et intensité</h2>
                 <div>
-                    <label class="ios-label" for="goals">Objectifs sportifs</label>
-                    <textarea id="goals" class="ios-input w-full h-32 resize-none" 
-                        placeholder="Décrivez vos objectifs sportifs, compétitions prévues..."></textarea>
+                    <label>Fréquence hebdomadaire</label>
+                    <div class="intensity-selector" id="frequency-selector">
+                        <div class="intensity-option">Aucune</div>
+                        <div class="intensity-option">1-2x</div>
+                        <div class="intensity-option">3-4x</div>
+                        <div class="intensity-option">5x ou +</div>
+                    </div>
+                </div>
+                <div>
+                    <label>Intensité habituelle</label>
+                    <div class="intensity-selector" id="intensity-selector">
+                        <div class="intensity-option">Aucune</div>
+                        <div class="intensity-option">Légère</div>
+                        <div class="intensity-option">Modérée</div>
+                        <div class="intensity-option">Intense</div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
-
     <script>
-    // Utilitaires de stockage
-    const Storage = {
-        save: function(key, data) {
-            try {
+        const Storage = {
+            save: function (key, data) {
                 localStorage.setItem(key, JSON.stringify(data));
-                console.log(`Données sauvegardées (${key}):`, data);
-            } catch (e) {
-                console.error('Error saving data:', e);
+            },
+            load: function (key) {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
             }
-        },
-        
-        load: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                console.error('Error loading data:', e);
-                return null;
-            }
-        }
-    };
-    
-    // Gestion des activity options avec multi-sélection
-    const activitiesContainer = document.getElementById('activities-container');
-    const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
-    const noActivityOption = activitiesContainer.querySelector('[data-no-activity]');
-    
-    // Ajout des clics sur les options d'activités
-    activityOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            const isNoActivity = option.hasAttribute('data-no-activity');
-            
-            if (isNoActivity) {
-                // Si on clique sur "Aucune activité"
-                activityOptions.forEach(o => {
-                    if (!o.hasAttribute('data-no-activity')) {
-                        o.classList.remove('selected');
-                    }
-                });
-            } else {
-                // Pour les autres activités
-                noActivityOption.classList.remove('selected');
-            }
-            option.classList.toggle('selected');
-            saveCurrentData(); // Sauvegarder après chaque sélection
-        });
-    });
-    
-    // Gestion des intensity options
-    document.querySelectorAll('.intensity-selector').forEach(selector => {
-        selector.querySelectorAll('.intensity-option').forEach(option => {
-            option.addEventListener('click', () => {
-                selector.querySelectorAll('.intensity-option').forEach(o => {
-                    o.classList.remove('selected');
-                });
-                option.classList.add('selected');
-                saveCurrentData(); // Sauvegarder après chaque sélection
-            });
-        });
-    });
-    
-    // Charger les données au démarrage
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSavedData();
-        setupAdditionalListeners();
-        checkSavedData('patient_physical_activity');
-    });
-    
-    // Vérifier les données sauvegardées
-    function checkSavedData(key) {
-        const saved = Storage.load(key);
-        console.log(`Données chargées (${key}):`, saved);
-    }
-    
-    // Charger les données sauvegardées
-    function loadSavedData() {
-        const savedData = Storage.load('patient_physical_activity');
-        if (savedData) {
-            // Restaurer les activités sélectionnées
-            if (savedData.activities) {
-                savedData.activities.forEach(activity => {
-                    activityOptions.forEach(option => {
-                        if (option.querySelector('h3')?.textContent === activity.type) {
-                            option.classList.add('selected');
-                        }
-                    });
-                });
-            }
-    
-            // Restaurer la fréquence et l'intensité
-            document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                const value = index === 0 ? savedData.frequency : savedData.intensity;
-                if (value) {
-                    selector.querySelectorAll('.intensity-option').forEach(option => {
-                        if (option.textContent === value) {
-                            option.classList.add('selected');
-                        } else {
-                            option.classList.remove('selected');
-                        }
-                    });
-                }
-            });
-    
-            // Restaurer les objectifs
-            if (savedData.goals) {
-                document.querySelector('textarea').value = savedData.goals;
-            }
-        }
-    }
-    
-    // Configuration des écouteurs supplémentaires
-    function setupAdditionalListeners() {
-        // Sauvegarder sur modification du textarea
-        document.querySelector('textarea')?.addEventListener('input', saveCurrentData);
-        
-        // Navigation
-        const prevButton = document.querySelector('a[href="patient-info.html"]');
-        const nextButton = document.querySelector('a[href="symptoms.html"]');
-        
-        [prevButton, nextButton].forEach(button => {
-            if (button) {
-                button.addEventListener('click', () => {
-                    saveCurrentData();
-                });
-            }
-        });
-    }
-    
-    // Sauvegarder les données
-    function saveCurrentData() {
-        console.log("Sauvegarde de l'activité physique..."); // Debug
-    
-        const data = {
-            // Activités sélectionnées
-            activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(option => ({
-                type: option.querySelector('h3')?.textContent || '',
-                description: option.querySelector('p')?.textContent || ''
-            })),
-    
-            // Fréquence (premier sélecteur d'intensité)
-            frequency: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
-    
-            // Intensité (second sélecteur d'intensité)
-            intensity: document.querySelectorAll('.intensity-selector')[1]?.querySelector('.intensity-option.selected')?.textContent || '',
-    
-            // Objectifs
-            goals: document.querySelector('textarea')?.value || ''
         };
-    
-        console.log("Données activité physique à sauvegarder:", data); // Debug
-        Storage.save('patient_physical_activity', data);
-    }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedData();
+            setupSelectors();
+        });
+
+        function setupSelectors() {
+            document.querySelectorAll('.intensity-selector').forEach((selector) => {
+                selector.querySelectorAll('.intensity-option').forEach((option) => {
+                    option.addEventListener('click', () => {
+                        selector.querySelectorAll('.intensity-option').forEach((o) => {
+                            o.classList.remove('selected');
+                        });
+                        option.classList.add('selected');
+                        saveCurrentData();
+                    });
+                });
+            });
+
+            document.querySelector('a[href="symptoms.html"]').addEventListener('click', () => {
+                saveCurrentData();
+            });
+        }
+
+        function saveCurrentData() {
+            const frequency = document
+                .querySelector('#frequency-selector .intensity-option.selected')
+                ?.textContent.trim() || '';
+            const intensity = document
+                .querySelector('#intensity-selector .intensity-option.selected')
+                ?.textContent.trim() || '';
+
+            const data = { frequency, intensity };
+            Storage.save('physical_activity_data', data);
+        }
+
+        function loadSavedData() {
+            const data = Storage.load('physical_activity_data');
+            if (data) {
+                if (data.frequency) {
+                    document
+                        .querySelector('#frequency-selector .intensity-option.selected')
+                        ?.classList.remove('selected');
+                    const frequencyOption = Array.from(
+                        document.querySelectorAll('#frequency-selector .intensity-option')
+                    ).find((o) => o.textContent.trim() === data.frequency);
+                    frequencyOption?.classList.add('selected');
+                }
+
+                if (data.intensity) {
+                    document
+                        .querySelector('#intensity-selector .intensity-option.selected')
+                        ?.classList.remove('selected');
+                    const intensityOption = Array.from(
+                        document.querySelectorAll('#intensity-selector .intensity-option')
+                    ).find((o) => o.textContent.trim() === data.intensity);
+                    intensityOption?.classList.add('selected');
+                }
+            }
+        }
     </script>
 </body>
 </html>
