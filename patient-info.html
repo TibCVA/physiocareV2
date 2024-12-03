@@ -372,6 +372,7 @@
     }
     
     // Configuration des écouteurs supplémentaires
+    // Configuration des écouteurs supplémentaires
     function setupAdditionalListeners() {
         // Sauvegarder lors de la modification des champs
         const inputs = document.querySelectorAll('input, textarea');
@@ -380,12 +381,16 @@
             input.addEventListener('blur', saveCurrentData);
         });
     
-        // Gestion simplifiée des boutons de navigation
-        document.querySelectorAll('.nav-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                // Supprimer preventDefault() pour permettre la navigation par défaut
-                saveCurrentData();
-            });
+        // Sélectionner spécifiquement les liens de navigation
+        const prevButton = document.querySelector('a[href="index.html"]');
+        const nextButton = document.querySelector('a[href="physical-activity.html"]');
+    
+        prevButton?.addEventListener('click', function() {
+            saveCurrentData();
+        });
+    
+        nextButton?.addEventListener('click', function() {
+            saveCurrentData();
         });
     }
     
