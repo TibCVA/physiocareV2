@@ -189,7 +189,7 @@
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen">
     <nav class="nav-blur fixed w-full z-50">
         <div class="max-w-5xl mx-auto px-4">
             <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
@@ -209,19 +209,248 @@
     </nav>
 
     <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
-        <!-- Code préservé ici -->
+        <div class="max-w-xl mx-auto space-y-6">
+            <!-- Section Type d'activité -->
+            <div class="form-section">
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Type d'activité</h2>
+                <div class="space-y-3" id="activities-container">
+                    <div class="activity-option" data-no-activity>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Aucune activité</h3>
+                                <p class="text-sm opacity-70">Pas de pratique sportive régulière</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="activity-option">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Endurance</h3>
+                                <p class="text-sm opacity-70">Course à pied, vélo, natation...</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="activity-option">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Sports collectifs</h3>
+                                <p class="text-sm opacity-70">Football, basketball, handball...</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="activity-option">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium mb-1">Musculation</h3>
+                                <p class="text-sm opacity-70">Musculation, CrossFit, fitness...</p>
+                            </div>
+                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Fréquence et intensité -->
+            <div class="form-section">
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Fréquence et intensité</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label class="ios-label">Fréquence hebdomadaire</label>
+                        <div class="intensity-selector">
+                            <div class="intensity-option">Aucune</div>
+                            <div class="intensity-option">1-2x</div>
+                            <div class="intensity-option selected">3-4x</div>
+                            <div class="intensity-option">5x ou +</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="ios-label">Intensité habituelle</label>
+                        <div class="intensity-selector">
+                            <div class="intensity-option">Aucune</div>
+                            <div class="intensity-option">Légère</div>
+                            <div class="intensity-option selected">Modérée</div>
+                            <div class="intensity-option">Intense</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Objectifs -->
+            <div class="form-section">
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Objectifs</h2>
+                <div>
+                    <label class="ios-label" for="goals">Objectifs sportifs</label>
+                    <textarea id="goals" class="ios-input w-full h-32 resize-none" 
+                        placeholder="Décrivez vos objectifs sportifs, compétitions prévues..."></textarea>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
-        const Storage = {
-            save: (key, data) => {
-                try {
-                    localStorage.setItem(key, JSON.stringify(data));
-                } catch (e) {
-                    console.error(e);
+    // Utilitaires de stockage
+    const Storage = {
+        save: function(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                console.log(`Données sauvegardées (${key}):`, data);
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        },
+        
+        load: function(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                console.error('Error loading data:', e);
+                return null;
+            }
+        }
+    };
+    
+    // Gestion des activity options avec multi-sélection
+    const activitiesContainer = document.getElementById('activities-container');
+    const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
+    const noActivityOption = activitiesContainer.querySelector('[data-no-activity]');
+    
+    // Ajout des clics sur les options d'activités
+    activityOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const isNoActivity = option.hasAttribute('data-no-activity');
+            
+            if (isNoActivity) {
+                // Si on clique sur "Aucune activité"
+                activityOptions.forEach(o => {
+                    if (!o.hasAttribute('data-no-activity')) {
+                        o.classList.remove('selected');
+                    }
+                });
+            } else {
+                // Pour les autres activités
+                noActivityOption.classList.remove('selected');
+            }
+            option.classList.toggle('selected');
+            saveCurrentData(); // Sauvegarder après chaque sélection
+        });
+    });
+    
+    // Gestion des intensity options
+    document.querySelectorAll('.intensity-selector').forEach(selector => {
+        selector.querySelectorAll('.intensity-option').forEach(option => {
+            option.addEventListener('click', () => {
+                selector.querySelectorAll('.intensity-option').forEach(o => {
+                    o.classList.remove('selected');
+                });
+                option.classList.add('selected');
+                saveCurrentData(); // Sauvegarder après chaque sélection
+            });
+        });
+    });
+    
+    // Charger les données au démarrage
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSavedData();
+        setupAdditionalListeners();
+        checkSavedData('patient_physical_activity');
+    });
+    
+    // Vérifier les données sauvegardées
+    function checkSavedData(key) {
+        const saved = Storage.load(key);
+        console.log(`Données chargées (${key}):`, saved);
+    }
+    
+    // Charger les données sauvegardées
+    function loadSavedData() {
+        const savedData = Storage.load('patient_physical_activity');
+        if (savedData) {
+            // Restaurer les activités sélectionnées
+            if (savedData.activities) {
+                savedData.activities.forEach(activity => {
+                    activityOptions.forEach(option => {
+                        if (option.querySelector('h3')?.textContent === activity.type) {
+                            option.classList.add('selected');
+                        }
+                    });
+                });
+            }
+    
+            // Restaurer la fréquence et l'intensité
+            document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                const value = index === 0 ? savedData.frequency : savedData.intensity;
+                if (value) {
+                    selector.querySelectorAll('.intensity-option').forEach(option => {
+                        if (option.textContent === value) {
+                            option.classList.add('selected');
+                        } else {
+                            option.classList.remove('selected');
+                        }
+                    });
                 }
-            },
+            });
+    
+            // Restaurer les objectifs
+            if (savedData.goals) {
+                document.querySelector('textarea').value = savedData.goals;
+            }
+        }
+    }
+    
+    // Configuration des écouteurs supplémentaires
+    function setupAdditionalListeners() {
+        // Sauvegarder sur modification du textarea
+        document.querySelector('textarea')?.addEventListener('input', saveCurrentData);
+        
+        // Navigation
+        const prevButton = document.querySelector('a[href="patient-info.html"]');
+        const nextButton = document.querySelector('a[href="symptoms.html"]');
+        
+        [prevButton, nextButton].forEach(button => {
+            if (button) {
+                button.addEventListener('click', () => {
+                    saveCurrentData();
+                });
+            }
+        });
+    }
+    
+    // Sauvegarder les données
+    function saveCurrentData() {
+        console.log("Sauvegarde de l'activité physique..."); // Debug
+    
+        const data = {
+            // Activités sélectionnées
+            activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(option => ({
+                type: option.querySelector('h3')?.textContent || '',
+                description: option.querySelector('p')?.textContent || ''
+            })),
+    
+            // Fréquence (premier sélecteur d'intensité)
+            frequency: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
+    
+            // Intensité (second sélecteur d'intensité)
+            intensity: document.querySelectorAll('.intensity-selector')[1]?.querySelector('.intensity-option.selected')?.textContent || '',
+    
+            // Objectifs
+            goals: document.querySelector('textarea')?.value || ''
         };
+    
+        console.log("Données activité physique à sauvegarder:", data); // Debug
+        Storage.save('patient_physical_activity', data);
+    }
     </script>
 </body>
 </html>
