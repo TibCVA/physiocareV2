@@ -299,43 +299,149 @@
     </main>
 
     <script>
-        // Gestion des activity options avec multi-sélection
-        const activitiesContainer = document.getElementById('activities-container');
-        const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
-        const noActivityOption = activitiesContainer.querySelector('[data-no-activity]');
-
-        // Ajout des clics sur les options d'activités
-        activityOptions.forEach(option => {
+    // Utilitaires de stockage
+    const Storage = {
+        save: function(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        },
+        
+        load: function(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                console.error('Error loading data:', e);
+                return null;
+            }
+        }
+    };
+    
+    // Garder le code existant de gestion des activités
+    const activitiesContainer = document.getElementById('activities-container');
+    const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
+    const noActivityOption = activitiesContainer.querySelector('[data-no-activity]');
+    
+    // Modifier les gestionnaires d'événements pour inclure la sauvegarde
+    activityOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const isNoActivity = option.hasAttribute('data-no-activity');
+            
+            if (isNoActivity) {
+                activityOptions.forEach(o => {
+                    if (!o.hasAttribute('data-no-activity')) {
+                        o.classList.remove('selected');
+                    }
+                });
+            } else {
+                noActivityOption.classList.remove('selected');
+            }
+            option.classList.toggle('selected');
+            
+            // Sauvegarder après chaque sélection
+            saveCurrentData();
+        });
+    });
+    
+    // Modifier la gestion des intensity options pour inclure la sauvegarde
+    document.querySelectorAll('.intensity-selector').forEach(selector => {
+        selector.querySelectorAll('.intensity-option').forEach(option => {
             option.addEventListener('click', () => {
-                const isNoActivity = option.hasAttribute('data-no-activity');
+                selector.querySelectorAll('.intensity-option').forEach(o => {
+                    o.classList.remove('selected');
+                });
+                option.classList.add('selected');
                 
-                if (isNoActivity) {
-                    // Si on clique sur "Aucune activité"
-                    activityOptions.forEach(o => {
-                        if (!o.hasAttribute('data-no-activity')) {
-                            o.classList.remove('selected');
+                // Sauvegarder après chaque sélection
+                saveCurrentData();
+            });
+        });
+    });
+    
+    // Charger les données au démarrage
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSavedData();
+        setupAdditionalListeners();
+    });
+    
+    // Fonction de chargement des données sauvegardées
+    function loadSavedData() {
+        const savedData = Storage.load('patient_physical_activity');
+        if (savedData) {
+            // Restaurer les activités sélectionnées
+            if (savedData.activities) {
+                savedData.activities.forEach(activity => {
+                    activityOptions.forEach(option => {
+                        if (option.querySelector('h3')?.textContent === activity) {
+                            option.classList.add('selected');
                         }
                     });
-                } else {
-                    // Pour les autres activités
-                    noActivityOption.classList.remove('selected');
-                }
-                option.classList.toggle('selected');
-            });
-        });
-
-        // Gestion des intensity options
-        document.querySelectorAll('.intensity-selector').forEach(selector => {
-            selector.querySelectorAll('.intensity-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    selector.querySelectorAll('.intensity-option').forEach(o => {
-                        o.classList.remove('selected');
-                    });
-                    option.classList.add('selected');
                 });
+            }
+            
+            // Restaurer la fréquence et l'intensité
+            if (savedData.frequency) {
+                document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                    if (index === 0) { // Premier sélecteur (fréquence)
+                        selector.querySelectorAll('.intensity-option').forEach(option => {
+                            if (option.textContent === savedData.frequency) {
+                                option.classList.add('selected');
+                            }
+                        });
+                    }
+                });
+            }
+            
+            if (savedData.intensity) {
+                document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                    if (index === 1) { // Deuxième sélecteur (intensité)
+                        selector.querySelectorAll('.intensity-option').forEach(option => {
+                            if (option.textContent === savedData.intensity) {
+                                option.classList.add('selected');
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Restaurer les objectifs
+            if (savedData.goals) {
+                document.querySelector('textarea').value = savedData.goals;
+            }
+        }
+    }
+    
+    // Configuration des écouteurs supplémentaires
+    function setupAdditionalListeners() {
+        // Sauvegarder lors de la modification du textarea
+        document.querySelector('textarea').addEventListener('input', saveCurrentData);
+        
+        // Intercepter la navigation
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
             });
         });
-
+    }
+    
+    // Fonction de sauvegarde des données
+    function saveCurrentData() {
+        const data = {
+            activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(
+                el => el.querySelector('h3').textContent
+            ),
+            frequency: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
+            intensity: document.querySelector('.intensity-selector:last-child .intensity-option.selected')?.textContent || '',
+            goals: document.querySelector('textarea').value
+        };
+        
+        Storage.save('patient_physical_activity', data);
+    }
     </script>
 </body>
 </html>
