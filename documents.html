@@ -172,9 +172,10 @@
     </main>
 
     <script>
-        const MAX_TOTAL_SIZE = 4 * 1024 * 1024; // 4MB total
-        const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB par fichier
+        const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50MB total
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB par fichier
         const MAX_FILES = 5; // Maximum 5 fichiers
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 
         const Storage = {
             save: async function(key, data) {
@@ -205,6 +206,13 @@
             }
         };
 
+        function validateFile(file) {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                throw new Error('Format de fichier non supporté');
+            }
+            return true;
+        }
+
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const documentList = document.getElementById('documentList');
@@ -220,12 +228,14 @@
             }
 
             for (const file of Array.from(files)) {
-                if (file.size > MAX_FILE_SIZE) {
-                    showError(`${file.name} dépasse 2MB`);
-                    continue;
-                }
-
                 try {
+                    validateFile(file);
+                    
+                    if (file.size > MAX_FILE_SIZE) {
+                        showError(`${file.name} dépasse 10MB`);
+                        continue;
+                    }
+
                     const fileData = await compressAndConvertToBase64(file);
                     const newSize = new Blob([fileData]).size;
                     
@@ -241,7 +251,7 @@
                     addDocumentToList(file, fileData);
                     await saveCurrentData();
                 } catch (error) {
-                    showError(`Erreur: ${file.name}`);
+                    showError(`Erreur: ${error.message || file.name}`);
                     console.error(error);
                 }
             }
@@ -253,9 +263,13 @@
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                let { width, height } = img;
-                const MAX_DIMENSION = 1024;
+                // Augmenter la dimension maximale
+                const MAX_DIMENSION = 2048;
                 
+                // Compression adaptative selon la taille
+                let quality = file.size > 5000000 ? 0.5 : 0.7;
+                
+                let { width, height } = img;
                 if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
                     if (width > height) {
                         height *= (MAX_DIMENSION / width);
@@ -270,7 +284,7 @@
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                return canvas.toDataURL('image/jpeg', 0.7);
+                return canvas.toDataURL('image/jpeg', quality);
             }
             
             return new Promise((resolve, reject) => {
@@ -336,76 +350,76 @@
         }
 
         function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
+           errorMessage.textContent = message;
+           errorMessage.style.display = 'block';
+           setTimeout(() => {
+               errorMessage.style.display = 'none';
+           }, 5000);
+       }
 
-        // Event Listeners
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = 'var(--brand-light)';
-            dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
-        });
-        dropZone.addEventListener('drop', (e) => {
+       // Event Listeners
+       dropZone.addEventListener('click', () => fileInput.click());
+       dropZone.addEventListener('dragover', (e) => {
            e.preventDefault();
-           dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-           dropZone.style.background = '';
-           handleFiles(e.dataTransfer.files);
+           dropZone.style.borderColor = 'var(--brand-light)';
+           dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
        });
+       dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+          dropZone.style.background = '';
+          handleFiles(e.dataTransfer.files);
+      });
 
-       fileInput.addEventListener('change', () => {
-           handleFiles(fileInput.files);
-       });
+      fileInput.addEventListener('change', () => {
+          handleFiles(fileInput.files);
+      });
 
-       notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
+      notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
 
-       document.querySelectorAll('a[href]').forEach(link => {
-           link.addEventListener('click', async (e) => {
-               e.preventDefault();
-               await saveCurrentData();
-               window.location.href = link.getAttribute('href');
-           });
-       });
+      document.querySelectorAll('a[href]').forEach(link => {
+          link.addEventListener('click', async (e) => {
+              e.preventDefault();
+              await saveCurrentData();
+              window.location.href = link.getAttribute('href');
+          });
+      });
 
-       function debounce(func, wait) {
-           let timeout;
-           return function(...args) {
-               clearTimeout(timeout);
-               timeout = setTimeout(() => func.apply(this, args), wait);
-           };
-       }
+      function debounce(func, wait) {
+          let timeout;
+          return function(...args) {
+              clearTimeout(timeout);
+              timeout = setTimeout(() => func.apply(this, args), wait);
+          };
+      }
 
-       // Initialisation au chargement
-       document.addEventListener('DOMContentLoaded', async () => {
-           const savedData = Storage.load('patient_documents');
-           if (savedData) {
-               if (savedData.documents) {
-                   documentList.innerHTML = '';
-                   savedData.documents.forEach(doc => {
-                       if (doc.fileData && doc.name) {
-                           const file = {
-                               name: doc.name,
-                               type: doc.type,
-                               size: approximateFileSize(doc.fileData)
-                           };
-                           addDocumentToList(file, doc.fileData);
-                       }
-                   });
-               }
-               if (savedData.notes) {
-                   notesTextarea.value = savedData.notes;
-               }
-           }
-       });
+      // Initialisation au chargement
+      document.addEventListener('DOMContentLoaded', async () => {
+          const savedData = Storage.load('patient_documents');
+          if (savedData) {
+              if (savedData.documents) {
+                  documentList.innerHTML = '';
+                  savedData.documents.forEach(doc => {
+                      if (doc.fileData && doc.name) {
+                          const file = {
+                              name: doc.name,
+                              type: doc.type,
+                              size: approximateFileSize(doc.fileData)
+                          };
+                          addDocumentToList(file, doc.fileData);
+                      }
+                  });
+              }
+              if (savedData.notes) {
+                  notesTextarea.value = savedData.notes;
+              }
+          }
+      });
 
-       function approximateFileSize(base64String) {
-           const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
-           return (base64String.length * 3/4) - padding;
-       }
-   </script>
+      function approximateFileSize(base64String) {
+          const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
+          return (base64String.length * 3/4) - padding;
+      }
+  </script>
 </body>
 </html>
