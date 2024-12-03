@@ -393,62 +393,64 @@
                 const value = index === 0 ? savedData.frequency : savedData.intensity;
                 if (value) {
                     selector.querySelectorAll('.intensity-option').forEach(option => {
-                        if (option.textContent.trim() === value.trim()) {
-                            option.classList.add('selected'); // Applique la classe pour la sélection correspondante
+                        if (option.textContent === value) {
+                            option.classList.add('selected');
                         } else {
-                            option.classList.remove('selected'); // Supprime les anciennes sélections
+                            option.classList.remove('selected');
                         }
                     });
                 }
             });
-            
-            // Écouteurs pour les changements de fréquence et intensité
-            document.querySelectorAll('.intensity-selector').forEach(selector => {
-                selector.querySelectorAll('.intensity-option').forEach(option => {
-                    option.addEventListener('click', () => {
-                        selector.querySelectorAll('.intensity-option').forEach(o => o.classList.remove('selected'));
-                        option.classList.add('selected'); // Ajoute la classe pour la sélection actuelle
-                        saveCurrentData(); // Sauvegarde immédiatement après le clic
-                    });
-                });
-            });
-            
-            // Navigation - sauvegarde des données avant de changer d'écran
-            const prevButton = document.querySelector('a[href="patient-info.html"]');
-            const nextButton = document.querySelector('a[href="symptoms.html"]');
-            
-            [prevButton, nextButton].forEach(button => {
-                if (button) {
-                    button.addEventListener('click', () => {
-                        saveCurrentData(); // Sauvegarde toujours avant navigation
-                    });
-                }
-            });
-            
-            // Sauvegarde les données actuelles
-            function saveCurrentData() {
-                console.log("Sauvegarde de l'activité physique...");
-            
-                const data = {
-                    // Activités sélectionnées
-                    activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(option => ({
-                        type: option.querySelector('h3')?.textContent || '',
-                        description: option.querySelector('p')?.textContent || ''
-                    })),
-            
-                    // Fréquence (premier sélecteur d'intensité)
-                    frequency: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
-            
-                    // Intensité (second sélecteur d'intensité)
-                    intensity: document.querySelectorAll('.intensity-selector')[1]?.querySelector('.intensity-option.selected')?.textContent || '',
-            
-                    // Objectifs
-                    goals: document.querySelector('textarea')?.value || ''
-                };
-            
-                console.log("Données activité physique à sauvegarder:", data);
-                Storage.save('patient_physical_activity', data);
+    
+            // Restaurer les objectifs
+            if (savedData.goals) {
+                document.querySelector('textarea').value = savedData.goals;
             }
+        }
+    }
+    
+    // Configuration des écouteurs supplémentaires
+    function setupAdditionalListeners() {
+        // Sauvegarder sur modification du textarea
+        document.querySelector('textarea')?.addEventListener('input', saveCurrentData);
+        
+        // Navigation
+        const prevButton = document.querySelector('a[href="patient-info.html"]');
+        const nextButton = document.querySelector('a[href="symptoms.html"]');
+        
+        [prevButton, nextButton].forEach(button => {
+            if (button) {
+                button.addEventListener('click', () => {
+                    saveCurrentData();
+                });
+            }
+        });
+    }
+    
+    // Sauvegarder les données
+    function saveCurrentData() {
+        console.log("Sauvegarde de l'activité physique..."); // Debug
+    
+        const data = {
+            // Activités sélectionnées
+            activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(option => ({
+                type: option.querySelector('h3')?.textContent || '',
+                description: option.querySelector('p')?.textContent || ''
+            })),
+    
+            // Fréquence (premier sélecteur d'intensité)
+            frequency: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
+    
+            // Intensité (second sélecteur d'intensité)
+            intensity: document.querySelectorAll('.intensity-selector')[1]?.querySelector('.intensity-option.selected')?.textContent || '',
+    
+            // Objectifs
+            goals: document.querySelector('textarea')?.value || ''
+        };
+    
+        console.log("Données activité physique à sauvegarder:", data); // Debug
+        Storage.save('patient_physical_activity', data);
+    }
     </script>
 </body>
 </html>
