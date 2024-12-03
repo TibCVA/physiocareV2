@@ -407,152 +407,152 @@
     </main>
 
    <script>
-// Utilitaires de stockage
-const Storage = {
-    save: function(key, data) {
-        try {
-            localStorage.setItem(key, JSON.stringify(data));
-        } catch (e) {
-            console.error('Error saving data:', e);
-        }
-    },
-    
-    load: function(key) {
-        try {
-            const item = localStorage.getItem(key);
-            return item ? JSON.parse(item) : null;
-        } catch (e) {
-            console.error('Error loading data:', e);
-            return null;
-        }
-    }
-};
-
-// Garder la gestion des phases de traitement
-document.querySelectorAll('.treatment-phase').forEach(phase => {
-    const header = phase.querySelector('.phase-header');
-    header.addEventListener('click', () => {
-        phase.classList.toggle('active');
-        saveCurrentData(); // Sauvegarder l'état des phases
-    });
-});
-
-// Garder la gestion du bouton de téléchargement
-const downloadButton = document.querySelector('.download-button');
-if (downloadButton) {
-    downloadButton.addEventListener('click', () => {
-        downloadButton.style.transform = 'scale(0.98)';
-        setTimeout(() => {
-            downloadButton.style.transform = 'scale(1)';
-        }, 100);
-        generateAndDownloadPDF();
-    });
-}
-
-// Charger les données au démarrage
-document.addEventListener('DOMContentLoaded', function() {
-    const diagnosisData = Storage.load('patient_diagnosis');
-    if (diagnosisData && diagnosisData.diagnoses) {
-        // Si nous avons un diagnostic, montrer le plan de traitement
-        document.getElementById('initialMessage').classList.add('hidden');
-        document.getElementById('treatmentContent').classList.remove('hidden');
+    // Utilitaires de stockage
+    const Storage = {
+        save: function(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('Error saving data:', e);
+            }
+        },
         
-        // Mettre à jour le diagnostic affiché
-        updateDiagnosisDisplay(diagnosisData.diagnoses[0]); // Utiliser le diagnostic principal
+        load: function(key) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : null;
+            } catch (e) {
+                console.error('Error loading data:', e);
+                return null;
+            }
+        }
+    };
+    
+    // Gestion des phases de traitement
+    document.querySelectorAll('.treatment-phase').forEach(phase => {
+        const header = phase.querySelector('.phase-header');
+        header.addEventListener('click', () => {
+            phase.classList.toggle('active');
+            saveCurrentData(); // Sauvegarder l'état des phases
+        });
+    });
+    
+    // Gestion du bouton de téléchargement
+    const downloadButton = document.querySelector('.download-button');
+    if (downloadButton) {
+        downloadButton.addEventListener('click', () => {
+            downloadButton.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                downloadButton.style.transform = 'scale(1)';
+            }, 100);
+            generateAndDownloadPDF();
+        });
     }
     
-    loadSavedData();
-    setupAdditionalListeners();
-});
-
-// Mettre à jour l'affichage du diagnostic
-function updateDiagnosisDisplay(diagnosis) {
-    const diagnosisElement = document.querySelector('[data-diagnosis]');
-    if (diagnosisElement && diagnosis) {
-        diagnosisElement.textContent = diagnosis.name;
+    // Charger les données au démarrage
+    document.addEventListener('DOMContentLoaded', function() {
+        const diagnosisData = Storage.load('patient_diagnosis');
+        if (diagnosisData && diagnosisData.diagnoses) {
+            document.getElementById('initialMessage').classList.add('hidden');
+            document.getElementById('treatmentContent').classList.remove('hidden');
+            updateDiagnosisDisplay(diagnosisData.diagnoses[0]);
+        }
+        
+        loadSavedData();
+        setupNavigationListeners();
+    });
+    
+    // Mettre à jour l'affichage du diagnostic
+    function updateDiagnosisDisplay(diagnosis) {
+        const diagnosisElement = document.querySelector('[data-diagnosis]');
+        if (diagnosisElement && diagnosis) {
+            diagnosisElement.textContent = diagnosis.name;
+        }
     }
-}
-
-// Fonction de chargement des données sauvegardées
-function loadSavedData() {
-    const savedData = Storage.load('patient_treatment');
-    if (savedData) {
-        // Restaurer l'état des phases
-        if (savedData.activePhases) {
-            savedData.activePhases.forEach(phaseIndex => {
-                const phase = document.querySelectorAll('.treatment-phase')[phaseIndex];
-                if (phase) {
-                    phase.classList.add('active');
-                }
+    
+    // Fonction de chargement des données sauvegardées
+    function loadSavedData() {
+        const savedData = Storage.load('patient_treatment');
+        if (savedData) {
+            if (savedData.activePhases) {
+                savedData.activePhases.forEach(phaseIndex => {
+                    const phase = document.querySelectorAll('.treatment-phase')[phaseIndex];
+                    if (phase) {
+                        phase.classList.add('active');
+                    }
+                });
+            }
+        }
+    }
+    
+    // Configuration des écouteurs de navigation
+    function setupNavigationListeners() {
+        // Gérer uniquement les boutons de navigation spécifiques
+        const prevButton = document.querySelector('a[href="diagnosis.html"]');
+        const nextButton = document.querySelector('a[href="index.html"]');
+        
+        if (prevButton) {
+            prevButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
+            });
+        }
+        
+        if (nextButton) {
+            nextButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                saveCurrentData();
+                window.location.href = this.href;
             });
         }
     }
-}
-
-// Configuration des écouteurs supplémentaires
-function setupAdditionalListeners() {
-    // Intercepter la navigation
-    document.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            saveCurrentData();
-            window.location.href = this.href;
-        });
-    });
-}
-
-// Fonction de sauvegarde des données
-function saveCurrentData() {
-    const data = {
-        activePhases: Array.from(document.querySelectorAll('.treatment-phase')).map(
-            (phase, index) => phase.classList.contains('active') ? index : null
-        ).filter(index => index !== null),
-        lastUpdated: new Date().toISOString()
-    };
     
-    Storage.save('patient_treatment', data);
-}
-
-// Fonction de génération et téléchargement du PDF
-async function generateAndDownloadPDF() {
-    try {
-        // Récupérer toutes les données patient
-        const patientData = {
-            personalInfo: Storage.load('patient_personal_info'),
-            physicalActivity: Storage.load('patient_physical_activity'),
-            symptoms: Storage.load('patient_symptoms'),
-            diagnosis: Storage.load('patient_diagnosis'),
-            treatment: Storage.load('patient_treatment')
+    // Fonction de sauvegarde des données
+    function saveCurrentData() {
+        const data = {
+            activePhases: Array.from(document.querySelectorAll('.treatment-phase')).map(
+                (phase, index) => phase.classList.contains('active') ? index : null
+            ).filter(index => index !== null),
+            lastUpdated: new Date().toISOString()
         };
-
-        // Récupérer le contenu du traitement
-        const treatmentContent = document.getElementById('treatmentContent');
         
-        // Simuler la génération du PDF (à remplacer par votre logique réelle)
-        console.log('Données exportées:', patientData);
-        console.log('Contenu du traitement exporté');
-        
-        // Animation de confirmation
-        const downloadButton = document.querySelector('.download-button');
-        downloadButton.textContent = 'Téléchargement terminé !';
-        setTimeout(() => {
-            downloadButton.textContent = 'Télécharger le protocole détaillé (PDF)';
-        }, 2000);
-
-    } catch (error) {
-        console.error('Erreur lors de la génération du PDF:', error);
-        alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+        Storage.save('patient_treatment', data);
     }
-}
-
-// Vérifier la navigation depuis le diagnostic
-const comingFromDiagnosis = document.referrer.includes('diagnosis.html') || 
-                          Storage.load('patient_diagnosis')?.diagnoses?.length > 0;
-
-if (comingFromDiagnosis) {
-    document.getElementById('initialMessage').classList.add('hidden');
-    document.getElementById('treatmentContent').classList.remove('hidden');
-}
-</script>
+    
+    // Fonction de génération et téléchargement du PDF
+    async function generateAndDownloadPDF() {
+        try {
+            const patientData = {
+                personalInfo: Storage.load('patient_personal_info'),
+                physicalActivity: Storage.load('patient_physical_activity'),
+                symptoms: Storage.load('patient_symptoms'),
+                diagnosis: Storage.load('patient_diagnosis'),
+                treatment: Storage.load('patient_treatment')
+            };
+    
+            console.log('Données exportées:', patientData);
+            console.log('Contenu du traitement exporté');
+            
+            downloadButton.textContent = 'Téléchargement terminé !';
+            setTimeout(() => {
+                downloadButton.textContent = 'Télécharger le protocole détaillé (PDF)';
+            }, 2000);
+    
+        } catch (error) {
+            console.error('Erreur lors de la génération du PDF:', error);
+            alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+        }
+    }
+    
+    // Vérifier la navigation depuis le diagnostic
+    const comingFromDiagnosis = document.referrer.includes('diagnosis.html') || 
+                              Storage.load('patient_diagnosis')?.diagnoses?.length > 0;
+    
+    if (comingFromDiagnosis) {
+        document.getElementById('initialMessage').classList.add('hidden');
+        document.getElementById('treatmentContent').classList.remove('hidden');
+    }
+    </script>
 </body>
 </html>
