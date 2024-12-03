@@ -11,7 +11,6 @@
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
             --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
             --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
             --safe-top: env(safe-area-inset-top, 47px);
@@ -115,6 +114,16 @@
                 color: white;
             }
         }
+
+        .error-message {
+            background-color: #FEE2E2;
+            border: 1px solid #EF4444;
+            color: #B91C1C;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: none;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -140,6 +149,7 @@
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
+                <div class="error-message" id="errorMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
                     <svg class="w-12 h-12 mx-auto mb-4 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -162,11 +172,21 @@
     </main>
 
     <script>
+        const MAX_TOTAL_SIZE = 4 * 1024 * 1024; // 4MB total
+        const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB par fichier
+        const MAX_FILES = 5; // Maximum 5 fichiers
+
         const Storage = {
-            save: function(key, data) {
+            save: async function(key, data) {
                 try {
-                    localStorage.setItem(key, JSON.stringify(data));
-                    console.log(`Sauvegarde (${key}):`, data);
+                    const serialized = JSON.stringify(data);
+                    const size = new Blob([serialized]).size;
+                    
+                    if (size > MAX_TOTAL_SIZE) {
+                        throw new Error('Taille totale dépassée');
+                    }
+                    
+                    localStorage.setItem(key, serialized);
                     return true;
                 } catch (error) {
                     console.error('Erreur sauvegarde:', error);
@@ -185,56 +205,74 @@
             }
         };
 
-        // DOM Elements
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const documentList = document.getElementById('documentList');
         const notesTextarea = document.getElementById('notes');
+        const errorMessage = document.getElementById('errorMessage');
 
-        // Event Listeners
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', handleDragOver);
-        dropZone.addEventListener('dragleave', handleDragLeave);
-        dropZone.addEventListener('drop', handleDrop);
-        fileInput.addEventListener('change', handleFileSelect);
-        notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
-
-        // Navigation handlers
-        document.querySelectorAll('a[href]').forEach(link => {
-            link.addEventListener('click', async (e) => {
-                e.preventDefault();
-                await saveCurrentData();
-                window.location.href = link.getAttribute('href');
-            });
-        });
-
-        // File Handling
         async function handleFiles(files) {
-            const maxSize = 5 * 1024 * 1024; // 5MB limit
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+            const currentFiles = documentList.children.length;
+            
+            if (currentFiles + files.length > MAX_FILES) {
+                showError(`Maximum ${MAX_FILES} fichiers autorisés`);
+                return;
+            }
 
             for (const file of Array.from(files)) {
-                if (file.size > maxSize) {
-                    alert(`Le fichier ${file.name} dépasse 5MB`);
-                    continue;
-                }
-                if (!allowedTypes.includes(file.type)) {
-                    alert(`Type de fichier non supporté: ${file.name}`);
+                if (file.size > MAX_FILE_SIZE) {
+                    showError(`${file.name} dépasse 2MB`);
                     continue;
                 }
 
                 try {
-                    const fileData = await convertToBase64(file);
+                    const fileData = await compressAndConvertToBase64(file);
+                    const newSize = new Blob([fileData]).size;
+                    
+                    const currentData = Storage.load('patient_documents');
+                    const currentSize = currentData ? 
+                        new Blob([JSON.stringify(currentData)]).size : 0;
+
+                    if ((currentSize + newSize) > MAX_TOTAL_SIZE) {
+                        showError('Stockage plein. Supprimez des documents.');
+                        break;
+                    }
+
                     addDocumentToList(file, fileData);
                     await saveCurrentData();
                 } catch (error) {
-                    console.error('Erreur traitement fichier:', error);
-                    alert(`Erreur lors du traitement de ${file.name}`);
+                    showError(`Erreur: ${file.name}`);
+                    console.error(error);
                 }
             }
         }
 
-        function convertToBase64(file) {
+        async function compressAndConvertToBase64(file) {
+            if (file.type.startsWith('image/')) {
+                const img = await createImageBitmap(file);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                let { width, height } = img;
+                const MAX_DIMENSION = 1024;
+                
+                if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                    if (width > height) {
+                        height *= (MAX_DIMENSION / width);
+                        width = MAX_DIMENSION;
+                    } else {
+                        width *= (MAX_DIMENSION / height);
+                        height = MAX_DIMENSION;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                return canvas.toDataURL('image/jpeg', 0.7);
+            }
+            
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result);
@@ -281,7 +319,7 @@
         }
 
         async function saveCurrentData() {
-            const documents = Array.from(document.querySelectorAll('.document-item')).map(item => ({
+            const documents = Array.from(documentList.querySelectorAll('.document-item')).map(item => ({
                 name: item.dataset.fileName,
                 type: item.dataset.fileType,
                 fileData: item.dataset.fileData
@@ -292,70 +330,82 @@
                 notes: notesTextarea.value
             };
 
-            if (!Storage.save('patient_documents', data)) {
-                alert('Erreur lors de la sauvegarde des documents');
+            if (!await Storage.save('patient_documents', data)) {
+                showError('Erreur de sauvegarde');
             }
         }
 
-        async function loadSavedData() {
-            const data = Storage.load('patient_documents');
-            if (data) {
-                if (data.documents) {
-                    documentList.innerHTML = '';
-                    data.documents.forEach(doc => {
-                        if (doc.fileData && doc.name) {
-                            const file = {
-                                name: doc.name,
-                                type: doc.type,
-                                size: approximateFileSize(doc.fileData)
-                            };
-                            addDocumentToList(file, doc.fileData);
-                        }
-                    });
-                }
-                if (data.notes) {
-                    notesTextarea.value = data.notes;
-                }
-            }
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
         }
 
-        // Utility functions
-        function handleDragOver(e) {
+        // Event Listeners
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.style.borderColor = 'var(--brand-light)';
             dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
-        }
+        });
+        dropZone.addEventListener('drop', (e) => {
+           e.preventDefault();
+           dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+           dropZone.style.background = '';
+           handleFiles(e.dataTransfer.files);
+       });
 
-        function handleDragLeave() {
-            dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-            dropZone.style.background = '';
-        }
+       fileInput.addEventListener('change', () => {
+           handleFiles(fileInput.files);
+       });
 
-        function handleDrop(e) {
-            e.preventDefault();
-            handleDragLeave();
-            handleFiles(e.dataTransfer.files);
-        }
+       notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
 
-        function handleFileSelect() {
-            handleFiles(fileInput.files);
-        }
+       document.querySelectorAll('a[href]').forEach(link => {
+           link.addEventListener('click', async (e) => {
+               e.preventDefault();
+               await saveCurrentData();
+               window.location.href = link.getAttribute('href');
+           });
+       });
 
-        function approximateFileSize(base64String) {
-            const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
-            return (base64String.length * 3/4) - padding;
-        }
+       function debounce(func, wait) {
+           let timeout;
+           return function(...args) {
+               clearTimeout(timeout);
+               timeout = setTimeout(() => func.apply(this, args), wait);
+           };
+       }
 
-        function debounce(func, wait) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), wait);
-            };
-        }
+       // Initialisation au chargement
+       document.addEventListener('DOMContentLoaded', async () => {
+           const savedData = Storage.load('patient_documents');
+           if (savedData) {
+               if (savedData.documents) {
+                   documentList.innerHTML = '';
+                   savedData.documents.forEach(doc => {
+                       if (doc.fileData && doc.name) {
+                           const file = {
+                               name: doc.name,
+                               type: doc.type,
+                               size: approximateFileSize(doc.fileData)
+                           };
+                           addDocumentToList(file, doc.fileData);
+                       }
+                   });
+               }
+               if (savedData.notes) {
+                   notesTextarea.value = savedData.notes;
+               }
+           }
+       });
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', loadSavedData);
-    </script>
+       function approximateFileSize(base64String) {
+           const padding = base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0;
+           return (base64String.length * 3/4) - padding;
+       }
+   </script>
 </body>
 </html>
