@@ -304,6 +304,7 @@
         save: function(key, data) {
             try {
                 localStorage.setItem(key, JSON.stringify(data));
+                console.log(`Données sauvegardées (${key}):`, data);
             } catch (e) {
                 console.error('Error saving data:', e);
             }
@@ -320,33 +321,33 @@
         }
     };
     
-    // Code existant de gestion des activités
+    // Gestion des activity options avec multi-sélection
     const activitiesContainer = document.getElementById('activities-container');
     const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
     const noActivityOption = activitiesContainer.querySelector('[data-no-activity]');
     
-    // Gestion des activités avec sauvegarde
+    // Ajout des clics sur les options d'activités
     activityOptions.forEach(option => {
         option.addEventListener('click', () => {
             const isNoActivity = option.hasAttribute('data-no-activity');
             
             if (isNoActivity) {
+                // Si on clique sur "Aucune activité"
                 activityOptions.forEach(o => {
                     if (!o.hasAttribute('data-no-activity')) {
                         o.classList.remove('selected');
                     }
                 });
             } else {
+                // Pour les autres activités
                 noActivityOption.classList.remove('selected');
             }
             option.classList.toggle('selected');
-            
-            // Sauvegarder après modification
-            saveCurrentData();
+            saveCurrentData(); // Sauvegarder après chaque sélection
         });
     });
     
-    // Gestion des intensity options avec sauvegarde
+    // Gestion des intensity options
     document.querySelectorAll('.intensity-selector').forEach(selector => {
         selector.querySelectorAll('.intensity-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -354,9 +355,7 @@
                     o.classList.remove('selected');
                 });
                 option.classList.add('selected');
-                
-                // Sauvegarder après modification
-                saveCurrentData();
+                saveCurrentData(); // Sauvegarder après chaque sélection
             });
         });
     });
@@ -365,48 +364,44 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadSavedData();
         setupAdditionalListeners();
+        checkSavedData('patient_physical_activity');
     });
     
-    // Fonction de chargement des données sauvegardées
+    // Vérifier les données sauvegardées
+    function checkSavedData(key) {
+        const saved = Storage.load(key);
+        console.log(`Données chargées (${key}):`, saved);
+    }
+    
+    // Charger les données sauvegardées
     function loadSavedData() {
         const savedData = Storage.load('patient_physical_activity');
         if (savedData) {
             // Restaurer les activités sélectionnées
-            if (savedData.activities && savedData.activities.length > 0) {
-                activityOptions.forEach(option => {
-                    const activityName = option.querySelector('h3')?.textContent;
-                    if (savedData.activities.includes(activityName)) {
-                        option.classList.add('selected');
-                    }
+            if (savedData.activities) {
+                savedData.activities.forEach(activity => {
+                    activityOptions.forEach(option => {
+                        if (option.querySelector('h3')?.textContent === activity.type) {
+                            option.classList.add('selected');
+                        }
+                    });
                 });
             }
-            
-            // Restaurer la fréquence
-            if (savedData.frequency) {
-                document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                    if (index === 0) {
-                        selector.querySelectorAll('.intensity-option').forEach(option => {
-                            if (option.textContent === savedData.frequency) {
-                                option.classList.add('selected');
-                            }
-                        });
-                    }
-                });
-            }
-            
-            // Restaurer l'intensité
-            if (savedData.intensity) {
-                document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                    if (index === 1) {
-                        selector.querySelectorAll('.intensity-option').forEach(option => {
-                            if (option.textContent === savedData.intensity) {
-                                option.classList.add('selected');
-                            }
-                        });
-                    }
-                });
-            }
-            
+    
+            // Restaurer la fréquence et l'intensité
+            document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
+                const value = index === 0 ? savedData.frequency : savedData.intensity;
+                if (value) {
+                    selector.querySelectorAll('.intensity-option').forEach(option => {
+                        if (option.textContent === value) {
+                            option.classList.add('selected');
+                        } else {
+                            option.classList.remove('selected');
+                        }
+                    });
+                }
+            });
+    
             // Restaurer les objectifs
             if (savedData.goals) {
                 document.querySelector('textarea').value = savedData.goals;
@@ -414,43 +409,46 @@
         }
     }
     
-    // Configuration des écouteurs additionnels
+    // Configuration des écouteurs supplémentaires
     function setupAdditionalListeners() {
-        // Sauvegarder lors de la modification du textarea
-        document.querySelector('textarea').addEventListener('input', saveCurrentData);
+        // Sauvegarder sur modification du textarea
+        document.querySelector('textarea')?.addEventListener('input', saveCurrentData);
         
-        // Gestion des boutons de navigation
+        // Navigation
         const prevButton = document.querySelector('a[href="patient-info.html"]');
         const nextButton = document.querySelector('a[href="symptoms.html"]');
         
-        if (prevButton) {
-            prevButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                saveCurrentData();
-                window.location.href = this.href;
-            });
-        }
-        
-        if (nextButton) {
-            nextButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                saveCurrentData();
-                window.location.href = this.href;
-            });
-        }
+        [prevButton, nextButton].forEach(button => {
+            if (button) {
+                button.addEventListener('click', () => {
+                    saveCurrentData();
+                });
+            }
+        });
     }
     
-    // Fonction de sauvegarde des données
+    // Sauvegarder les données
     function saveCurrentData() {
+        console.log("Sauvegarde de l'activité physique..."); // Debug
+    
         const data = {
-            activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(
-                el => el.querySelector('h3').textContent
-            ),
+            // Activités sélectionnées
+            activities: Array.from(document.querySelectorAll('.activity-option.selected')).map(option => ({
+                type: option.querySelector('h3')?.textContent || '',
+                description: option.querySelector('p')?.textContent || ''
+            })),
+    
+            // Fréquence (premier sélecteur d'intensité)
             frequency: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
-            intensity: document.querySelector('.intensity-selector:last-child .intensity-option.selected')?.textContent || '',
-            goals: document.querySelector('textarea').value
+    
+            // Intensité (second sélecteur d'intensité)
+            intensity: document.querySelectorAll('.intensity-selector')[1]?.querySelector('.intensity-option.selected')?.textContent || '',
+    
+            // Objectifs
+            goals: document.querySelector('textarea')?.value || ''
         };
-        
+    
+        console.log("Données activité physique à sauvegarder:", data); // Debug
         Storage.save('patient_physical_activity', data);
     }
     </script>
