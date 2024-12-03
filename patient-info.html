@@ -379,26 +379,14 @@
             input.addEventListener('change', saveCurrentData);
             input.addEventListener('blur', saveCurrentData);
         });
-        
-        // Gérer les boutons de navigation avec une sélection plus précise
-        const prevButton = document.querySelector('.nav-button:not(.primary)'); // Le bouton Retour
-        const nextButton = document.querySelector('.nav-button.primary');      // Le bouton Suivant
-        
-        if (prevButton) {
-            prevButton.addEventListener('click', function(e) {
-                e.preventDefault();
+    
+        // Gestion simplifiée des boutons de navigation
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                // Supprimer preventDefault() pour permettre la navigation par défaut
                 saveCurrentData();
-                window.location.href = this.href;
             });
-        }
-        
-        if (nextButton) {
-            nextButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                saveCurrentData();
-                window.location.href = this.href;
-            });
-        }
+        });
     }
     
     // Sauvegarder les données actuelles
