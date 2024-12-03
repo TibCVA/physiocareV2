@@ -2,56 +2,165 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhysioCare - Documents</title>
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#37A7C4">
+    <title>PhysioCare - Documents Médicaux</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
+        :root {
+            --brand-light: #37A7C4;
+            --brand-medium: #2C89A0;
+            --brand-dark: #1E5F6E;
+            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
+            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
+            --safe-top: env(safe-area-inset-top, 47px);
+            --safe-bottom: env(safe-area-inset-bottom, 34px);
+        }
+
+        body {
+            background: #F5F9FA;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .nav-blur {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--elevation-1);
+            border: 1px solid rgba(55, 167, 196, 0.1);
+        }
+
         .upload-zone {
-            border: 2px dashed #37A7C4;
-            padding: 20px;
+            border: 2px dashed rgba(55, 167, 196, 0.3);
+            border-radius: 16px;
+            padding: 24px;
             text-align: center;
-            border-radius: 10px;
+            transition: all 0.3s ease;
             cursor: pointer;
         }
+
+        .upload-zone:hover {
+            border-color: var(--brand-light);
+            background: rgba(55, 167, 196, 0.05);
+        }
+
         .document-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(55, 167, 196, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
-            background: #f9f9f9;
-            padding: 10px;
-            margin-bottom: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            align-items: center;
+            transition: all 0.3s ease;
         }
+
+        .upload-button {
+            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: rgba(55, 167, 196, 0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 66.67%;
+            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
+        }
+
         .error-message {
-            color: red;
-            margin: 10px 0;
+            background-color: #FEE2E2;
+            border: 1px solid #EF4444;
+            color: #B91C1C;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: none;
         }
     </style>
 </head>
-<body>
-    <div class="upload-zone" id="dropZone">Déposez vos fichiers ici (images ou PDF)</div>
-    <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display: none;">
-    <div id="documentList"></div>
-    <div class="error-message" id="errorMessage"></div>
+<body class="min-h-screen">
+    <nav class="nav-blur fixed w-full z-50">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+                <a href="symptoms.html" class="nav-button flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Retour
+                </a>
+                <span class="font-semibold">Patient (4/6)</span>
+                <a href="diagnosis.html" class="nav-button primary">Suivant</a>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill"></div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-4">
+        <div class="max-w-md mx-auto">
+            <div class="form-section">
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
+                <div class="error-message" id="errorMessage"></div>
+                <div class="upload-zone mb-6" id="dropZone">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="font-medium mb-2">Déposez vos documents ici</p>
+                    <p class="text-sm opacity-70">ou</p>
+                    <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf">
+                    <button class="upload-button mt-4">Choisir des fichiers</button>
+                </div>
+                <div id="documentList" class="space-y-3"></div>
+            </div>
+            <div class="form-section">
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-4">Notes complémentaires</h2>
+                <textarea class="ios-input h-24" id="notes" placeholder="Ajoutez des informations sur les documents fournis (date des examens, contexte...)"></textarea>
+            </div>
+        </div>
+    </main>
 
     <script>
         const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo
         const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 50 Mo
+
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const documentList = document.getElementById('documentList');
         const errorMessage = document.getElementById('errorMessage');
 
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            handleFiles(e.dataTransfer.files);
-        });
         dropZone.addEventListener('dragover', (e) => e.preventDefault());
-        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            await handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', async () => {
+            await handleFiles(fileInput.files);
+        });
 
-        function handleFiles(files) {
+        async function handleFiles(files) {
             let totalSize = Array.from(documentList.children).reduce((size, item) => {
-                return size + parseInt(item.dataset.fileSize || '0', 10);
+                return size + parseInt(item.dataset.fileSize, 10);
             }, 0);
 
             for (const file of files) {
@@ -59,16 +168,25 @@
                     showError(`${file.name} dépasse la limite de 10 Mo.`);
                     continue;
                 }
+
                 if (totalSize + file.size > MAX_TOTAL_SIZE) {
-                    showError(`Taille totale des fichiers dépasse 50 Mo.`);
+                    showError('Taille totale des fichiers dépasse 50 Mo.');
                     break;
                 }
 
-                const reader = new FileReader();
-                reader.onload = () => addDocument(file.name, file.size, reader.result, file.type);
-                reader.readAsDataURL(file);
+                const base64Data = await convertToBase64(file);
+                addDocument(file.name, file.size, base64Data, file.type);
                 totalSize += file.size;
             }
+        }
+
+        async function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
         function addDocument(name, size, base64, type) {
@@ -77,16 +195,20 @@
             item.dataset.fileSize = size;
 
             item.innerHTML = `
-                <span>${name} (${(size / (1024 * 1024)).toFixed(2)} Mo - ${type.includes('pdf') ? 'PDF' : 'Image'})</span>
-                <button onclick="this.parentElement.remove()">Supprimer</button>
+                <div>
+                    <p class="font-medium">${name} (${(size / (1024 * 1024)).toFixed(2)} Mo - ${type.includes('pdf') ? 'PDF' : 'Image'})</p>
+                </div>
+                <button class="text-red-500" onclick="this.parentElement.remove()">Supprimer</button>
             `;
 
+            item.dataset.base64 = base64;
             documentList.appendChild(item);
         }
 
         function showError(message) {
             errorMessage.textContent = message;
-            setTimeout(() => (errorMessage.textContent = ''), 5000);
+            errorMessage.style.display = 'block';
+            setTimeout(() => (errorMessage.style.display = 'none'), 5000);
         }
     </script>
 </body>
