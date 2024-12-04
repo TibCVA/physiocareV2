@@ -152,7 +152,7 @@
                 <div class="error-message" id="errorMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
                     <svg class="w-12 h-12 mx-auto mb-4 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
@@ -172,7 +172,6 @@
     </main>
 
     <script>
-
         // Configuration
         const FILE_CONSTRAINTS = {
             maxTotalSize: 50 * 1024 * 1024,
@@ -180,7 +179,7 @@
             maxFiles: 5,
             allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         };
-        
+
         const notesTextarea = document.getElementById('notes');
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -318,10 +317,10 @@
             item.className = 'document-item';
             item.dataset.id = fileData.id;
             item.dataset.fileData = fileData.fileData;
-        
+
             const size = (file.size / (1024 * 1024)).toFixed(1);
             const type = file.type.includes('pdf') ? 'PDF' : 'Image';
-        
+
             item.innerHTML = `
                 <div class="flex items-center gap-3">
                     <svg class="w-6 h-6 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -339,19 +338,18 @@
                     </svg>
                 </button>
             `;
-        
+
             item.dataset.fileData = fileData.fileData;
             item.dataset.fileName = file.name;
             item.dataset.fileType = file.type;
-        
+
             item.querySelector('.delete-btn').addEventListener('click', async () => {
                 item.remove();
                 await saveCurrentData();
             });
-        
+
             documentList.appendChild(item);
         }
-
 
         async function saveCurrentData() {
             const documents = Array.from(documentList.querySelectorAll('.document-item')).map(item => ({
@@ -360,76 +358,78 @@
                 fileData: item.dataset.fileData
             }));
 
+            console.log('Saving data:', { documents, notes: notesTextarea.value });
             return Storage.saveChunked('patient_documents', {
                 documents,
                 notes: notesTextarea.value
             });
-   }
+        }
 
-   // Gestion des événements
-   function setupEventListeners() {
-       dropZone.addEventListener('click', () => fileInput.click());
-       
-       dropZone.addEventListener('dragover', (e) => {
-           e.preventDefault();
-           dropZone.style.borderColor = 'var(--brand-light)';
-           dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
-       });
+        // Gestion des événements
+        function setupEventListeners() {
+            dropZone.addEventListener('click', () => fileInput.click());
 
-       dropZone.addEventListener('dragleave', () => {
-           dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-           dropZone.style.background = '';
-       });
-       
-       dropZone.addEventListener('drop', (e) => {
-           e.preventDefault();
-           dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-           dropZone.style.background = '';
-           handleFiles(e.dataTransfer.files);
-       });
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--brand-light)';
+                dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
+            });
 
-       fileInput.addEventListener('change', () => {
-           handleFiles(fileInput.files);
-       });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+                dropZone.style.background = '';
+            });
 
-       notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+                dropZone.style.background = '';
+                handleFiles(e.dataTransfer.files);
+            });
 
-       document.querySelectorAll('a[href]').forEach(link => {
-           link.addEventListener('click', async (e) => {
-               e.preventDefault();
-               await saveCurrentData();
-               window.location.href = link.getAttribute('href');
-           });
-       });
-   }
+            fileInput.addEventListener('change', () => {
+                handleFiles(fileInput.files);
+            });
 
-   // Initialisation
-   document.addEventListener('DOMContentLoaded', async () => {
-       console.log('DOM chargé');
-       console.log('notesTextarea:', notesTextarea);
+            notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
 
-       setupEventListeners();
+            document.querySelectorAll('a[href]').forEach(link => {
+                link.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await saveCurrentData();
+                    console.log('Data saved before navigation');
+                    window.location.href = link.getAttribute('href');
+                });
+            });
+        }
 
-       const savedData = Storage.load('patient_documents');
-       if (savedData) {
-           if (savedData.documents) {
-               documentList.innerHTML = '';
-               savedData.documents.forEach(doc => {
-                   if (doc.fileData && doc.name) {
-                       const file = {
-                           name: doc.name,
-                           type: doc.type,
-                           size: getBase64Size(doc.fileData)
-                       };
-                       addDocumentToList(file, doc.fileData);
-                   }
-               });
-           }
-           if (savedData.notes) {
-               notesTextarea.value = savedData.notes;
-           }
-       }
-   });
-</script>
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOM chargé');
+            console.log('notesTextarea:', notesTextarea);
+
+            setupEventListeners();
+
+            const savedData = Storage.load('patient_documents');
+            if (savedData) {
+                if (savedData.documents) {
+                    documentList.innerHTML = '';
+                    savedData.documents.forEach(doc => {
+                        if (doc.fileData && doc.name) {
+                            const file = {
+                                name: doc.name,
+                                type: doc.type,
+                                size: getBase64Size(doc.fileData)
+                            };
+                            addDocumentToList(file, doc);
+                        }
+                    });
+                }
+                if (savedData.notes) {
+                    notesTextarea.value = savedData.notes;
+                }
+            }
+        });
+    </script>
 </body>
 </html>
