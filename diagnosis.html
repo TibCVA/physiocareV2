@@ -410,6 +410,10 @@
                    this.API_URL = CONFIG.api;
                    this.MAX_RETRIES = 3;
                    this.TIMEOUT = 30000;
+                   this.abortController = null;
+                   this.currentRequest = null;
+                   this.pendingRequests = new Set();
+            
                    this.sections = {
                        remarks: document.getElementById('remarksSection'),
                        loading: document.getElementById('loadingSection'),
@@ -417,73 +421,89 @@
                        validation: document.getElementById('validationSection')
                    };
                    this.diagnosticResults = document.getElementById('diagnosticResults');
+                   
+                   // Bind des méthodes pour les event listeners
+                   this.handleStartAnalysis = this.startAnalysis.bind(this);
+                   this.handleValidation = this.handleValidationClick.bind(this);
+                   this.handleSecondaryValidation = this.handleSecondaryValidationClick.bind(this);
+                   
                    this.setupEventListeners();
+                   window.addEventListener('unload', () => this.destroy());
                }
             
                validateBase64(data) {
-                    if (!data || !data.startsWith('data:')) return false;
-                    const mimeType = data.split(';')[0].split(':')[1];
-                    return CONFIG.allowedTypes.includes(mimeType);
-                }
-            
-               async validateDocuments(docs) {
-                    if (!docs?.documents || !Array.isArray(docs.documents)) return [];
-                
-                    let totalSize = 0;
-                    const validDocs = [];
-                
-                    for (const doc of docs.documents) {
-                        // Validation de la structure
-                        if (!doc?.fileData || !doc?.type || typeof doc.fileData !== 'string') continue;
-                
-                        // Validation du format base64
-                        if (!this.validateBase64(doc.fileData)) continue;
-                
-                        // Validation du type MIME
-                        const mimeType = doc.type.toLowerCase();
-                        if (!CONFIG.allowedTypes.includes(mimeType)) continue;
-                
-                        // Validation de la taille
-                        const size = this.getBase64Size(doc.fileData);
-                        if (size > CONFIG.maxFileSize || (totalSize + size) > CONFIG.maxTotalSize) continue;
-                
-                        totalSize += size;
-                        validDocs.push({
-                            type: mimeType,
-                            fileData: doc.fileData,
-                            size: size
-                        });
-                    }
-                
-                    return validDocs;
-                }
+                   if (!data || !data.startsWith('data:')) return false;
+                   try {
+                       const mimeType = data.split(';')[0].split(':')[1];
+                       return CONFIG.allowedTypes.includes(mimeType);
+                   } catch {
+                       return false;
+                   }
+               }
             
                getBase64Size(base64String) {
-                   const base64Length = base64String.substring(base64String.indexOf(',') + 1).length;
-                   return Math.floor((base64Length * 3) / 4);
+                   try {
+                       const base64Length = base64String.substring(base64String.indexOf(',') + 1).length;
+                       return Math.floor((base64Length * 3) / 4);
+                   } catch {
+                       return 0;
+                   }
+               }
+            
+               async validateDocuments(docs) {
+                   if (!docs?.documents || !Array.isArray(docs.documents)) return [];
+            
+                   let totalSize = 0;
+                   const validDocs = [];
+            
+                   for (const doc of docs.documents) {
+                       if (!doc?.fileData || !doc?.type || typeof doc.fileData !== 'string') continue;
+                       if (!this.validateBase64(doc.fileData)) continue;
+            
+                       const mimeType = doc.type.toLowerCase();
+                       if (!CONFIG.allowedTypes.includes(mimeType)) continue;
+            
+                       const size = this.getBase64Size(doc.fileData);
+                       if (size > CONFIG.maxFileSize || (totalSize + size) > CONFIG.maxTotalSize) continue;
+            
+                       totalSize += size;
+                       validDocs.push({
+                           type: mimeType,
+                           fileData: doc.fileData,
+                           size: size,
+                           name: doc.name || 'Document'
+                       });
+                   }
+            
+                   return validDocs;
                }
             
                async gatherPatientData() {
                    try {
                        const documents = Storage.load(CONFIG.storage.keys.documents) || { documents: [] };
                        const validatedDocs = await this.validateDocuments(documents);
+                       
                        return {
                            personalInfo: Storage.load(CONFIG.storage.keys.personalInfo) || {},
                            physicalActivity: Storage.load(CONFIG.storage.keys.activity) || {},
                            symptoms: Storage.load(CONFIG.storage.keys.symptoms) || {},
                            documents: validatedDocs,
-                           remarks: document.getElementById('remarks')?.value || ''
+                           remarks: document.getElementById('remarks')?.value?.trim() || ''
                        };
                    } catch (error) {
                        console.error('Erreur chargement:', error);
-                       return {
-                           personalInfo: {},
-                           physicalActivity: {},
-                           symptoms: {},
-                           documents: [],
-                           remarks: document.getElementById('remarks')?.value || ''
-                       };
+                       return this.getEmptyPatientData();
                    }
+               }
+            
+               getEmptyPatientData() {
+                   return {
+                       personalInfo: {},
+                       physicalActivity: {},
+                       symptoms: {},
+                       documents: [],
+                       remarks: document.getElementById('remarks')?.value?.trim() || ''
+                   };
                }
             
                async startAnalysis() {
@@ -495,46 +515,60 @@
                        await this.saveResults();
                    } catch (error) {
                        console.error('Erreur analyse:', error);
-                       this.handleError();
+                       this.handleError(error);
                    }
                }
             
                async requestDiagnosis(data) {
-                    for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
-                        const controller = new AbortController();
-                        const currentTimeout = setTimeout(() => controller.abort(), this.TIMEOUT);
-                
-                        try {
-                            const response = await fetch(this.API_URL, {
-                                method: 'POST',
-                                signal: controller.signal,
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    type: 'diagnosis',
-                                    data: await this.validateData(data)
-                                })
-                            });
-                
-                            if (!response.ok) {
-                                throw new Error(`HTTP Error: ${response.status}`);
-                            }
-                
-                            const result = await response.json();
-                            return this.validateResponse(result);
-                
-                        } catch (error) {
-                            clearTimeout(currentTimeout);
-                            
-                            if (attempt === this.MAX_RETRIES - 1) {
-                                throw error;
-                            }
-                            
-                            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-                        } finally {
-                            clearTimeout(currentTimeout);
-                        }
-                    }
-                }
+                   if (this.currentRequest) {
+                       this.currentRequest.abort();
+                   }
+                   
+                   this.abortController = new AbortController();
+                   this.currentRequest = this.abortController;
+                   this.pendingRequests.add(this.abortController);
+                   
+                   try {
+                       for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
+                           try {
+                               const response = await fetch(this.API_URL, {
+                                   method: 'POST',
+                                   signal: this.abortController.signal,
+                                   headers: {
+                                       'Content-Type': 'application/json'
+                                   },
+                                   body: JSON.stringify({
+                                       type: 'diagnosis',
+                                       data: await this.validateData(data)
+                                   })
+                               });
+            
+                               if (!response.ok) {
+                                   throw new Error(`HTTP Error: ${response.status}`);
+                               }
+            
+                               const result = await response.json();
+                               return this.validateResponse(result);
+            
+                           } catch (error) {
+                               if (error.name === 'AbortError') {
+                                   throw new Error('Requête annulée');
+                               }
+                               
+                               if (attempt === this.MAX_RETRIES - 1) {
+                                   throw error;
+                               }
+            
+                               await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                           }
+                       }
+                   } finally {
+                       this.pendingRequests.delete(this.abortController);
+                       if (this.currentRequest === this.abortController) {
+                           this.currentRequest = null;
+                       }
+                   }
+               }
             
                async validateData(data) {
                    return {
@@ -547,26 +581,29 @@
                }
             
                validateResponse(response) {
-                    if (!response.diagnostics && !response.diagnoses) {
-                        throw new Error('Réponse invalide: pas de diagnostic');
-                    }
-                    const diagnoses = response.diagnostics || response.diagnoses;
-                    diagnoses.forEach(diagnostic => {
-                        if (!diagnostic.name || !diagnostic.probability || !diagnostic.shortDescription || !Array.isArray(diagnostic.details)) {
-                            throw new Error('Structure de diagnostic invalide');
-                        }
-                    });
-                    return {diagnoses};
-                }
+                   if (!response.diagnostics && !response.diagnoses) {
+                       throw new Error('Réponse invalide: pas de diagnostic');
+                   }
+                   const diagnoses = response.diagnostics || response.diagnoses;
+                   diagnoses.forEach(diagnostic => {
+                       if (!diagnostic.name || !diagnostic.probability || 
+                           !diagnostic.shortDescription || !Array.isArray(diagnostic.details)) {
+                           throw new Error('Structure de diagnostic invalide');
+                       }
+                   });
+                   return { diagnoses };
+               }
             
                displayResults(data) {
                    this.sections.loading.classList.add('hidden');
                    this.diagnosticResults.innerHTML = '';
+                   
                    data.diagnoses.forEach(diagnostic => {
                        this.diagnosticResults.appendChild(
                            this.createDiagnosticElement(diagnostic)
                        );
                    });
+                   
                    this.sections.results.classList.remove('hidden');
                    this.sections.validation.classList.remove('hidden');
                }
@@ -593,7 +630,8 @@
                        <button class="expand-button" onclick="diagnosticManager.toggleDetails(this)">
                            Voir les détails
                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                               <path stroke-linecap="round" stroke-linejoin="round" 
+                                     stroke-width="2" d="M19 9l-7 7-7-7"/>
                            </svg>
                        </button>
                        <div class="diagnostic-details">
@@ -619,16 +657,28 @@
                    this.sections.loading.classList.remove('hidden');
                }
             
-               handleError() {
+               handleError(error) {
                    this.sections.loading.classList.add('hidden');
                    this.sections.remarks.classList.remove('hidden');
-                   alert('Erreur lors de l\'analyse. Veuillez réessayer.');
+                   alert(`Erreur lors de l'analyse: ${error.message}`);
+               }
+            
+               async handleValidationClick() {
+                   await this.saveResults();
+                   window.location.href = 'treatment.html';
+               }
+            
+               handleSecondaryValidationClick() {
+                   this.sections.results.classList.add('hidden');
+                   this.sections.validation.classList.add('hidden');
+                   this.sections.remarks.classList.remove('hidden');
                }
             
                async saveResults() {
                    const data = {
-                       remarks: document.getElementById('remarks')?.value || '',
-                       diagnoses: Array.from(this.diagnosticResults.children).map(this.extractDiagnosticData)
+                       remarks: document.getElementById('remarks')?.value?.trim() || '',
+                       diagnoses: Array.from(this.diagnosticResults.children)
+                                     .map(this.extractDiagnosticData)
                    };
                    await Storage.save(CONFIG.storage.keys.diagnosis, data);
                }
@@ -638,29 +688,31 @@
                        name: element.querySelector('h3')?.textContent || '',
                        probability: parseInt(element.querySelector('.probability-bar-fill')?.style.width) || 0,
                        shortDescription: element.querySelector('p.opacity-70')?.textContent || '',
-                       details: Array.from(element.querySelectorAll('.details-section')).map(section => ({
-                           title: section.querySelector('h4')?.textContent || '',
-                           content: section.querySelector('p')?.textContent || ''
-                       }))
+                       details: Array.from(element.querySelectorAll('.details-section'))
+                                   .map(section => ({
+                                       title: section.querySelector('h4')?.textContent || '',
+                                       content: section.querySelector('p')?.textContent || ''
+                                   }))
                    };
                }
             
                setupEventListeners() {
-                   document.getElementById('startAnalysis')?.addEventListener('click',
-                       () => this.startAnalysis());
+                   document.getElementById('startAnalysis')?.addEventListener('click', this.handleStartAnalysis);
+                   document.querySelector('.validation-button')?.addEventListener('click', this.handleValidation);
+                   document.querySelector('.validation-button.secondary')?.addEventListener('click', this.handleSecondaryValidation);
+               }
             
-                   document.querySelector('.validation-button')?.addEventListener('click',
-                       async () => {
-                           await this.saveResults();
-                           window.location.href = 'treatment.html';
-                       });
-            
-                   document.querySelector('.validation-button.secondary')?.addEventListener('click',
-                       () => {
-                           this.sections.results.classList.add('hidden');
-                           this.sections.validation.classList.add('hidden');
-                           this.sections.remarks.classList.remove('hidden');
-                       });
+               destroy() {
+                   this.abortController?.abort();
+                   this.pendingRequests.forEach(req => req.abort());
+                   this.pendingRequests.clear();
+                   
+                   // Détacher les event listeners
+                   document.getElementById('startAnalysis')?.removeEventListener('click', this.handleStartAnalysis);
+                   document.querySelector('.validation-button')?.removeEventListener('click', this.handleValidation);
+                   document.querySelector('.validation-button.secondary')?.removeEventListener('click', this.handleSecondaryValidation);
+                   
+                   window.removeEventListener('unload', this.destroy);
                }
             }
             
