@@ -482,11 +482,12 @@
             
                async requestDiagnosis(data) {
                     let attempts = 0;
-                    while (attempts < this.MAX_RETRIES) {
+                    
+                    const makeRequest = async () => {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
+                        
                         try {
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
-                
                             const response = await fetch(this.API_URL, {
                                 method: 'POST',
                                 signal: controller.signal,
@@ -498,19 +499,20 @@
                             });
                 
                             clearTimeout(timeoutId);
+                            
+                            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                            return this.validateResponse(await response.json());
+                        } finally {
+                            clearTimeout(timeoutId);
+                        }
+                    };
                 
-                            if (!response.ok) {
-                                throw new Error(`Erreur HTTP: ${response.status}`);
-                            }
-                
-                            const result = await response.json();
-                            return this.validateResponse(result);
-                
+                    while (attempts < this.MAX_RETRIES) {
+                        try {
+                            return await makeRequest();
                         } catch (error) {
                             attempts++;
-                            if (attempts === this.MAX_RETRIES) {
-                                throw new Error(`Échec après ${this.MAX_RETRIES} tentatives: ${error.message}`);
-                            }
+                            if (attempts === this.MAX_RETRIES) throw error;
                             await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
                         }
                     }
