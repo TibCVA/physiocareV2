@@ -393,13 +393,15 @@
             },
 
             load(key) {
-               try {
-                   const data = localStorage.getItem(key);
-                   return data ? JSON.parse(data) : null;
-               } catch (error) {
-                   console.error('Erreur chargement:', error);
-                   return null;
-               }
+                try {
+                    const data = localStorage.getItem(key);
+                    if (!data) return null;
+                    const parsed = JSON.parse(data);
+                    return parsed && typeof parsed === 'object' ? parsed : null;
+                } catch (error) {
+                    console.error('Erreur chargement:', error);
+                    return null;
+                }
             }
             };
             
@@ -482,18 +484,19 @@
                    let attempts = 0;
                    while (attempts < this.MAX_RETRIES) {
                        try {
-                           const controller = new AbortController();
-                           const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
-            
-                           const response = await fetch(this.API_URL, {
-                               method: 'POST',
-                               headers: { 'Content-Type': 'application/json' },
-                               body: JSON.stringify({
-                                   type: 'diagnosis',
-                                   data: await this.validateData(data)
-                               }),
-                               signal: controller.signal
-                           });
+                            const response = await Promise.race([
+                                fetch(this.API_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        type: 'diagnosis',
+                                        data: await this.validateData(data)
+                                    })
+                                }),
+                                new Promise((_, reject) => 
+                                    setTimeout(() => reject(new Error('Timeout dépassé')), this.TIMEOUT)
+                                )
+                            ]);
             
                            clearTimeout(timeoutId);
             
@@ -529,12 +532,17 @@
                }
             
                validateResponse(response) {
-                   if (!response.diagnostics && !response.diagnoses) {
-                       throw new Error('Réponse invalide: pas de diagnostic');
-                   }
-                   const diagnoses = response.diagnostics || response.diagnoses;
-                   return {diagnoses};
-               }
+                    if (!response.diagnostics && !response.diagnoses) {
+                        throw new Error('Réponse invalide: pas de diagnostic');
+                    }
+                    const diagnoses = response.diagnostics || response.diagnoses;
+                    diagnoses.forEach(diagnostic => {
+                        if (!diagnostic.name || !diagnostic.probability || !diagnostic.shortDescription || !Array.isArray(diagnostic.details)) {
+                            throw new Error('Structure de diagnostic invalide');
+                        }
+                    });
+                    return {diagnoses};
+                }
             
                displayResults(data) {
                    this.sections.loading.classList.add('hidden');
