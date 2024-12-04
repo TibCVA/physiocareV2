@@ -479,22 +479,28 @@
                }
             
                async gatherPatientData() {
-                   try {
-                       const documents = Storage.load(CONFIG.storage.keys.documents) || { documents: [] };
-                       const validatedDocs = await this.validateDocuments(documents);
-                       
-                       return {
-                           personalInfo: Storage.load(CONFIG.storage.keys.personalInfo) || {},
-                           physicalActivity: Storage.load(CONFIG.storage.keys.activity) || {},
-                           symptoms: Storage.load(CONFIG.storage.keys.symptoms) || {},
-                           documents: validatedDocs,
-                           remarks: document.getElementById('remarks')?.value?.trim() || ''
-                       };
-                   } catch (error) {
-                       console.error('Erreur chargement:', error);
-                       return this.getEmptyPatientData();
-                   }
-               }
+                    try {
+                        const documents = Storage.load(CONFIG.storage.keys.documents);
+                        console.log('Documents chargés:', documents); // Debug
+                
+                        const validatedDocs = await this.validateDocuments(documents);
+                        console.log('Documents validés:', validatedDocs); // Debug
+                
+                        const data = {
+                            personalInfo: Storage.load(CONFIG.storage.keys.personalInfo) || {},
+                            physicalActivity: Storage.load(CONFIG.storage.keys.activity) || {},
+                            symptoms: Storage.load(CONFIG.storage.keys.symptoms) || {},
+                            documents: validatedDocs,
+                            remarks: document.getElementById('remarks')?.value?.trim() || ''
+                        };
+                
+                        console.log('Données complètes:', data); // Debug
+                        return data;
+                    } catch (error) {
+                        console.error('Erreur chargement:', error);
+                        return this.getEmptyPatientData();
+                    }
+                }
             
                getEmptyPatientData() {
                    return {
