@@ -179,6 +179,24 @@
             allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         };
 
+        // Définitions des références DOM
+        const notesTextarea = document.getElementById('notes');
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const documentList = document.getElementById('documentList');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // Fonction manquante corrigée
+        async function sendDocumentChunks(file) {
+            try {
+                const chunks = await splitFileIntoChunks(file, 2 * 1024 * 1024);
+                const base64Data = await convertToBase64(file);
+                return base64Data;
+            } catch (error) {
+                throw new Error(`Erreur traitement fichier: ${error.message}`);
+            }
+        }
+
         // Ajouter en haut du script
         const notesTextarea = document.getElementById('notes');
 
