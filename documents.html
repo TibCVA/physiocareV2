@@ -172,8 +172,6 @@
     </main>
 
     <script>
-        // Déclarations globales
-        let notesTextarea, dropZone, fileInput, documentList, errorMessage;
 
         // Configuration
         const FILE_CONSTRAINTS = {
@@ -182,6 +180,12 @@
             maxFiles: 5,
             allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         };
+        
+        const notesTextarea = document.getElementById('notes');
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const documentList = document.getElementById('documentList');
+        const errorMessage = document.getElementById('errorMessage');
 
         // Utilitaires
         function getBase64Size(base64String) {
@@ -390,12 +394,7 @@
    // Initialisation
    document.addEventListener('DOMContentLoaded', async () => {
        console.log('DOM chargé');
-       notesTextarea = document.getElementById('notes');
        console.log('notesTextarea:', notesTextarea);
-       dropZone = document.getElementById('dropZone');
-       fileInput = document.getElementById('fileInput');
-       documentList = document.getElementById('documentList');
-       errorMessage = document.getElementById('errorMessage');
 
        setupEventListeners();
 
