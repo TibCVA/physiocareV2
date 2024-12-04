@@ -172,6 +172,8 @@
     </main>
 
     <script>
+        let notesTextarea, dropZone, fileInput, documentList, errorMessage;
+
         const FILE_CONSTRAINTS = {
             maxTotalSize: 50 * 1024 * 1024,
             maxFileSize: 10 * 1024 * 1024,
@@ -179,57 +181,6 @@
             allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         };
 
-        // Définitions des références DOM
-        const notesTextarea = document.getElementById('notes');
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const documentList = document.getElementById('documentList');
-        const errorMessage = document.getElementById('errorMessage');
-        
-        // Fonction manquante corrigée
-        async function sendDocumentChunks(file) {
-            try {
-                const chunks = await splitFileIntoChunks(file, 2 * 1024 * 1024);
-                const base64Data = await convertToBase64(file);
-                return base64Data;
-            } catch (error) {
-                throw new Error(`Erreur traitement fichier: ${error.message}`);
-            }
-        }
-
-        function generateUniqueId() {
-            return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        }
-        
-        async function splitFileIntoChunks(file, chunkSize) {
-        return new Promise((resolve, reject) => {
-            const chunks = [];
-            const reader = new FileReader();
-            let offset = 0;
-    
-            reader.onload = function() {
-                chunks.push(reader.result);
-                offset += chunkSize;
-                
-                if (offset >= file.size) {
-                    resolve(chunks);
-                } else {
-                    readNext();
-                }
-            };
-    
-            reader.onerror = function() {
-                reject(new Error('Erreur de lecture du fichier'));
-            };
-    
-            function readNext() {
-                const chunk = file.slice(offset, offset + chunkSize);
-                reader.readAsDataURL(chunk);
-            }
-    
-            readNext();
-        });
-    }            
         const Storage = {
             async saveChunked(key, data) {
                 try {
@@ -260,10 +211,10 @@
                         const data = localStorage.getItem(key);
                         return data ? JSON.parse(data) : null;
                     }
-            
+
                     let data = '';
                     for (let i = 0; i < chunkCount; i++) {
-                        data += localStorage.getItem(`${key}_chunk_${i}`); // Correction ici
+                        data += localStorage.getItem(`${key}_chunk_${i}`);
                     }
                     return JSON.parse(data);
                 } catch (error) {
@@ -274,22 +225,16 @@
         };
 
         async function validateFile(file) {
-            // Vérification du type
             if (!FILE_CONSTRAINTS.allowedTypes.includes(file.type)) {
                 throw new Error('Format de fichier non supporté');
             }
-        
-            // Vérification de la taille
             if (file.size > FILE_CONSTRAINTS.maxFileSize) {
                 throw new Error(`${file.name} dépasse ${FILE_CONSTRAINTS.maxFileSize / (1024 * 1024)}MB`);
             }
-        
-            // Vérification du nombre total de fichiers
-            const currentFiles = document.getElementById('documentList').children.length;
+            const currentFiles = documentList.children.length;
             if (currentFiles >= FILE_CONSTRAINTS.maxFiles) {
                 throw new Error(`Maximum ${FILE_CONSTRAINTS.maxFiles} fichiers autorisés`);
             }
-        
             return true;
         }
 
@@ -317,17 +262,15 @@
 
         async function handleFiles(files) {
             const currentFiles = documentList.children.length;
-            
             if (currentFiles + files.length > FILE_CONSTRAINTS.maxFiles) {
                 showError(`Maximum ${FILE_CONSTRAINTS.maxFiles} fichiers autorisés`);
                 return;
             }
-        
             for (const file of Array.from(files)) {
                 try {
                     await validateFile(file);
-                    const documentId = await sendDocumentChunks(file);
-                    addDocumentToList(file, documentId);
+                    const base64Data = await convertToBase64(file);
+                    addDocumentToList(file, base64Data);
                     await saveCurrentData();
                 } catch (error) {
                     showError(error.message);
@@ -380,12 +323,10 @@
                 fileData: item.dataset.fileData
             }));
 
-            const data = {
+            return Storage.saveChunked('patient_documents', {
                 documents,
                 notes: notesTextarea.value
-            };
-
-            return Storage.saveChunked('patient_documents', data);
+            });
         }
 
         function showError(message) {
@@ -394,73 +335,81 @@
             setTimeout(() => {
                 errorMessage.style.display = 'none';
             }, 5000);
-           }
+        }
 
-   // Event Listeners
-   dropZone.addEventListener('click', () => fileInput.click());
-   
-   dropZone.addEventListener('dragover', (e) => {
-       e.preventDefault();
-       dropZone.style.borderColor = 'var(--brand-light)';
-       dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
-   });
-
-   dropZone.addEventListener('dragleave', () => {
-       dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-       dropZone.style.background = '';
-   });
-   
-   dropZone.addEventListener('drop', (e) => {
-       e.preventDefault();
-       dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
-       dropZone.style.background = '';
-       handleFiles(e.dataTransfer.files);
-   });
-
-   fileInput.addEventListener('change', () => {
-       handleFiles(fileInput.files);
-   });
-
-   notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
-
-   document.querySelectorAll('a[href]').forEach(link => {
-       link.addEventListener('click', async (e) => {
-           e.preventDefault();
-           await saveCurrentData();
-           window.location.href = link.getAttribute('href');
-       });
-   });
-
-   function debounce(func, wait) {
-       let timeout;
-       return function(...args) {
-           clearTimeout(timeout);
-           timeout = setTimeout(() => func.apply(this, args), wait);
-       };
-   }
-
-   // Initialisation au chargement
-   document.addEventListener('DOMContentLoaded', async () => {
-       const savedData = Storage.load('patient_documents');
-       if (savedData) {
-           if (savedData.documents) {
-               documentList.innerHTML = '';
-               savedData.documents.forEach(doc => {
-                   if (doc.fileData && doc.name) {
-                       const file = {
-                           name: doc.name,
-                           type: doc.type,
-                           size: getBase64Size(doc.fileData)
-                       };
-                       addDocumentToList(file, doc.fileData);
-                   }
+        function setupEventListeners() {
+           dropZone.addEventListener('click', () => fileInput.click());
+           
+           dropZone.addEventListener('dragover', (e) => {
+               e.preventDefault();
+               dropZone.style.borderColor = 'var(--brand-light)';
+               dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
+           });
+        
+           dropZone.addEventListener('dragleave', () => {
+               dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+               dropZone.style.background = '';
+           });
+           
+           dropZone.addEventListener('drop', (e) => {
+               e.preventDefault();
+               dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
+               dropZone.style.background = '';
+               handleFiles(e.dataTransfer.files);
+           });
+        
+           fileInput.addEventListener('change', () => {
+               handleFiles(fileInput.files);
+           });
+        
+           notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
+        
+           document.querySelectorAll('a[href]').forEach(link => {
+               link.addEventListener('click', async (e) => {
+                   e.preventDefault();
+                   await saveCurrentData();
+                   window.location.href = link.getAttribute('href');
                });
+           });
+        }
+        
+        function debounce(func, wait) {
+           let timeout;
+           return function(...args) {
+               clearTimeout(timeout);
+               timeout = setTimeout(() => func.apply(this, args), wait);
+           };
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+           notesTextarea = document.getElementById('notes');
+           dropZone = document.getElementById('dropZone');
+           fileInput = document.getElementById('fileInput');
+           documentList = document.getElementById('documentList');
+           errorMessage = document.getElementById('errorMessage');
+        
+           setupEventListeners();
+        
+           const savedData = Storage.load('patient_documents');
+           if (savedData) {
+               if (savedData.documents) {
+                   documentList.innerHTML = '';
+                   savedData.documents.forEach(doc => {
+                       if (doc.fileData && doc.name) {
+                           const file = {
+                               name: doc.name,
+                               type: doc.type,
+                               size: getBase64Size(doc.fileData)
+                           };
+                           addDocumentToList(file, doc.fileData);
+                       }
+                   });
+               }
+               if (savedData.notes) {
+                   notesTextarea.value = savedData.notes;
+               }
            }
-           if (savedData.notes) {
-               notesTextarea.value = savedData.notes;
-           }
-       }
-   });
-   </script>
-</body>
-</html>
+        });
+        </script>
+        </body>
+        </html>
