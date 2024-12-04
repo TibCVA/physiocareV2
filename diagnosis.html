@@ -427,17 +427,36 @@
                 }
             
                async validateDocuments(docs) {
-                if (!docs?.documents) return [];
-                let totalSize = 0;
-                return docs.documents.filter(doc => {
-                    const size = this.getBase64Size(doc.fileData);
-                    totalSize += size;
-                    const isValidType = CONFIG.allowedTypes.includes(doc.type);
-                    const isValidBase64 = this.validateBase64(doc.fileData);
-                    return doc.fileData && doc.type && isValidType && isValidBase64 && 
-                           size <= CONFIG.maxFileSize && totalSize <= CONFIG.maxTotalSize;
-                });
-            }
+                    if (!docs?.documents || !Array.isArray(docs.documents)) return [];
+                
+                    let totalSize = 0;
+                    const validDocs = [];
+                
+                    for (const doc of docs.documents) {
+                        // Validation de la structure
+                        if (!doc?.fileData || !doc?.type || typeof doc.fileData !== 'string') continue;
+                
+                        // Validation du format base64
+                        if (!this.validateBase64(doc.fileData)) continue;
+                
+                        // Validation du type MIME
+                        const mimeType = doc.type.toLowerCase();
+                        if (!CONFIG.allowedTypes.includes(mimeType)) continue;
+                
+                        // Validation de la taille
+                        const size = this.getBase64Size(doc.fileData);
+                        if (size > CONFIG.maxFileSize || (totalSize + size) > CONFIG.maxTotalSize) continue;
+                
+                        totalSize += size;
+                        validDocs.push({
+                            type: mimeType,
+                            fileData: doc.fileData,
+                            size: size
+                        });
+                    }
+                
+                    return validDocs;
+                }
             
                getBase64Size(base64String) {
                    const base64Length = base64String.substring(base64String.indexOf(',') + 1).length;
@@ -481,12 +500,10 @@
                }
             
                async requestDiagnosis(data) {
-                    let attempts = 0;
-                    
-                    const makeRequest = async () => {
+                    for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
-                        
+                        const currentTimeout = setTimeout(() => controller.abort(), this.TIMEOUT);
+                
                         try {
                             const response = await fetch(this.API_URL, {
                                 method: 'POST',
@@ -498,22 +515,23 @@
                                 })
                             });
                 
-                            clearTimeout(timeoutId);
-                            
-                            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                            return this.validateResponse(await response.json());
-                        } finally {
-                            clearTimeout(timeoutId);
-                        }
-                    };
+                            if (!response.ok) {
+                                throw new Error(`HTTP Error: ${response.status}`);
+                            }
                 
-                    while (attempts < this.MAX_RETRIES) {
-                        try {
-                            return await makeRequest();
+                            const result = await response.json();
+                            return this.validateResponse(result);
+                
                         } catch (error) {
-                            attempts++;
-                            if (attempts === this.MAX_RETRIES) throw error;
-                            await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+                            clearTimeout(currentTimeout);
+                            
+                            if (attempt === this.MAX_RETRIES - 1) {
+                                throw error;
+                            }
+                            
+                            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                        } finally {
+                            clearTimeout(currentTimeout);
                         }
                     }
                 }
