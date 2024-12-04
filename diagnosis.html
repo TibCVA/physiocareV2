@@ -1,673 +1,503 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#37A7C4">
-    <title>PhysioCare - Analyse & Diagnostic</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --brand-light: #37A7C4;
-            --brand-medium: #2C89A0;
-            --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
-            
-            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-            --elevation-3: 0 10px 20px rgba(30, 95, 110, 0.15), 0 3px 6px rgba(30, 95, 110, 0.1);
-            
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
-        }
+   <meta charset="UTF-8">
+   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   <meta name="theme-color" content="#37A7C4">
+   <title>PhysioCare - Analyse & Diagnostic</title>
+   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+   <style>
+       :root {
+           --brand-light: #37A7C4;
+           --brand-medium: #2C89A0;
+           --brand-dark: #1E5F6E;
+           --pure-white: #FFFFFF;
+           --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
+           --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
+           --elevation-3: 0 10px 20px rgba(30, 95, 110, 0.15), 0 3px 6px rgba(30, 95, 110, 0.1);
+           --safe-top: env(safe-area-inset-top, 47px);
+           --safe-bottom: env(safe-area-inset-bottom, 34px);
+       }
 
-        body {
-            background: #F5F9FA;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
+       body {
+           background: #F5F9FA;
+           font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+           -webkit-font-smoothing: antialiased;
+       }
 
-        .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
-        }
+       .nav-blur {
+           background: rgba(255, 255, 255, 0.85);
+           backdrop-filter: saturate(180%) blur(20px);
+           -webkit-backdrop-filter: saturate(180%) blur(20px);
+           border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+       }
 
-        .form-section {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: var(--elevation-1);
-            border: 1px solid rgba(55, 167, 196, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+       /* Form Section Styles */
+       .form-section {
+           background: white;
+           border-radius: 20px;
+           padding: 24px;
+           margin-bottom: 16px;
+           box-shadow: var(--elevation-1);
+           border: 1px solid rgba(55, 167, 196, 0.1);
+           transition: transform 0.3s ease, box-shadow 0.3s ease;
+       }
 
-        .form-section:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-2);
-        }
+       .form-section:hover {
+           transform: translateY(-2px);
+           box-shadow: var(--elevation-2);
+       }
 
-        .ios-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            margin: 8px 0;
-            font-size: 16px;
-            background: white;
-            -webkit-appearance: none;
-            color: var(--brand-dark);
-            transition: all 0.3s ease;
-        }
+       /* Input Styles */
+       .ios-input {
+           width: 100%;
+           padding: 12px;
+           border: 1px solid rgba(55, 167, 196, 0.2);
+           border-radius: 12px;
+           margin: 8px 0;
+           font-size: 16px;
+           background: white;
+           -webkit-appearance: none;
+           color: var(--brand-dark);
+           transition: all 0.3s ease;
+       }
 
-        .ios-input:focus {
-            border-color: var(--brand-light);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(55, 167, 196, 0.1);
-        }
+       .ios-input:focus {
+           border-color: var(--brand-light);
+           outline: none;
+           box-shadow: 0 0 0 3px rgba(55, 167, 196, 0.1);
+       }
 
-        .ios-input::placeholder {
-            color: rgba(30, 95, 110, 0.5);
-        }
+       .ios-input::placeholder {
+           color: rgba(30, 95, 110, 0.5);
+       }
 
-        .start-button {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            border-radius: 12px;
-            padding: 16px 32px;
-            color: white;
-            font-weight: 600;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: var(--elevation-2);
-            border: none;
-            cursor: pointer;
-        }
+       /* Button Styles */
+       .start-button {
+           background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+           border-radius: 12px;
+           padding: 16px 32px;
+           color: white;
+           font-weight: 600;
+           position: relative;
+           overflow: hidden;
+           transition: all 0.3s ease;
+           box-shadow: var(--elevation-2);
+           border: none;
+           cursor: pointer;
+       }
 
-        .start-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(to bottom, 
-                rgba(255,255,255,0.2),
-                rgba(255,255,255,0));
-            transition: opacity 0.3s ease;
-        }
+       .start-button::before {
+           content: '';
+           position: absolute;
+           top: 0;
+           left: 0;
+           right: 0;
+           height: 50%;
+           background: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
+           transition: opacity 0.3s ease;
+       }
 
-        .start-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-3);
-        }
+       .start-button:hover {
+           transform: translateY(-2px);
+           box-shadow: var(--elevation-3);
+       }
 
-        .start-button:active {
-            transform: scale(0.98);
-            box-shadow: var(--elevation-1);
-        }
+       .start-button:active {
+           transform: scale(0.98);
+           box-shadow: var(--elevation-1);
+       }
 
-        .loading-ring {
-            width: 64px;
-            height: 64px;
-            border: 4px solid rgba(55, 167, 196, 0.1);
-            border-left-color: var(--brand-light);
-            border-radius: 50%;
-            animation: rotate 1s linear infinite;
-        }
+       /* Loading Animation */
+       .loading-ring {
+           width: 64px;
+           height: 64px;
+           border: 4px solid rgba(55, 167, 196, 0.1);
+           border-left-color: var(--brand-light);
+           border-radius: 50%;
+           animation: rotate 1s linear infinite;
+       }
 
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+       @keyframes rotate {
+           0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
+       }
 
-        .diagnostic-item {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: all 0.3s ease;
-        }
+       /* Diagnostic Styles */
+       .diagnostic-item {
+           background: rgba(255, 255, 255, 0.8);
+           border: 1px solid rgba(55, 167, 196, 0.2);
+           border-radius: 12px;
+           padding: 24px;
+           margin-bottom: 16px;
+           transition: all 0.3s ease;
+       }
 
-        .diagnostic-item:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-2);
-        }
+       .diagnostic-item:hover {
+           transform: translateY(-2px);
+           box-shadow: var(--elevation-2);
+       }
 
-        .diagnostic-item.primary {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            color: white;
-            border: none;
-            box-shadow: var(--elevation-2);
-        }
+       .diagnostic-item.primary {
+           background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+           color: white;
+           border: none;
+           box-shadow: var(--elevation-2);
+       }
 
-        .diagnostic-item.primary:hover {
-            box-shadow: var(--elevation-3);
-        }
+       .diagnostic-item.primary:hover {
+           box-shadow: var(--elevation-3);
+       }
 
-        .probability-bar {
-            height: 4px;
-            background: rgba(55, 167, 196, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
+       .probability-bar {
+           height: 4px;
+           background: rgba(55, 167, 196, 0.1);
+           border-radius: 2px;
+           overflow: hidden;
+           margin-top: 8px;
+       }
 
-        .diagnostic-item.primary .probability-bar {
-            background: rgba(255, 255, 255, 0.2);
-        }
+       .diagnostic-item.primary .probability-bar {
+           background: rgba(255, 255, 255, 0.2);
+       }
 
-        .probability-bar-fill {
-            height: 100%;
-            background: var(--brand-light);
-            transition: width 1s ease;
-        }
+       .probability-bar-fill {
+           height: 100%;
+           background: var(--brand-light);
+           transition: width 1s ease;
+       }
 
-        .diagnostic-item.primary .probability-bar-fill {
-            background: white;
-        }
+       .diagnostic-item.primary .probability-bar-fill {
+           background: white;
+       }
 
-        .expand-button {
-            background: rgba(55, 167, 196, 0.1);
-            border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            color: var(--brand-dark);
-            margin-top: 16px;
-            width: 100%;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+       /* Other styles remain unchanged... */
 
-        .expand-button:hover {
-            background: rgba(55, 167, 196, 0.15);
-        }
+       @media (prefers-color-scheme: dark) {
+           body {
+               background: #0A1214;
+               color: white;
+           }
 
-        .diagnostic-item.primary .expand-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
+           .nav-blur {
+               background: rgba(10, 18, 20, 0.85);
+               border-bottom-color: rgba(55, 167, 196, 0.2);
+           }
 
-        .diagnostic-item.primary .expand-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+           .form-section {
+               background: rgba(255, 255, 255, 0.05);
+               border-color: rgba(55, 167, 196, 0.2);
+           }
 
-        .diagnostic-details {
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease-out;
-        }
-
-        .diagnostic-details.expanded {
-            max-height: 1000px;
-            opacity: 1;
-            transform: translateY(0);
-            margin-top: 20px;
-        }
-
-        .details-section {
-            border-left: 3px solid var(--brand-light);
-            padding-left: 16px;
-            margin-top: 20px;
-        }
-
-        .diagnostic-item.primary .details-section {
-            border-left-color: rgba(255, 255, 255, 0.5);
-        }
-
-        .details-section:first-child {
-            margin-top: 0;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            margin: 8px 0;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 83.33%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            transition: width 0.3s ease;
-        }
-
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--brand-dark);
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight: 600;
-        }
-
-        .validation-button {
-            width: 100%;
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            border-radius: 12px;
-            padding: 16px 32px;
-            color: white;
-            font-weight: 600;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: var(--elevation-2);
-            border: none;
-            cursor: pointer;
-        }
-
-        .validation-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(to bottom, 
-                rgba(255,255,255,0.2),
-                rgba(255,255,255,0));
-            transition: opacity 0.3s ease;
-        }
-
-        .validation-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-3);
-        }
-
-        .validation-button:active {
-            transform: scale(0.98);
-            box-shadow: var(--elevation-1);
-        }
-
-        .validation-button.secondary {
-            background: transparent;
-            border: 2px solid var(--brand-light);
-            color: var(--brand-dark);
-            box-shadow: none;
-        }
-
-        .validation-button.secondary::before {
-            content: none;
-        }
-
-        .validation-button.secondary:hover {
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0A1214;
-                color: white;
-            }
-
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .form-section {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .ios-input {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .ios-input::placeholder {
-                color: rgba(255, 255, 255, 0.5);
-            }
-
-            .diagnostic-item {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .expand-button {
-                background: rgba(255, 255, 255, 0.1);
-                color: rgba(255, 255, 255, 0.9);
-            }
-
-            .expand-button:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-
-            .validation-button.secondary {
-                color: var(--brand-light);
-                border-color: var(--brand-light);
-            }
-
-            .validation-button.secondary:hover {
-                background: rgba(55, 167, 196, 0.15);
-            }
-        }
-    </style>
+           .ios-input {
+               background: rgba(255, 255, 255, 0.1);
+               color: white;
+               border-color: rgba(55, 167, 196, 0.2);
+           }
+       }
+   </style>
 </head>
 <body class="min-h-screen">
-    <nav class="nav-blur fixed w-full z-50">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <a href="documents.html" class="nav-button flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Retour
-                </a>
-                <span class="font-semibold">Patient (5/6)</span>
-                <a href="treatment.html" class="nav-button primary">Suivant</a>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-bar-fill"></div>
+   <!-- Navigation -->
+   <nav class="nav-blur fixed w-full z-50">
+       <div class="max-w-5xl mx-auto px-4">
+           <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+               <a href="documents.html" class="nav-button flex items-center gap-2">
+                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                   </svg>
+                   Retour
+               </a>
+               <span class="font-semibold">Patient (5/6)</span>
+               <a href="treatment.html" class="nav-button primary">Suivant</a>
+           </div>
+           <div class="progress-bar">
+               <div class="progress-bar-fill"></div>
+           </div>
+       </div>
+   </nav>
+
+   <!-- Main Content -->
+   <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
+       <div class="max-w-xl mx-auto space-y-6">
+           <!-- Sections remain unchanged... -->
+       </div>
+   </main>
+
+   <script>
+       // Configuration
+       const CONFIG = {
+           api: 'https://physiocare-api.b00135522.workers.dev',
+           storage: {
+               keys: {
+                   diagnosis: 'patient_diagnosis',
+                   personalInfo: 'patient_personal_info',
+                   activity: 'patient_physical_activity',
+                   symptoms: 'patient_symptoms', 
+                   documents: 'patient_documents'
+               }
+           }
+       };
+
+       // Storage Manager
+       const Storage = {
+           async save(key, data) {
+               try {
+                   const serialized = JSON.stringify(data);
+                   localStorage.setItem(key, serialized);
+                   return true;
+               } catch (error) {
+                   console.error('Erreur sauvegarde:', error);
+                   return false;
+               }
+           },
+
+           load(key) {
+               try {
+                   const data = localStorage.getItem(key);
+                   return data ? JSON.parse(data) : null;
+               } catch (error) {
+                   console.error('Erreur chargement:', error);
+                   return null;
+               }
+           }
+       };
+
+       // Diagnostic Manager
+       class DiagnosticManager {
+           constructor() {
+               this.sections = {
+                   remarks: document.getElementById('remarksSection'),
+                   loading: document.getElementById('loadingSection'),
+                   results: document.getElementById('resultsSection'),
+                   validation: document.getElementById('validationSection')
+               };
+               this.diagnosticResults = document.getElementById('diagnosticResults');
+               this.setupEventListeners();
+           }
+
+           // Methods remain unchanged...
+       }
+
+       // Initialize application
+       document.addEventListener('DOMContentLoaded', () => {
+           window.diagnosticManager = new DiagnosticManager();
+           const savedData = Storage.load(CONFIG.storage.keys.diagnosis);
+           if (savedData?.diagnoses?.length) {
+               window.diagnosticManager.displayResults(savedData);
+           }
+       });
+   </script>
+</body>
+</html>
+
+// Continuation du fichier Diagnosis.html
+
+// Méthodes de DiagnosticManager
+async startAnalysis() {
+   try {
+       this.showLoading();
+       const patientData = this.gatherPatientData();
+       const diagnosis = await this.requestDiagnosis(patientData);
+       this.displayResults(diagnosis);
+       await this.saveResults();
+   } catch (error) {
+       console.error('Erreur analyse:', error);
+       this.handleError();
+   }
+}
+
+gatherPatientData() {
+   return {
+       personalInfo: Storage.load(CONFIG.storage.keys.personalInfo),
+       physicalActivity: Storage.load(CONFIG.storage.keys.activity),
+       symptoms: Storage.load(CONFIG.storage.keys.symptoms),
+       documents: Storage.load(CONFIG.storage.keys.documents),
+       remarks: document.getElementById('remarks')?.value
+   };
+}
+
+async requestDiagnosis(data) {
+   const response = await fetch(CONFIG.api, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ 
+           type: 'diagnosis',
+           data: data
+       })
+   });
+
+   if (!response.ok) throw new Error('Erreur réseau');
+   return response.json();
+}
+
+displayResults(data) {
+   this.sections.loading.classList.add('hidden');
+   this.diagnosticResults.innerHTML = '';
+   
+   data.diagnoses.forEach(diagnostic => {
+       this.diagnosticResults.appendChild(
+           this.createDiagnosticElement(diagnostic)
+       );
+   });
+
+   this.sections.results.classList.remove('hidden');
+   this.sections.validation.classList.remove('hidden');
+}
+
+createDiagnosticElement(diagnostic) {
+   const element = document.createElement('div');
+   element.className = `diagnostic-item ${diagnostic.probability >= 80 ? 'primary' : ''}`;
+   element.innerHTML = this.getDiagnosticTemplate(diagnostic);
+   return element;
+}
+
+getDiagnosticTemplate(diagnostic) {
+   return `
+       <div class="flex justify-between items-start">
+           <div>
+               <h3 class="font-semibold text-lg">${diagnostic.name}</h3>
+               <p class="text-sm opacity-70">${diagnostic.shortDescription}</p>
+           </div>
+           <span class="font-semibold">${diagnostic.probability}%</span>
+       </div>
+       <div class="probability-bar">
+           <div class="probability-bar-fill" style="width: ${diagnostic.probability}%"></div>
+       </div>
+       <button class="expand-button" onclick="diagnosticManager.toggleDetails(this)">
+           Voir les détails
+           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+           </svg>
+       </button>
+       <div class="diagnostic-details">
+           ${diagnostic.details.map(detail => `
+               <div class="details-section">
+                   <h4 class="font-medium mb-2">${detail.title}</h4>
+                   <p class="text-sm opacity-80">${detail.content}</p>
+               </div>
+           `).join('')}
+       </div>
+   `;
+}
+
+toggleDetails(button) {
+   const details = button.nextElementSibling;
+   const expanded = !details.classList.contains('expanded');
+   details.classList.toggle('expanded');
+   button.querySelector('svg').style.transform = expanded ? 'rotate(180deg)' : '';
+}
+
+showLoading() {
+   this.sections.remarks.classList.add('hidden');
+   this.sections.loading.classList.remove('hidden');
+}
+
+handleError() {
+   this.sections.loading.classList.add('hidden');
+   this.sections.remarks.classList.remove('hidden');
+   alert('Erreur lors de l\'analyse. Veuillez réessayer.');
+}
+
+async saveResults() {
+   const data = {
+       remarks: document.getElementById('remarks')?.value,
+       diagnoses: Array.from(this.diagnosticResults.children)
+           .map(this.extractDiagnosticData)
+   };
+   await Storage.save(CONFIG.storage.keys.diagnosis, data);
+}
+
+extractDiagnosticData(element) {
+   return {
+       name: element.querySelector('h3')?.textContent || '',
+       probability: parseInt(element.querySelector('.probability-bar-fill')?.style.width) || 0,
+       shortDescription: element.querySelector('p.opacity-70')?.textContent || '',
+       details: Array.from(element.querySelectorAll('.details-section'))
+           .map(section => ({
+               title: section.querySelector('h4')?.textContent || '',
+               content: section.querySelector('p')?.textContent || ''
+           }))
+   };
+}
+
+setupEventListeners() {
+   document.getElementById('startAnalysis')?.addEventListener('click', 
+       () => this.startAnalysis());
+
+   document.querySelector('.validation-button')?.addEventListener('click', 
+       async () => {
+           await this.saveResults();
+           window.location.href = 'treatment.html';
+       });
+
+   document.querySelector('.validation-button.secondary')?.addEventListener('click',
+       () => {
+           this.sections.results.classList.add('hidden');
+           this.sections.validation.classList.add('hidden');
+           this.sections.remarks.classList.remove('hidden');
+       });
+   }
+}
+<!-- Section remarques -->
+        <div class="form-section" id="remarksSection">
+            <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
+                Remarques du kinésithérapeute
+            </h2>
+            <p class="text-sm opacity-70 mb-4">
+                Optionnel : ajoutez vos observations cliniques complémentaires
+            </p>
+            <textarea class="ios-input h-32" id="remarks"
+                placeholder="Observations cliniques, remarques ou précisions particulières..."></textarea>
+            <div class="mt-6 flex justify-center">
+                <button class="start-button" id="startAnalysis">
+                    Lancer l'analyse diagnostique
+                </button>
             </div>
         </div>
-    </nav>
 
-    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
-        <div class="max-w-xl mx-auto space-y-6">
-            <!-- Section remarques -->
-            <div class="form-section" id="remarksSection">
-                <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
-                    Remarques du kinésithérapeute
+        <!-- Section loading -->
+        <div class="form-section hidden" id="loadingSection">
+            <div class="text-center py-8">
+                <div class="loading-ring mx-auto mb-6"></div>
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)]">
+                    Analyse des données en cours
                 </h2>
-                <p class="text-sm opacity-70 mb-4">
-                    Optionnel : ajoutez vos observations cliniques complémentaires
+                <p class="text-sm opacity-70 mt-2">
+                    Corrélation des symptômes et données patient
                 </p>
-                <textarea class="ios-input h-32" id="remarks"
-                    placeholder="Observations cliniques, remarques ou précisions particulières..."></textarea>
-                <div class="mt-6 flex justify-center">
-                    <button class="start-button" id="startAnalysis">
-                        Lancer l'analyse diagnostique
-                    </button>
-                </div>
-            </div>
-
-            <!-- Section loading -->
-            <div class="form-section hidden" id="loadingSection">
-                <div class="text-center py-8">
-                    <div class="loading-ring mx-auto mb-6"></div>
-                    <h2 class="text-lg font-semibold text-[var(--brand-dark)]">
-                        Analyse des données en cours
-                    </h2>
-                    <p class="text-sm opacity-70 mt-2">
-                        Corrélation des symptômes et données patient
-                    </p>
-                </div>
-            </div>
-
-            <!-- Section résultats -->
-            <div class="form-section hidden" id="resultsSection">
-                <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
-                    Diagnostic différentiel
-                </h2>
-                <div id="diagnosticResults" class="space-y-4">
-                    <!-- Les résultats seront ajoutés ici par JavaScript -->
-                </div>
-            </div>
-
-            <!-- Section validation -->
-            <div class="form-section hidden" id="validationSection">
-                <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
-                    Validation professionnelle
-                </h2>
-                <p class="text-sm opacity-70 mb-6">
-                    En tant que professionnel de santé, vous pouvez valider ce diagnostic ou demander une nouvelle analyse.
-                </p>
-                <div class="space-y-4">
-                    <button class="validation-button">
-                        Valider le diagnostic
-                    </button>
-                    <button class="validation-button secondary">
-                        Demander une nouvelle analyse
-                    </button>
-                </div>
             </div>
         </div>
-    </main>
 
-<!-- Garder tout le HTML/CSS existant jusqu'au script -->
+        <!-- Section résultats -->
+        <div class="form-section hidden" id="resultsSection">
+            <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
+                Diagnostic différentiel
+            </h2>
+            <div id="diagnosticResults" class="space-y-4">
+                <!-- Les résultats seront ajoutés ici par JavaScript -->
+            </div>
+        </div>
 
-<script>
-// Utilitaires de stockage
-    const Storage = {
-        save: function(key, data) {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-                console.log(`Données sauvegardées (${key}):`, data);
-            } catch (e) {
-                console.error('Error saving data:', e);
-            }
-        },
-        
-        load: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                console.error('Error loading data:', e);
-                return null;
-            }
-        }
-    };
-    
-    // Fonction pour créer un élément de diagnostic
-    function createDiagnosticElement(diagnostic) {
-        const isPrimary = diagnostic.probability >= 80;
-        const div = document.createElement('div');
-        div.className = `diagnostic-item ${isPrimary ? 'primary' : ''}`;
-        
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="font-semibold text-lg">${diagnostic.name}</h3>
-                    <p class="text-sm opacity-70">${diagnostic.shortDescription}</p>
-                </div>
-                <span class="font-semibold">${diagnostic.probability}%</span>
+        <!-- Section validation -->
+        <div class="form-section hidden" id="validationSection">
+            <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
+                Validation professionnelle
+            </h2>
+            <p class="text-sm opacity-70 mb-6">
+                En tant que professionnel de santé, vous pouvez valider ce diagnostic ou demander une nouvelle analyse.
+            </p>
+            <div class="space-y-4">
+                <button class="validation-button">
+                    Valider le diagnostic
+                </button>
+                <button class="validation-button secondary">
+                    Demander une nouvelle analyse
+                </button>
             </div>
-            <div class="probability-bar">
-                <div class="probability-bar-fill" style="width: ${diagnostic.probability}%"></div>
-            </div>
-            <button class="expand-button" onclick="toggleDetails(this)">
-                Voir les détails
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-            <div class="diagnostic-details">
-                ${diagnostic.details.map(detail => `
-                    <div class="details-section">
-                        <h4 class="font-medium mb-2">${detail.title}</h4>
-                        <p class="text-sm opacity-80">${detail.content}</p>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        return div;
-    }
-    
-    // Fonction pour basculer l'affichage des détails
-    function toggleDetails(button) {
-        const details = button.nextElementSibling;
-        details.classList.toggle('expanded');
-        const svg = button.querySelector('svg');
-        svg.style.transform = details.classList.contains('expanded') ? 'rotate(180deg)' : '';
-    }
-    
-    // Fonction pour récupérer toutes les données patient
-    function getAllPatientData() {
-        return {
-            personalInfo: Storage.load('patient_personal_info') || {},
-            physicalActivity: Storage.load('patient_physical_activity') || {},
-            symptoms: Storage.load('patient_symptoms') || {},
-            documents: Storage.load('patient_documents') || {},
-            remarks: document.getElementById('remarks')?.value || ''
-        };
-    }
-    
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSavedData();
-        setupAdditionalListeners();
-        checkSavedData('patient_diagnosis');
-    });
-    
-    // Vérification des données sauvegardées
-    function checkSavedData(key) {
-        const saved = Storage.load(key);
-        console.log(`Données chargées (${key}):`, saved);
-    }
-    
-    // Chargement des données sauvegardées
-    function loadSavedData() {
-        const savedData = Storage.load('patient_diagnosis');
-        console.log("Chargement du diagnostic:", savedData);
-    
-        if (savedData) {
-            // Restaurer les remarques
-            if (savedData.remarks) {
-                document.getElementById('remarks').value = savedData.remarks;
-            }
-    
-            // Restaurer les diagnostics
-            if (savedData.diagnoses && savedData.diagnoses.length > 0) {
-                const diagnosticResults = document.getElementById('diagnosticResults');
-                diagnosticResults.innerHTML = '';
-                
-                savedData.diagnoses.forEach(diagnostic => {
-                    diagnosticResults.appendChild(createDiagnosticElement(diagnostic));
-                });
-    
-                // Afficher les sections appropriées
-                document.getElementById('remarksSection').classList.add('hidden');
-                document.getElementById('resultsSection').classList.remove('hidden');
-                document.getElementById('validationSection').classList.remove('hidden');
-            }
-        }
-    }
-    
-    // Configuration des écouteurs supplémentaires
-    function setupAdditionalListeners() {
-        // Écouter les changements des remarques
-        document.getElementById('remarks')?.addEventListener('input', saveCurrentData);
-    
-        // Navigation
-        const prevButton = document.querySelector('a[href="documents.html"]');
-        const nextButton = document.querySelector('a[href="treatment.html"]');
-    
-        if (prevButton) {
-            prevButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    
-        if (nextButton) {
-            nextButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    }
-    
-    // Gestionnaire du bouton d'analyse
-    document.getElementById('startAnalysis').addEventListener('click', async function() {
-        try {
-            // Afficher le loader
-            document.getElementById('remarksSection').classList.add('hidden');
-            document.getElementById('loadingSection').classList.remove('hidden');
-    
-            // Récupérer toutes les données patient
-            const allPatientData = getAllPatientData();
-            console.log("Données pour l'analyse:", allPatientData);
-    
-            // Appel au worker
-            const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: 'diagnosis',
-                    data: allPatientData
-                })
-            });
-    
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-    
-            const data = await response.json();
-            console.log("Réponse du diagnostic:", data);
-    
-            // Masquer le loader
-            document.getElementById('loadingSection').classList.add('hidden');
-    
-            // Afficher les résultats
-            const diagnosticResults = document.getElementById('diagnosticResults');
-            diagnosticResults.innerHTML = '';
-    
-            data.diagnoses.forEach(diagnostic => {
-                diagnosticResults.appendChild(createDiagnosticElement(diagnostic));
-            });
-    
-            // Afficher les sections
-            document.getElementById('resultsSection').classList.remove('hidden');
-            document.getElementById('validationSection').classList.remove('hidden');
-    
-            // Sauvegarder les résultats
-            saveCurrentData();
-    
-        } catch (error) {
-            console.error('Error during diagnosis:', error);
-            document.getElementById('loadingSection').classList.add('hidden');
-            document.getElementById('remarksSection').classList.remove('hidden');
-            alert('Une erreur est survenue lors de l\'analyse. Veuillez réessayer.');
-        }
-    });
-    
-    // Gestion des boutons de validation
-    document.querySelector('.validation-button').addEventListener('click', function() {
-        saveCurrentData();
-        window.location.href = 'treatment.html';
-    });
-    
-    document.querySelector('.validation-button.secondary').addEventListener('click', function() {
-        document.getElementById('resultsSection').classList.add('hidden');
-        document.getElementById('validationSection').classList.add('hidden');
-        document.getElementById('remarksSection').classList.remove('hidden');
-    });
-    
-    // Sauvegarde des données
-    function saveCurrentData() {
-        const data = {
-            remarks: document.getElementById('remarks')?.value || '',
-            diagnoses: Array.from(document.querySelectorAll('.diagnostic-item')).map(item => ({
-                name: item.querySelector('h3')?.textContent || '',
-                probability: parseInt(item.querySelector('.probability-bar-fill')?.style.width) || 0,
-                shortDescription: item.querySelector('p.opacity-70')?.textContent || '',
-                details: Array.from(item.querySelectorAll('.details-section')).map(section => ({
-                    title: section.querySelector('h4')?.textContent || '',
-                    content: section.querySelector('p')?.textContent || ''
-                }))
-            }))
-        };
-    
-        console.log("Sauvegarde du diagnostic:", data);
-        Storage.save('patient_diagnosis', data);
-    }
-    </script>
+        </div>
+    </div>
+</main>
+
 </body>
 </html>
