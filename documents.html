@@ -214,24 +214,24 @@
                 try {
                     const serialized = JSON.stringify(data);
                     const chunks = [];
-                    const chunkSize = 5 * 1024 * 1024;
-
+                    const chunkSize = 1 * 1024 * 1024; // Réduis la taille des chunks
+        
                     for (let i = 0; i < serialized.length; i += chunkSize) {
                         chunks.push(serialized.slice(i, i + chunkSize));
                     }
-
+        
                     localStorage.setItem(`${key}_chunks`, chunks.length.toString());
                     chunks.forEach((chunk, index) => {
                         localStorage.setItem(`${key}_chunk_${index}`, chunk);
                     });
-
+        
                     return true;
                 } catch (error) {
                     console.error('Erreur sauvegarde:', error);
                     return false;
                 }
             },
-
+        
             load(key) {
                 try {
                     const chunkCount = parseInt(localStorage.getItem(`${key}_chunks`));
@@ -239,18 +239,32 @@
                         const data = localStorage.getItem(key);
                         return data ? JSON.parse(data) : null;
                     }
-
+        
                     let data = '';
                     for (let i = 0; i < chunkCount; i++) {
-                        data += localStorage.getItem(`${key}_chunk_${i}`);
+                        const chunk = localStorage.getItem(`${key}_chunk_${i}`);
+                        if (chunk) {
+                            data += chunk;
+                        } else {
+                            throw new Error('Chunk manquant');
+                        }
                     }
                     return JSON.parse(data);
                 } catch (error) {
                     console.error('Erreur chargement:', error);
+                    // Nettoyage des données corrompues
+                    localStorage.removeItem(`${key}_chunks`);
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const keyName = localStorage.key(i);
+                        if (keyName.startsWith(`${key}_chunk_`)) {
+                            localStorage.removeItem(keyName);
+                        }
+                    }
                     return null;
                 }
             }
         };
+
 
         // Gestion des fichiers
         async function validateFile(file) {
@@ -357,12 +371,14 @@
                 type: item.dataset.fileType,
                 fileData: item.dataset.fileData
             }));
-
+        
             console.log('Saving data:', { documents, notes: notesTextarea.value });
-            return Storage.saveChunked('patient_documents', {
+            const success = await Storage.saveChunked('patient_documents', {
                 documents,
                 notes: notesTextarea.value
             });
+            console.log('Data saved successfully:', success);
+            return success;
         }
 
         // Gestion des événements
