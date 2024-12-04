@@ -271,6 +271,16 @@
             });
         }
 
+        const Storage = {
+            save: function(key, data) {
+                localStorage.setItem(key, JSON.stringify(data));
+            },
+            load: function(key) {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            }
+        };
+
         // Gestion des fichiers
         async function validateFile(file) {
             if (!FILE_CONSTRAINTS.allowedTypes.includes(file.type)) {
@@ -385,11 +395,12 @@
                 await saveDocumentToIndexedDB(doc);
             }
 
-            const success = await Storage.saveChunked('patient_documents', {
+            Storage.save('patient_documents', {
                 notes: notesTextarea.value
             });
-            console.log('Data saved successfully:', success);
-            return success;
+
+            console.log('Data saved successfully');
+            return true;
         }
 
         // Gestion des événements
