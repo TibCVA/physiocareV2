@@ -382,11 +382,13 @@
         }
         
         document.addEventListener('DOMContentLoaded', async () => {
-           notesTextarea = document.getElementById('notes');
-           dropZone = document.getElementById('dropZone');
-           fileInput = document.getElementById('fileInput');
-           documentList = document.getElementById('documentList');
-           errorMessage = document.getElementById('errorMessage');
+            console.log('DOM chargé');  // <-- Ajoutez ce log ici
+            notesTextarea = document.getElementById('notes');
+            console.log('notesTextarea:', notesTextarea);  // <-- Et celui-ci
+            dropZone = document.getElementById('dropZone');
+            fileInput = document.getElementById('fileInput');
+            documentList = document.getElementById('documentList');
+            errorMessage = document.getElementById('errorMessage');
         
            setupEventListeners();
         
