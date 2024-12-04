@@ -527,6 +527,7 @@
             
                async requestDiagnosis(data) {
                    if (this.currentRequest) {
+                       console.log('Annulation requête précédente');
                        this.currentRequest.abort();
                    }
                    
@@ -535,46 +536,91 @@
                    this.pendingRequests.add(this.abortController);
                    
                    try {
+                       const validatedData = await this.validateData(data);
+                       console.log('[REQUEST] Données validées:', validatedData);
+                       console.log('[REQUEST] Documents:', validatedData.documents.length, 'fichier(s)');
+                       
+                       validatedData.documents.forEach((doc, index) => {
+                           console.log(`[REQUEST] Document ${index + 1}:`, {
+                               type: doc.type,
+                               size: doc.size,
+                               name: doc.name,
+                               base64Valid: !!doc.fileData?.startsWith('data:'),
+                           });
+                       });
+                
+                       const requestBody = {
+                           type: 'diagnosis',
+                           data: validatedData
+                       };
+                
+                       console.log('[REQUEST] Corps de la requête:', JSON.stringify(requestBody, null, 2));
+                
                        for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
+                           console.log(`[REQUEST] Tentative ${attempt + 1}/${this.MAX_RETRIES}`);
+                           
                            try {
                                const response = await fetch(this.API_URL, {
                                    method: 'POST',
                                    signal: this.abortController.signal,
                                    headers: {
-                                       'Content-Type': 'application/json'
+                                       'Content-Type': 'application/json',
+                                       'Cache-Control': 'no-cache'
                                    },
-                                   body: JSON.stringify({
-                                       type: 'diagnosis',
-                                       data: await this.validateData(data)
-                                   })
+                                   body: JSON.stringify(requestBody)
                                });
-            
+                
+                               console.log(`[RESPONSE] Status: ${response.status}`);
+                               console.log('[RESPONSE] Headers:', Object.fromEntries([...response.headers]));
+                
                                if (!response.ok) {
-                                   throw new Error(`HTTP Error: ${response.status}`);
+                                   const errorText = await response.text();
+                                   console.error('[ERROR] Réponse API:', {
+                                       status: response.status,
+                                       statusText: response.statusText,
+                                       body: errorText
+                                   });
+                                   throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
                                }
-            
+                
                                const result = await response.json();
+                               console.log('[RESPONSE] Données:', result);
+                
+                               if (!result) {
+                                   throw new Error('Réponse vide');
+                               }
+                
                                return this.validateResponse(result);
-            
+                
                            } catch (error) {
+                               console.error(`[ERROR] Tentative ${attempt + 1} échouée:`, error);
+                               
                                if (error.name === 'AbortError') {
+                                   console.log('[ERROR] Requête annulée');
                                    throw new Error('Requête annulée');
                                }
                                
                                if (attempt === this.MAX_RETRIES - 1) {
+                                   console.error('[ERROR] Nombre maximal de tentatives atteint');
                                    throw error;
                                }
-            
-                               await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                
+                               const delay = 1000 * (attempt + 1);
+                               console.log(`[REQUEST] Attente ${delay}ms avant prochaine tentative`);
+                               await new Promise(resolve => setTimeout(resolve, delay));
                            }
                        }
+                   } catch (error) {
+                       console.error('[ERROR] Erreur globale:', error);
+                       throw error;
                    } finally {
                        this.pendingRequests.delete(this.abortController);
                        if (this.currentRequest === this.abortController) {
                            this.currentRequest = null;
+                           console.log('[REQUEST] Nettoyage requête terminé');
                        }
                    }
-               }
+                }
             
                async validateData(data) {
                    return {
