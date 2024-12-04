@@ -449,16 +449,81 @@
                };
            }
 
-           async requestDiagnosis(data) {
-               const response = await fetch(CONFIG.api, {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'application/json' },
-                   body: JSON.stringify({ type: 'diagnosis', data })
-               });
-
-               if (!response.ok) throw new Error('Erreur réseau');
-               return response.json();
-           }
+           class DiagnosticManager {
+              constructor() {
+                this.API_URL = CONFIG.api;
+                this.MAX_RETRIES = 3;
+                this.TIMEOUT = 30000;
+              }
+            
+              async requestDiagnosis(data) {
+                let attempts = 0;
+                while (attempts < this.MAX_RETRIES) {
+                  try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
+                    
+                    const response = await fetch(this.API_URL, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        type: 'diagnosis',
+                        data: await this.validateData(data)
+                      }),
+                      signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    
+                    if (!response.ok) {
+                      throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    return this.validateResponse(result);
+                    
+                  } catch (error) {
+                    attempts++;
+                    if (attempts === this.MAX_RETRIES) {
+                      throw new Error(`Échec après ${this.MAX_RETRIES} tentatives: ${error.message}`);
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+                  }
+                }
+              }
+            
+              async validateData(data) {
+                if (!data.personalInfo || !data.symptoms) {
+                  throw new Error('Données patient incomplètes');
+                }
+                
+                const totalSize = data.documents?.reduce((sum, doc) => sum + doc.fileData.length, 0) || 0;
+                if (totalSize > 50 * 1024 * 1024) {
+                  throw new Error('Volume total des documents trop important');
+                }
+                
+                return data;
+              }
+            
+              validateResponse(response) {
+                const requiredFields = ['diagnoses'];
+                const requiredDiagnosisFields = ['name', 'probability', 'shortDescription', 'details'];
+                
+                if (!response.diagnoses?.length) {
+                  throw new Error('Réponse invalide: pas de diagnostic');
+                }
+                
+                for (const diagnosis of response.diagnoses) {
+                  for (const field of requiredDiagnosisFields) {
+                    if (!(field in diagnosis)) {
+                      throw new Error(`Diagnostic invalide: champ ${field} manquant`);
+                    }
+                  }
+                }
+                
+                return response;
+              }
+            }
 
            displayResults(data) {
                this.sections.loading.classList.add('hidden');
