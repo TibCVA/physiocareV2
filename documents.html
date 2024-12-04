@@ -184,18 +184,34 @@
         }
         
         async function splitFileIntoChunks(file, chunkSize) {
+        return new Promise((resolve, reject) => {
             const chunks = [];
+            const reader = new FileReader();
             let offset = 0;
-            
-            while (offset < file.size) {
-                const chunk = file.slice(offset, offset + chunkSize);
-                const base64Chunk = await convertToBase64(chunk);
-                chunks.push(base64Chunk);
+    
+            reader.onload = function() {
+                chunks.push(reader.result);
                 offset += chunkSize;
+                
+                if (offset >= file.size) {
+                    resolve(chunks);
+                } else {
+                    readNext();
+                }
+            };
+    
+            reader.onerror = function() {
+                reject(new Error('Erreur de lecture du fichier'));
+            };
+    
+            function readNext() {
+                const chunk = file.slice(offset, offset + chunkSize);
+                reader.readAsDataURL(chunk);
             }
-            return chunks;
-        }
-
+    
+            readNext();
+        });
+    }            
         const Storage = {
             async saveChunked(key, data) {
                 try {
@@ -240,12 +256,22 @@
         };
 
         async function validateFile(file) {
+            // Vérification du type
             if (!FILE_CONSTRAINTS.allowedTypes.includes(file.type)) {
                 throw new Error('Format de fichier non supporté');
             }
+        
+            // Vérification de la taille
             if (file.size > FILE_CONSTRAINTS.maxFileSize) {
                 throw new Error(`${file.name} dépasse ${FILE_CONSTRAINTS.maxFileSize / (1024 * 1024)}MB`);
             }
+        
+            // Vérification du nombre total de fichiers
+            const currentFiles = document.getElementById('documentList').children.length;
+            if (currentFiles >= FILE_CONSTRAINTS.maxFiles) {
+                throw new Error(`Maximum ${FILE_CONSTRAINTS.maxFiles} fichiers autorisés`);
+            }
+        
             return true;
         }
 
