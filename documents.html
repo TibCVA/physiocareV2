@@ -158,7 +158,7 @@
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
                     <p class="text-sm opacity-70">ou</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf">
-                    <button class="upload-button mt-4">Choisir des fichiers</button>
+                    <button class="upload-button mt-4" id="uploadButton">Choisir des fichiers</button>
                 </div>
                 <div class="space-y-3" id="documentList"></div>
             </div>
@@ -386,31 +386,33 @@
         // Gestion des événements
         function setupEventListeners() {
             dropZone.addEventListener('click', () => fileInput.click());
-
+        
             dropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 dropZone.style.borderColor = 'var(--brand-light)';
                 dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
             });
-
+        
             dropZone.addEventListener('dragleave', () => {
                 dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
                 dropZone.style.background = '';
             });
-
+        
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
                 dropZone.style.background = '';
                 handleFiles(e.dataTransfer.files);
             });
-
+        
             fileInput.addEventListener('change', () => {
                 handleFiles(fileInput.files);
             });
-
+        
             notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
-
+        
+            document.getElementById('uploadButton').addEventListener('click', () => fileInput.click());
+            
             document.querySelectorAll('a[href]').forEach(link => {
                 link.addEventListener('click', async (e) => {
                     e.preventDefault();
@@ -423,6 +425,8 @@
                     }
                 });
             });
+        }
+
 
 
         // Initialisation
