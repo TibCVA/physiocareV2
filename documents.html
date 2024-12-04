@@ -214,7 +214,7 @@
                 try {
                     const serialized = JSON.stringify(data);
                     const chunks = [];
-                    const chunkSize = 500 * 1024; // Réduis la taille des chunks à 500 Ko
+                    const chunkSize = 500 * 1024; // Réduis la taille des chunks
         
                     for (let i = 0; i < serialized.length; i += chunkSize) {
                         chunks.push(serialized.slice(i, i + chunkSize));
