@@ -402,235 +402,219 @@
            }
        };
 
-       class DiagnosticManager {
-           constructor() {
-               this.sections = {
-                   remarks: document.getElementById('remarksSection'),
-                   loading: document.getElementById('loadingSection'),
-                   results: document.getElementById('resultsSection'),
-                   validation: document.getElementById('validationSection')
-               };
-               this.diagnosticResults = document.getElementById('diagnosticResults');
-               this.setupEventListeners();
-           }
+class DiagnosticManager {
+   constructor() {
+       this.API_URL = CONFIG.api;
+       this.MAX_RETRIES = 3;
+       this.TIMEOUT = 30000;
+       this.sections = {
+           remarks: document.getElementById('remarksSection'),
+           loading: document.getElementById('loadingSection'),
+           results: document.getElementById('resultsSection'),
+           validation: document.getElementById('validationSection')
+       };
+       this.diagnosticResults = document.getElementById('diagnosticResults');
+       this.setupEventListeners();
+   }
 
-           async validateDocuments(docs) {
-               if (!docs?.documents) return [];
-               return docs.documents.filter(doc => {
-                   return doc.fileData && 
-                          doc.type && 
-                          doc.id;
-               });
-           }
+   async validateDocuments(docs) {
+       if (!docs?.documents) return [];
+       return docs.documents.filter(doc => {
+           return doc.fileData && doc.type && doc.id;
+       });
+   }
 
-           async startAnalysis() {
-               try {
-                   this.showLoading();
-                   const patientData = await this.gatherPatientData();
-                   const diagnosis = await this.requestDiagnosis(patientData);
-                   this.displayResults(diagnosis);
-                   await this.saveResults();
-               } catch (error) {
-                   console.error('Erreur analyse:', error);
-                   this.handleError();
-               }
-           }
+   async startAnalysis() {
+       try {
+           this.showLoading();
+           const patientData = await this.gatherPatientData();
+           const diagnosis = await this.requestDiagnosis(patientData);
+           this.displayResults(diagnosis);
+           await this.saveResults();
+       } catch (error) {
+           console.error('Erreur analyse:', error);
+           this.handleError();
+       }
+   }
 
-           async gatherPatientData() {
-               const documents = Storage.load(CONFIG.storage.keys.documents);
-               const validatedDocs = await this.validateDocuments(documents);
+   async gatherPatientData() {
+       const documents = Storage.load(CONFIG.storage.keys.documents);
+       const validatedDocs = await this.validateDocuments(documents);
+       return {
+           personalInfo: Storage.load(CONFIG.storage.keys.personalInfo) || {},
+           physicalActivity: Storage.load(CONFIG.storage.keys.activity) || {},
+           symptoms: Storage.load(CONFIG.storage.keys.symptoms) || {},
+           documents: validatedDocs,
+           remarks: document.getElementById('remarks')?.value || ''
+       };
+   }
 
-               return {
-                   personalInfo: Storage.load(CONFIG.storage.keys.personalInfo) || {},
-                   physicalActivity: Storage.load(CONFIG.storage.keys.activity) || {},
-                   symptoms: Storage.load(CONFIG.storage.keys.symptoms) || {},
-                   documents: validatedDocs,
-                   remarks: document.getElementById('remarks')?.value || ''
-               };
-           }
-
-           class DiagnosticManager {
-              constructor() {
-                this.API_URL = CONFIG.api;
-                this.MAX_RETRIES = 3;
-                this.TIMEOUT = 30000;
-              }
-            
-              async requestDiagnosis(data) {
-                let attempts = 0;
-                while (attempts < this.MAX_RETRIES) {
-                  try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
-                    
-                    const response = await fetch(this.API_URL, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ 
-                        type: 'diagnosis',
-                        data: await this.validateData(data)
-                      }),
-                      signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    if (!response.ok) {
-                      throw new Error(`Erreur HTTP: ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    return this.validateResponse(result);
-                    
-                  } catch (error) {
-                    attempts++;
-                    if (attempts === this.MAX_RETRIES) {
-                      throw new Error(`Échec après ${this.MAX_RETRIES} tentatives: ${error.message}`);
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
-                  }
-                }
-              }
-            
-              async validateData(data) {
-                if (!data.personalInfo || !data.symptoms) {
-                  throw new Error('Données patient incomplètes');
-                }
-                
-                const totalSize = data.documents?.reduce((sum, doc) => sum + doc.fileData.length, 0) || 0;
-                if (totalSize > 50 * 1024 * 1024) {
-                  throw new Error('Volume total des documents trop important');
-                }
-                
-                return data;
-              }
-            
-              validateResponse(response) {
-                const requiredFields = ['diagnoses'];
-                const requiredDiagnosisFields = ['name', 'probability', 'shortDescription', 'details'];
-                
-                if (!response.diagnoses?.length) {
-                  throw new Error('Réponse invalide: pas de diagnostic');
-                }
-                
-                for (const diagnosis of response.diagnoses) {
-                  for (const field of requiredDiagnosisFields) {
-                    if (!(field in diagnosis)) {
-                      throw new Error(`Diagnostic invalide: champ ${field} manquant`);
-                    }
-                  }
-                }
-                
-                return response;
-              }
-            }
-
-           displayResults(data) {
-               this.sections.loading.classList.add('hidden');
-               this.diagnosticResults.innerHTML = '';
+   async requestDiagnosis(data) {
+       let attempts = 0;
+       while (attempts < this.MAX_RETRIES) {
+           try {
+               const controller = new AbortController();
+               const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT);
                
-               data.diagnoses.forEach(diagnostic => {
-                   this.diagnosticResults.appendChild(
-                       this.createDiagnosticElement(diagnostic)
-                   );
+               const response = await fetch(this.API_URL, {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ 
+                       type: 'diagnosis',
+                       data: await this.validateData(data)
+                   }),
+                   signal: controller.signal
                });
-
-               this.sections.results.classList.remove('hidden');
-               this.sections.validation.classList.remove('hidden');
-           }
-
-           createDiagnosticElement(diagnostic) {
-               const element = document.createElement('div');
-               element.className = `diagnostic-item ${diagnostic.probability >= 80 ? 'primary' : ''}`;
-               element.innerHTML = this.getDiagnosticTemplate(diagnostic);
-               return element;
-           }
-
-           getDiagnosticTemplate(diagnostic) {
-               return `
-                   <div class="flex justify-between items-start">
-                       <div>
-                           <h3 class="font-semibold text-lg">${diagnostic.name}</h3>
-                           <p class="text-sm opacity-70">${diagnostic.shortDescription}</p>
-                       </div>
-                       <span class="font-semibold">${diagnostic.probability}%</span>
-                   </div>
-                   <div class="probability-bar">
-                       <div class="probability-bar-fill" style="width: ${diagnostic.probability}%"></div>
-                   </div>
-                   <button class="expand-button" onclick="diagnosticManager.toggleDetails(this)">
-                       Voir les détails
-                       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                       </svg>
-                   </button>
-                   <div class="diagnostic-details">
-                       ${diagnostic.details.map(detail => `
-                           <div class="details-section">
-                               <h4 class="font-medium mb-2">${detail.title}</h4>
-                               <p class="text-sm opacity-80">${detail.content}</p>
-                           </div>
-                       `).join('')}
-                   </div>
-               `;
-           }
-
-           toggleDetails(button) {
-               const details = button.nextElementSibling;
-               const expanded = !details.classList.contains('expanded');
-               details.classList.toggle('expanded');
-               button.querySelector('svg').style.transform = expanded ? 'rotate(180deg)' : '';
-           }
-
-           showLoading() {
-               this.sections.remarks.classList.add('hidden');
-               this.sections.loading.classList.remove('hidden');
-           }
-
-           handleError() {
-               this.sections.loading.classList.add('hidden');
-               this.sections.remarks.classList.remove('hidden');
-               alert('Erreur lors de l\'analyse. Veuillez réessayer.');
-           }
-
-           async saveResults() {
-               const data = {
-                   remarks: document.getElementById('remarks')?.value || '',
-                   diagnoses: Array.from(this.diagnosticResults.children).map(this.extractDiagnosticData)
-               };
-               await Storage.save(CONFIG.storage.keys.diagnosis, data);
-           }
-
-           extractDiagnosticData(element) {
-               return {
-                   name: element.querySelector('h3')?.textContent || '',
-                   probability: parseInt(element.querySelector('.probability-bar-fill')?.style.width) || 0,
-                   shortDescription: element.querySelector('p.opacity-70')?.textContent || '',
-                   details: Array.from(element.querySelectorAll('.details-section')).map(section => ({
-                       title: section.querySelector('h4')?.textContent || '',
-                       content: section.querySelector('p')?.textContent || ''
-                   }))
-               };
-           }
-
-           setupEventListeners() {
-               document.getElementById('startAnalysis')?.addEventListener('click', 
-                   () => this.startAnalysis());
-
-               document.querySelector('.validation-button')?.addEventListener('click', 
-                   async () => {
-                       await this.saveResults();
-                       window.location.href = 'treatment.html';
-                   });
-
-               document.querySelector('.validation-button.secondary')?.addEventListener('click',
-                   () => {
-                       this.sections.results.classList.add('hidden');
-                       this.sections.validation.classList.add('hidden');
-                       this.sections.remarks.classList.remove('hidden');
-                   });
+               
+               clearTimeout(timeoutId);
+               
+               if (!response.ok) {
+                   throw new Error(`Erreur HTTP: ${response.status}`);
+               }
+               
+               const result = await response.json();
+               return this.validateResponse(result);
+               
+           } catch (error) {
+               attempts++;
+               if (attempts === this.MAX_RETRIES) {
+                   throw new Error(`Échec après ${this.MAX_RETRIES} tentatives: ${error.message}`);
+               }
+               await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
            }
        }
+   }
+
+   async validateData(data) {
+       if (!data.personalInfo || !data.symptoms) {
+           throw new Error('Données patient incomplètes');
+       }
+       const totalSize = data.documents?.reduce((sum, doc) => sum + doc.fileData.length, 0) || 0;
+       if (totalSize > 50 * 1024 * 1024) {
+           throw new Error('Volume total des documents trop important');
+       }
+       return data;
+   }
+
+   validateResponse(response) {
+       const requiredDiagnosisFields = ['name', 'probability', 'shortDescription', 'details'];
+       if (!response.diagnoses?.length) {
+           throw new Error('Réponse invalide: pas de diagnostic');
+       }
+       for (const diagnosis of response.diagnoses) {
+           for (const field of requiredDiagnosisFields) {
+               if (!(field in diagnosis)) {
+                   throw new Error(`Diagnostic invalide: champ ${field} manquant`);
+               }
+           }
+       }
+       return response;
+   }
+
+   displayResults(data) {
+       this.sections.loading.classList.add('hidden');
+       this.diagnosticResults.innerHTML = '';
+       data.diagnoses.forEach(diagnostic => {
+           this.diagnosticResults.appendChild(
+               this.createDiagnosticElement(diagnostic)
+           );
+       });
+       this.sections.results.classList.remove('hidden');
+       this.sections.validation.classList.remove('hidden');
+   }
+
+   createDiagnosticElement(diagnostic) {
+       const element = document.createElement('div');
+       element.className = `diagnostic-item ${diagnostic.probability >= 80 ? 'primary' : ''}`;
+       element.innerHTML = this.getDiagnosticTemplate(diagnostic);
+       return element;
+   }
+
+   getDiagnosticTemplate(diagnostic) {
+       return `
+           <div class="flex justify-between items-start">
+               <div>
+                   <h3 class="font-semibold text-lg">${diagnostic.name}</h3>
+                   <p class="text-sm opacity-70">${diagnostic.shortDescription}</p>
+               </div>
+               <span class="font-semibold">${diagnostic.probability}%</span>
+           </div>
+           <div class="probability-bar">
+               <div class="probability-bar-fill" style="width: ${diagnostic.probability}%"></div>
+           </div>
+           <button class="expand-button" onclick="diagnosticManager.toggleDetails(this)">
+               Voir les détails
+               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+               </svg>
+           </button>
+           <div class="diagnostic-details">
+               ${diagnostic.details.map(detail => `
+                   <div class="details-section">
+                       <h4 class="font-medium mb-2">${detail.title}</h4>
+                       <p class="text-sm opacity-80">${detail.content}</p>
+                   </div>
+               `).join('')}
+           </div>
+       `;
+   }
+
+   toggleDetails(button) {
+       const details = button.nextElementSibling;
+       const expanded = !details.classList.contains('expanded');
+       details.classList.toggle('expanded');
+       button.querySelector('svg').style.transform = expanded ? 'rotate(180deg)' : '';
+   }
+
+   showLoading() {
+       this.sections.remarks.classList.add('hidden');
+       this.sections.loading.classList.remove('hidden');
+   }
+
+   handleError() {
+       this.sections.loading.classList.add('hidden');
+       this.sections.remarks.classList.remove('hidden');
+       alert('Erreur lors de l\'analyse. Veuillez réessayer.');
+   }
+
+   async saveResults() {
+       const data = {
+           remarks: document.getElementById('remarks')?.value || '',
+           diagnoses: Array.from(this.diagnosticResults.children).map(this.extractDiagnosticData)
+       };
+       await Storage.save(CONFIG.storage.keys.diagnosis, data);
+   }
+
+   extractDiagnosticData(element) {
+       return {
+           name: element.querySelector('h3')?.textContent || '',
+           probability: parseInt(element.querySelector('.probability-bar-fill')?.style.width) || 0,
+           shortDescription: element.querySelector('p.opacity-70')?.textContent || '',
+           details: Array.from(element.querySelectorAll('.details-section')).map(section => ({
+               title: section.querySelector('h4')?.textContent || '',
+               content: section.querySelector('p')?.textContent || ''
+           }))
+       };
+   }
+
+   setupEventListeners() {
+       document.getElementById('startAnalysis')?.addEventListener('click', 
+           () => this.startAnalysis());
+
+       document.querySelector('.validation-button')?.addEventListener('click', 
+           async () => {
+               await this.saveResults();
+               window.location.href = 'treatment.html';
+           });
+
+       document.querySelector('.validation-button.secondary')?.addEventListener('click',
+           () => {
+               this.sections.results.classList.add('hidden');
+               this.sections.validation.classList.add('hidden');
+               this.sections.remarks.classList.remove('hidden');
+           });
+   }
+}
 
        // Initialisation
        document.addEventListener('DOMContentLoaded', () => {
