@@ -214,7 +214,7 @@
                 try {
                     const serialized = JSON.stringify(data);
                     const chunks = [];
-                    const chunkSize = 1 * 1024 * 1024; // Réduis la taille des chunks
+                    const chunkSize = 500 * 1024; // Réduis la taille des chunks à 500 Ko
         
                     for (let i = 0; i < serialized.length; i += chunkSize) {
                         chunks.push(serialized.slice(i, i + chunkSize));
@@ -264,6 +264,7 @@
                 }
             }
         };
+
 
 
         // Gestion des fichiers
@@ -381,6 +382,7 @@
             return success;
         }
 
+
         // Gestion des événements
         function setupEventListeners() {
             dropZone.addEventListener('click', () => fileInput.click());
@@ -412,12 +414,16 @@
             document.querySelectorAll('a[href]').forEach(link => {
                 link.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    await saveCurrentData();
-                    console.log('Data saved before navigation');
-                    window.location.href = link.getAttribute('href');
+                    const success = await saveCurrentData();
+                    if (success) {
+                        console.log('Data saved before navigation');
+                        window.location.href = link.getAttribute('href');
+                    } else {
+                        console.error('Failed to save data before navigation');
+                    }
                 });
             });
-        }
+
 
         // Initialisation
         document.addEventListener('DOMContentLoaded', async () => {
