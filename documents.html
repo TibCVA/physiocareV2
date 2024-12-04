@@ -294,19 +294,30 @@
             for (const file of Array.from(files)) {
                 try {
                     await validateFile(file);
-                    const base64Data = await convertToBase64(file);
-                    addDocumentToList(file, base64Data);
+                    const fileData = await convertToBase64(file);
+                    const fileObj = {
+                        id: generateUniqueId(), // Ajoutez cette fonction
+                        name: file.name,
+                        type: file.type,
+                        fileData: fileData
+                    };
+                    addDocumentToList(file, fileObj);
                     await saveCurrentData();
                 } catch (error) {
                     showError(error.message);
-                    console.error(error);
                 }
             }
+        }
+
+        function generateUniqueId() {
+            return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
 
         function addDocumentToList(file, fileData) {
             const item = document.createElement('div');
             item.className = 'document-item';
+            item.dataset.id = fileObj.id;
+            item.dataset.fileData = fileObj.fileData;
             
             const size = (file.size / (1024 * 1024)).toFixed(1);
             const type = file.type.includes('pdf') ? 'PDF' : 'Image';
