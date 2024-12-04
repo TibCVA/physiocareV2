@@ -364,6 +364,46 @@
     </main>
 
     <script>
+        const CONFIG = {
+            api: 'https://physiocare-api.b00135522.workers.dev',
+            storage: {
+                keys: {
+                    diagnosis: 'patient_diagnosis',
+                    personalInfo: 'patient_personal_info',
+                    activity: 'patient_physical_activity',
+                    symptoms: 'patient_symptoms',
+                    documents: 'patient_documents'
+                }
+            },
+            allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'],
+            maxFileSize: 10 * 1024 * 1024,
+            maxTotalSize: 50 * 1024 * 1024
+        };
+        
+        const Storage = {
+            async save(key, data) {
+                try {
+                    const serialized = JSON.stringify(data);
+                    localStorage.setItem(key, serialized);
+                    return true;
+                } catch (error) {
+                    console.error('Erreur sauvegarde:', error);
+                    return false;
+                }
+            },
+        
+            load(key) {
+                try {
+                    const data = localStorage.getItem(key);
+                    if (!data) return null;
+                    const parsed = JSON.parse(data);
+                    return parsed && typeof parsed === 'object' ? parsed : null;
+                } catch (error) {
+                    console.error('Erreur chargement:', error);
+                    return null;
+                }
+            }
+        };
         // Gestionnaire de logs détaillé
         const Logger = {
             debug: (component, message, data) => {
