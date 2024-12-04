@@ -179,6 +179,23 @@
             allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         };
 
+        function generateUniqueId() {
+            return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        async function splitFileIntoChunks(file, chunkSize) {
+            const chunks = [];
+            let offset = 0;
+            
+            while (offset < file.size) {
+                const chunk = file.slice(offset, offset + chunkSize);
+                const base64Chunk = await convertToBase64(chunk);
+                chunks.push(base64Chunk);
+                offset += chunkSize;
+            }
+            return chunks;
+        }
+
         const Storage = {
             async saveChunked(key, data) {
                 try {
@@ -261,22 +278,12 @@
                 showError(`Maximum ${FILE_CONSTRAINTS.maxFiles} fichiers autorisés`);
                 return;
             }
-
+        
             for (const file of Array.from(files)) {
                 try {
                     await validateFile(file);
-                    const base64Data = await convertToBase64(file);
-                    
-                    const currentData = Storage.load('patient_documents');
-                    const currentSize = currentData ? 
-                        new Blob([JSON.stringify(currentData)]).size : 0;
-
-                    if ((currentSize + file.size) > FILE_CONSTRAINTS.maxTotalSize) {
-                        showError('Stockage plein. Supprimez des documents.');
-                        break;
-                    }
-
-                    addDocumentToList(file, base64Data);
+                    const documentId = await sendDocumentChunks(file);
+                    addDocumentToList(file, documentId);
                     await saveCurrentData();
                 } catch (error) {
                     showError(error.message);
