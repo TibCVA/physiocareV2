@@ -329,13 +329,18 @@
                         type: file.type,
                         fileData: fileData
                     };
-                    addDocumentToList(file, fileObj);
-                    await saveCurrentData();
+                    // Vérifie si le fichier existe déjà dans la liste des documents
+                    const existingFile = Array.from(documentList.querySelectorAll('.document-item')).find(item => item.dataset.fileName === file.name);
+                    if (!existingFile) {
+                        addDocumentToList(file, fileObj);
+                        await saveCurrentData();
+                    }
                 } catch (error) {
                     showError(error.message);
                 }
             }
         }
+
 
         function generateUniqueId() {
             return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
@@ -451,20 +456,19 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM chargé');
             console.log('notesTextarea:', notesTextarea);
-
+        
             setupEventListeners();
-
+        
             const savedData = Storage.load('patient_documents');
             if (savedData) {
                 if (savedData.notes) {
                     notesTextarea.value = savedData.notes;
                 }
             }
-
+        
             await openDatabase();
             const documents = await loadDocumentsFromIndexedDB();
             if (documents) {
-                documentList.innerHTML = '';
                 documents.forEach(doc => {
                     if (doc.fileData && doc.name) {
                         const file = {
@@ -472,7 +476,11 @@
                             type: doc.type,
                             size: getBase64Size(doc.fileData)
                         };
-                        addDocumentToList(file, doc);
+                        // Vérifie si le fichier existe déjà dans la liste des documents
+                        const existingFile = Array.from(documentList.querySelectorAll('.document-item')).find(item => item.dataset.fileName === doc.name);
+                        if (!existingFile) {
+                            addDocumentToList(file, doc);
+                        }
                     }
                 });
             }
