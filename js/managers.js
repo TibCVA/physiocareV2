@@ -81,22 +81,19 @@ const StorageManager = {
 
 class DocumentManager {
     constructor() {
-        this.storage = StorageManager;
-        this.processingLock = false;
+        this.storageManager = window.StorageManager;
         this.initializeElements();
         this.setupEventListeners();
-        this.updateDocumentList();
+        this.loadDocuments();
     }
 
-    initializeElements() {
-        this.dropZone = document.getElementById('dropZone');
-        this.fileInput = document.getElementById('fileInput');
-        this.documentList = document.getElementById('documentList');
-        this.errorMessage = document.getElementById('errorMessage');
-        this.notesTextarea = document.getElementById('notes');
-        
-        if (!this.dropZone || !this.fileInput || !this.documentList) {
-            throw new Error('Éléments requis manquants');
+    async loadDocuments() {
+        try {
+            const docs = await this.storageManager.loadDocuments();
+            this.updateDocumentList(docs);
+        } catch (error) {
+            console.error('Erreur chargement documents:', error);
+            this.showError('Erreur de chargement des documents');
         }
     }
 
@@ -301,98 +298,66 @@ class DocumentManager {
 
 class DiagnosticManager {
     constructor() {
-        this.storage = StorageManager;
+        if (!window.StorageManager) {
+            throw new Error('StorageManager non initialisé');
+        }
+        this.storageManager = window.StorageManager;
+        this.abortController = null;
+        this.pendingRequests = new Set();
         this.initializeElements();
         this.setupEventListeners();
         this.loadSavedDiagnosis();
     }
 
-    initializeElements() {
-        this.sections = {
-            remarks: document.getElementById('remarksSection'),
-            loading: document.getElementById('loadingSection'),
-            results: document.getElementById('resultsSection'),
-            validation: document.getElementById('validationSection')
-        };
-        
-        this.diagnosticResults = document.getElementById('diagnosticResults');
-        
-        Object.entries(this.sections).forEach(([key, element]) => {
-            if (!element) throw new Error(`Section ${key} manquante`);
-        });
-    }
-
-    setupEventListeners() {
-        document.getElementById('startAnalysis')?.addEventListener(
-            'click', 
-            this.handleStartAnalysis.bind(this)
-        );
-
-        document.querySelector('.validation-button')?.addEventListener(
-            'click',
-            this.handleValidation.bind(this)
-        );
-        
-        document.querySelector('.validation-button.secondary')?.addEventListener(
-            'click',
-            this.handleSecondaryValidation.bind(this)
-        );
-    }
-
-    async handleStartAnalysis() {
-        try {
-            this.showLoading();
-            const data = await this.gatherPatientData();
-            console.log('[Analysis] Données:', data);
-            
-            const diagnosis = await this.requestDiagnosis(data);
-            console.log('[Analysis] Résultat:', diagnosis);
-            
-            this.displayResults(diagnosis);
-            await this.saveResults();
-            
-        } catch (error) {
-            console.error('[Analysis] Erreur:', error);
-            this.handleError(error);
-        }
-    }
-
-    async handleValidation() {
-        try {
-            await this.saveResults();
-            window.location.href = 'treatment.html';
-        } catch (error) {
-            console.error('[Validation] Erreur:', error);
-            this.showError('Erreur sauvegarde résultats');
-        }
-    }
-
-    handleSecondaryValidation() {
-        this.sections.results.classList.add('hidden');
-        this.sections.validation.classList.add('hidden');
-        this.sections.remarks.classList.remove('hidden');
-    }
-
     async gatherPatientData() {
         try {
-            const documents = await this.storage.loadDocuments();
-            console.log('[Data] Documents chargés:', documents.length);
+            const docs = await this.storageManager.loadDocuments();
+            const validDocs = docs.filter(doc => {
+                try {
+                    return doc && doc.fileData && 
+                           this.validateDocumentSize(doc) && 
+                           this.validateDocumentType(doc.type);
+                } catch {
+                    return false;
+                }
+            });
 
-            const validDocs = documents.filter(doc => 
-                this.storage.validateDocument(doc)
-            );
-            console.log('[Data] Documents valides:', validDocs.length);
+            Logger.debug('Documents', `${validDocs.length}/${docs.length} documents valides`);
 
             return {
                 personalInfo: this.loadStorageData('patient_personal_info'),
                 physicalActivity: this.loadStorageData('patient_physical_activity'),
                 symptoms: this.loadStorageData('patient_symptoms'),
                 documents: validDocs,
-                remarks: document.getElementById('remarks')?.value?.trim() || ''
+                remarks: this.elements.remarksInput.value.trim()
             };
         } catch (error) {
-            console.error('[Data] Erreur collecte:', error);
-            throw error;
+            Logger.error('Data', 'Erreur collecte', error);
+            return {
+                personalInfo: {},
+                physicalActivity: {},
+                symptoms: {},
+                documents: [],
+                remarks: this.elements.remarksInput?.value?.trim() || ''
+            };
+        }
+    }
+
+    validateDocumentSize(doc) {
+        const size = this.getBase64Size(doc.fileData);
+        return size <= CONFIG.maxFileSize;
+    }
+
+    validateDocumentType(type) {
+        return CONFIG.allowedTypes.includes(type.toLowerCase());
+    }
+
+    getBase64Size(base64String) {
+        try {
+            const base64Length = base64String.substring(base64String.indexOf(',') + 1).length;
+            return Math.floor((base64Length * 3) / 4);
+        } catch {
+            return Infinity;
         }
     }
 
@@ -403,160 +368,6 @@ class DiagnosticManager {
         } catch {
             return {};
         }
-    }
-
-    async requestDiagnosis(data) {
-        try {
-            const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: 'diagnosis',
-                    data: data
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur API: ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log('[API] Réponse:', result);
-            return result;
-
-        } catch (error) {
-            console.error('[API] Erreur:', error);
-            throw error;
-        }
-    }
-
-    displayResults(data) {
-        this.sections.loading.classList.add('hidden');
-        this.diagnosticResults.innerHTML = '';
-
-        data.diagnostics?.forEach(diagnostic => {
-            const element = this.createDiagnosticElement(diagnostic);
-            this.diagnosticResults.appendChild(element);
-        });
-
-        this.sections.results.classList.remove('hidden');
-        this.sections.validation.classList.remove('hidden');
-    }
-
-    createDiagnosticElement(diagnostic) {
-        const element = document.createElement('div');
-        element.className = `diagnostic-item ${
-            diagnostic.probability >= 80 ? 'primary' : ''
-        }`;
-
-        element.innerHTML = this.getDiagnosticTemplate(diagnostic);
-        return element;
-    }
-
-    getDiagnosticTemplate(diagnostic) {
-        return `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="font-semibold text-lg">
-                        ${this.sanitizeString(diagnostic.name)}
-                    </h3>
-                    <p class="text-sm opacity-70">
-                        ${this.sanitizeString(diagnostic.shortDescription)}
-                    </p>
-                </div>
-                <span class="font-semibold">${diagnostic.probability}%</span>
-            </div>
-            <div class="probability-bar">
-                <div class="probability-bar-fill" style="width: ${diagnostic.probability}%"></div>
-            </div>
-            <button class="expand-button" onclick="diagnosticManager.toggleDetails(this)">
-                Voir les détails
-                <svg class="w-5 h-5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-            <div class="diagnostic-details">
-                ${diagnostic.details.map(detail => `
-                    <div class="details-section">
-                        <h4 class="font-medium mb-2">${this.sanitizeString(detail.title)}</h4>
-                        <p class="text-sm opacity-80">${this.sanitizeString(detail.content)}</p>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    toggleDetails(button) {
-        const details = button.nextElementSibling;
-        const expanded = !details.classList.contains('expanded');
-        details.classList.toggle('expanded');
-        button.querySelector('svg').style.transform = expanded ? 'rotate(180deg)' : '';
-    }
-
-    sanitizeString(str) {
-        if (!str || typeof str !== 'string') return '';
-        return str.trim().replace(/[<>]/g, '');
-    }
-
-    async saveResults() {
-        try {
-            const data = {
-                remarks: document.getElementById('remarks')?.value || '',
-                diagnoses: Array.from(this.diagnosticResults.children)
-                    .map(this.extractDiagnosticData.bind(this))
-            };
-            
-            localStorage.setItem('patient_diagnosis', JSON.stringify(data));
-            return true;
-        } catch (error) {
-            console.error('[Save] Erreur:', error);
-            return false;
-        }
-    }
-
-    extractDiagnosticData(element) {
-        return {
-            name: element.querySelector('h3')?.textContent || '',
-            probability: parseInt(element.querySelector('.probability-bar-fill')?.style.width) || 0,
-            shortDescription: element.querySelector('p.opacity-70')?.textContent || '',
-            details: Array.from(element.querySelectorAll('.details-section'))
-                .map(section => ({
-                    title: section.querySelector('h4')?.textContent || '',
-                    content: section.querySelector('p')?.textContent || ''
-                }))
-        };
-    }
-
-    loadSavedDiagnosis() {
-        const savedData = this.loadStorageData('patient_diagnosis');
-        if (savedData?.diagnoses?.length) {
-            this.displayResults({ diagnostics: savedData.diagnoses });
-        }
-    }
-
-    handleError(error) {
-        this.sections.loading.classList.add('hidden');
-        this.sections.remarks.classList.remove('hidden');
-        this.showError(`Erreur: ${error.message}`);
-    }
-
-    showError(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4';
-        errorDiv.innerHTML = `
-            <strong class="font-bold">Erreur!</strong>
-            <span class="block sm:inline">${this.sanitizeString(message)}</span>
-        `;
-        this.sections.remarks.insertBefore(errorDiv, this.sections.remarks.firstChild);
-        
-        setTimeout(() => errorDiv.remove(), 5000);
-    }
-
-    showLoading() {
-        this.sections.remarks.classList.add('hidden');
-        this.sections.loading.classList.remove('hidden');
     }
 }
 
