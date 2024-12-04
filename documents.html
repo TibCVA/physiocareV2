@@ -179,6 +179,19 @@
             allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         };
 
+        // Ajouter en haut du script
+        const notesTextarea = document.getElementById('notes');
+
+        async function sendDocumentChunks(file) {
+            try {
+                const chunks = await splitFileIntoChunks(file, 2 * 1024 * 1024);
+                const base64Data = await convertToBase64(file);
+                return base64Data;
+            } catch (error) {
+                throw new Error(`Erreur traitement fichier: ${error.message}`);
+            }
+        }
+
         function generateUniqueId() {
             return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
