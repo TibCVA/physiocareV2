@@ -8,10 +8,28 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="js/storage-manager.js"></script>
     <script src="js/managers.js"></script>
-    <!-- Le CSS reste inchangé, je continue avec le HTML et JS modifié -->
-</head>
-<body class="min-h-screen">
-    <!-- Le HTML reste inchangé jusqu'au script -->
+    </head>
+    <body class="min-h-screen">
+        <nav class="nav-blur fixed w-full z-50">
+            <div class="max-w-5xl mx-auto px-4">
+                <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+                    <a href="documents.html" class="nav-button flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Retour
+                    </a>
+                    <span class="font-semibold">Patient (5/6)</span>
+                    <a href="treatment.html" class="nav-button primary">Suivant</a>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </nav>
+    
+        <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
+            <div class="max-w-xl mx-auto space-y-6">
     <script>
         const CONFIG = {
             api: 'https://physiocare-api.b00135522.workers.dev',
