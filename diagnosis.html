@@ -31,6 +31,17 @@
         <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
             <div class="max-w-xl mx-auto space-y-6">
     <script>
+        const Logger = {
+            debug: (component, message, data) => {
+                console.log(`[${component}]`, message, data);
+            },
+            error: (component, message, error) => {
+                console.error(`[ERROR][${component}]`, message, error);
+            },
+            warn: (component, message, data) => {
+                console.warn(`[WARN][${component}]`, message, data);
+            }
+        };
         const CONFIG = {
             api: 'https://physiocare-api.b00135522.workers.dev',
             storage: {
@@ -412,7 +423,7 @@
             window.diagnosticManager = new DiagnosticManager();
             
             // Chargement des données précédentes
-            const savedData = Storage.load(CONFIG.storage.keys.diagnosis);
+            const savedData = window.StorageManager.loadDocuments();
             if (savedData?.diagnoses?.length) {
                 window.diagnosticManager.displayAndSaveResults(savedData);
                 Logger.debug('Init', 'Données précédentes chargées');
