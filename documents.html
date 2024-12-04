@@ -209,63 +209,67 @@
         }
 
         // Gestionnaire de stockage
-        const Storage = {
-            async saveChunked(key, data) {
-                try {
-                    const serialized = JSON.stringify(data);
-                    const chunks = [];
-                    const chunkSize = 500 * 1024; // Réduis la taille des chunks
-        
-                    for (let i = 0; i < serialized.length; i += chunkSize) {
-                        chunks.push(serialized.slice(i, i + chunkSize));
-                    }
-        
-                    localStorage.setItem(`${key}_chunks`, chunks.length.toString());
-                    chunks.forEach((chunk, index) => {
-                        localStorage.setItem(`${key}_chunk_${index}`, chunk);
-                    });
-        
-                    return true;
-                } catch (error) {
-                    console.error('Erreur sauvegarde:', error);
-                    return false;
-                }
-            },
-        
-            load(key) {
-                try {
-                    const chunkCount = parseInt(localStorage.getItem(`${key}_chunks`));
-                    if (isNaN(chunkCount)) {
-                        const data = localStorage.getItem(key);
-                        return data ? JSON.parse(data) : null;
-                    }
-        
-                    let data = '';
-                    for (let i = 0; i < chunkCount; i++) {
-                        const chunk = localStorage.getItem(`${key}_chunk_${i}`);
-                        if (chunk) {
-                            data += chunk;
-                        } else {
-                            throw new Error('Chunk manquant');
-                        }
-                    }
-                    return JSON.parse(data);
-                } catch (error) {
-                    console.error('Erreur chargement:', error);
-                    // Nettoyage des données corrompues
-                    localStorage.removeItem(`${key}_chunks`);
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const keyName = localStorage.key(i);
-                        if (keyName.startsWith(`${key}_chunk_`)) {
-                            localStorage.removeItem(keyName);
-                        }
-                    }
-                    return null;
-                }
-            }
-        };
+        const DB_NAME = 'patient_documents_db';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'documents';
 
+        let db;
 
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = (event) => {
+                    reject('Erreur ouverture base de données');
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
+
+        async function saveDocumentToIndexedDB(document) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+
+                const request = store.add(document);
+
+                request.onsuccess = () => {
+                    resolve(request.result);
+                };
+
+                request.onerror = () => {
+                    reject('Erreur sauvegarde document');
+                };
+            });
+        }
+
+        async function loadDocumentsFromIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(STORE_NAME, 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+
+                const request = store.getAll();
+
+                request.onsuccess = () => {
+                    resolve(request.result);
+                };
+
+                request.onerror = () => {
+                    reject('Erreur chargement documents');
+                };
+            });
+        }
 
         // Gestion des fichiers
         async function validateFile(file) {
@@ -310,7 +314,7 @@
                     await validateFile(file);
                     const fileData = await convertToBase64(file);
                     const fileObj = {
-                        id: generateUniqueId(), // Ajoutez cette fonction
+                        id: generateUniqueId(),
                         name: file.name,
                         type: file.type,
                         fileData: fileData
@@ -372,47 +376,52 @@
                 type: item.dataset.fileType,
                 fileData: item.dataset.fileData
             }));
-        
+
             console.log('Saving data:', { documents, notes: notesTextarea.value });
+
+            await openDatabase();
+
+            for (const doc of documents) {
+                await saveDocumentToIndexedDB(doc);
+            }
+
             const success = await Storage.saveChunked('patient_documents', {
-                documents,
                 notes: notesTextarea.value
             });
             console.log('Data saved successfully:', success);
             return success;
         }
 
-
         // Gestion des événements
         function setupEventListeners() {
             dropZone.addEventListener('click', () => fileInput.click());
-        
+
             dropZone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 dropZone.style.borderColor = 'var(--brand-light)';
                 dropZone.style.background = 'rgba(55, 167, 196, 0.05)';
             });
-        
+
             dropZone.addEventListener('dragleave', () => {
                 dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
                 dropZone.style.background = '';
             });
-        
+
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.style.borderColor = 'rgba(55, 167, 196, 0.3)';
                 dropZone.style.background = '';
                 handleFiles(e.dataTransfer.files);
             });
-        
+
             fileInput.addEventListener('change', () => {
                 handleFiles(fileInput.files);
             });
-        
+
             notesTextarea.addEventListener('input', debounce(saveCurrentData, 500));
-        
+
             document.getElementById('uploadButton').addEventListener('click', () => fileInput.click());
-            
+
             document.querySelectorAll('a[href]').forEach(link => {
                 link.addEventListener('click', async (e) => {
                     e.preventDefault();
@@ -427,8 +436,6 @@
             });
         }
 
-
-
         // Initialisation
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('DOM chargé');
@@ -438,22 +445,25 @@
 
             const savedData = Storage.load('patient_documents');
             if (savedData) {
-                if (savedData.documents) {
-                    documentList.innerHTML = '';
-                    savedData.documents.forEach(doc => {
-                        if (doc.fileData && doc.name) {
-                            const file = {
-                                name: doc.name,
-                                type: doc.type,
-                                size: getBase64Size(doc.fileData)
-                            };
-                            addDocumentToList(file, doc);
-                        }
-                    });
-                }
                 if (savedData.notes) {
                     notesTextarea.value = savedData.notes;
                 }
+            }
+
+            await openDatabase();
+            const documents = await loadDocumentsFromIndexedDB();
+            if (documents) {
+                documentList.innerHTML = '';
+                documents.forEach(doc => {
+                    if (doc.fileData && doc.name) {
+                        const file = {
+                            name: doc.name,
+                            type: doc.type,
+                            size: getBase64Size(doc.fileData)
+                        };
+                        addDocumentToList(file, doc);
+                    }
+                });
             }
         });
     </script>
