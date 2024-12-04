@@ -316,12 +316,12 @@
         function addDocumentToList(file, fileData) {
             const item = document.createElement('div');
             item.className = 'document-item';
-            item.dataset.id = fileObj.id;
-            item.dataset.fileData = fileObj.fileData;
-            
+            item.dataset.id = fileData.id;
+            item.dataset.fileData = fileData.fileData;
+        
             const size = (file.size / (1024 * 1024)).toFixed(1);
             const type = file.type.includes('pdf') ? 'PDF' : 'Image';
-            
+        
             item.innerHTML = `
                 <div class="flex items-center gap-3">
                     <svg class="w-6 h-6 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -339,18 +339,19 @@
                     </svg>
                 </button>
             `;
-
-            item.dataset.fileData = fileData;
+        
+            item.dataset.fileData = fileData.fileData;
             item.dataset.fileName = file.name;
             item.dataset.fileType = file.type;
-
+        
             item.querySelector('.delete-btn').addEventListener('click', async () => {
                 item.remove();
                 await saveCurrentData();
             });
-
+        
             documentList.appendChild(item);
         }
+
 
         async function saveCurrentData() {
             const documents = Array.from(documentList.querySelectorAll('.document-item')).map(item => ({
