@@ -1,10 +1,8 @@
 // patient-manager.js
-
 class DiagnosticManager {
     constructor() {
-        this.apiEndpoint='https://physiocare-api.b00135522.workers.dev/'; 
+        this.apiEndpoint='https://physiocare-api.b00135522.workers.dev/';
     }
-
     async analyze(data) {
         const response=await fetch(this.apiEndpoint,{
             method:'POST',
@@ -21,9 +19,8 @@ class DiagnosticManager {
 
 class TreatmentManager {
     constructor() {
-        this.apiEndpoint='https://physiocare-api.b00135522.workers.dev/'; 
+        this.apiEndpoint='https://physiocare-api.b00135522.workers.dev/';
     }
-
     async getTreatment(data) {
         const response=await fetch(this.apiEndpoint,{
             method:'POST',
@@ -52,7 +49,7 @@ class PatientManager {
         localStorage.setItem('currentPatientId',patientId);
     }
     loadPatientData() {
-        if(!this.currentPatientId)return{};
+        if(!this.currentPatientId)return {};
         const data=localStorage.getItem(this.currentPatientId);
         return data?JSON.parse(data):{};
     }
@@ -77,12 +74,12 @@ class PatientManager {
         const newId=`patient_${Date.now()}`;
         this.setCurrentPatientId(newId);
         const newData={
-            personalInfo: personalInfo||{},
+            personalInfo:personalInfo||{},
             physicalActivity:{},
             symptoms:{},
             documents:[],
-            remarks:'', // remarques pour documents
-            diagnosisRemarks:'', // remarques pour diagnosis
+            remarks:'', // remarques documents
+            diagnosisRemarks:'', // remarques diagnostic
             diagnosis:[],
             treatment:{}
         };
@@ -98,32 +95,27 @@ class PatientManager {
     }
 }
 
-// Fonction factice pour PDF -> texte
+// Fonction factice PDF->texte
 async function pdfToText(base64data) {
-    // TODO: Implémentez un véritable OCR PDF.
-    // Ici on simule:
-    return "Exemple de texte extrait du PDF (à remplacer par un vrai OCR).";
+    // Implémentation réelle à faire.
+    return "Exemple de texte extrait du PDF (OCR à implémenter).";
 }
 
 async function gatherPatientData() {
     const pManager=window.patientManager;
     const patientData=pManager.loadPatientData();
-
     const documents=await window.PatientStorageManager.loadDocuments();
     const formattedDocs=[];
     for(const doc of documents) {
         if(doc.type.startsWith('image/')) {
-            // Image, on retire le prefixe data si nécessaire
-            // On a stocké doc.fileData en base64 pur, donc juste doc.fileData
             formattedDocs.push({
                 id:doc.id,
                 name:doc.name,
                 type:doc.type,
                 size:doc.size,
-                fileDataBase64:doc.fileData // déjà base64 sans prefixe data
+                fileDataBase64:doc.fileData
             });
         } else if(doc.type==='application/pdf') {
-            // Extraire le texte
             const textExtract=await pdfToText(doc.fileData);
             formattedDocs.push({
                 id:doc.id,
