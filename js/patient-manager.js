@@ -199,17 +199,22 @@ window.DocumentManager = DocumentManager;
 
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        if (!window.PatientStorageManager) {
-            throw new Error('PatientStorageManager doit être chargé avant patient-manager.js');
+    if (!window.PatientStorageManager) {
+        console.error('PatientStorageManager n’est pas chargé.');
+        const errorMessageElement = document.getElementById('errorMessage');
+        if (errorMessageElement) {
+            errorMessageElement.textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
+            errorMessageElement.style.display = "block";
         }
+        return; // Arrêtez l'exécution si PatientStorageManager n'est pas disponible
+    }
 
-        const pathname = window.location.pathname;
-        if (pathname.includes('documents.html')) {
-            window.documentManager = new DocumentManager();
-            console.log('DocumentManager initialisé');
-        }
+    try {
+        // Initialisation du DocumentManager si PatientStorageManager est disponible
+        window.documentManager = new DocumentManager();
+        console.log('DocumentManager initialisé');
     } catch (error) {
-        console.error('Erreur initialisation:', error);
+        console.error('Erreur lors de l\'initialisation du DocumentManager :', error);
     }
 });
+
