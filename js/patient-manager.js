@@ -1,226 +1,226 @@
-/**
- * Patient Manager - PhysioCare
- * Gestion des documents et diagnostics patients
- */
+// patient-manager.js
+// Gestion du diagnostic, du traitement, et préparation des données pour l'API
 
-// Gestionnaire de Documents
-class DocumentManager {
+class DiagnosticManager {
     constructor() {
-        this.storage = window.PatientStorageManager;
-        this.initializeElements();
-        this.setupEventListeners();
-        this.loadSavedDocuments();
+        this.apiEndpoint = 'https://physiocare-api.b00135522.workers.dev/'; // A adapter si besoin
+        this.currentPatientId = null; // Sera défini par PatientManager
     }
 
-    initializeElements() {
-        this.elements = {
-            dropZone: document.getElementById('dropZone'),
-            fileInput: document.getElementById('fileInput'),
-            uploadButton: document.getElementById('uploadButton'),
-            documentList: document.getElementById('documentList'),
-            errorMessage: document.getElementById('errorMessage'),
-            notes: document.getElementById('notes')
-        };
-
-        Object.entries(this.elements).forEach(([key, element]) => {
-            if (!element) {
-                console.error(`Élément ${key} non trouvé dans le DOM`);
-            }
+    /**
+     * Analyse les données du patient (documents, symptômes, etc.) en appelant le Worker Claude API.
+     * @param {Object} data Données du patient rassemblées par gatherPatientData (cf. plus bas).
+     * @returns {Promise<Object>} L'objet de diagnostic renvoyé par l'API
+     */
+    async analyze(data) {
+        console.log("[DiagnosticManager] Analyse en cours...");
+        const response = await fetch(this.apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'analysis', data })
         });
-    }
 
-    setupEventListeners() {
-        const dropZone = this.elements.dropZone;
-        if (dropZone) {
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-            });
-
-            dropZone.addEventListener('dragover', () => {
-                dropZone.classList.add('border-brand-light', 'bg-brand-light/10');
-            });
-
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.classList.remove('border-brand-light', 'bg-brand-light/10');
-            });
-
-            dropZone.addEventListener('drop', async (e) => {
-                dropZone.classList.remove('border-brand-light', 'bg-brand-light/10');
-                await this.handleFiles(e.dataTransfer.files);
-            });
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Erreur API analyse: ${response.status} - ${text}`);
         }
 
-        this.elements.uploadButton?.addEventListener('click', () => {
-            this.elements.fileInput?.click();
-        });
-
-        this.elements.fileInput?.addEventListener('change', async (e) => {
-            await this.handleFiles(e.target.files);
-        });
-
-        this.elements.notes?.addEventListener('input', () => this.saveCurrentData());
-    }
-
-    async handleFiles(fileList) {
-        try {
-            const files = Array.from(fileList);
-            if (files.length === 0) return;
-
-            const documents = await Promise.all(files.map(this.processFile.bind(this)));
-            const validDocuments = documents.filter(Boolean);
-
-            if (validDocuments.length) {
-                await this.storage.saveDocuments(validDocuments);
-                await this.loadSavedDocuments();
-                this.showSuccess(`${validDocuments.length} document(s) ajouté(s)`);
-            }
-        } catch (error) {
-            this.showError(error.message);
-        }
-    }
-
-    async processFile(file) {
-        if (!this.storage.CONSTRAINTS.allowedTypes.includes(file.type)) {
-            this.showError(`Type de fichier non supporté: ${file.type}`);
-            return null;
-        }
-
-        if (file.size > this.storage.CONSTRAINTS.maxFileSize) {
-            this.showError(`Fichier trop volumineux: ${file.name}`);
-            return null;
-        }
-
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64Data = e.target.result.split(',')[1];
-                if (!base64Data) {
-                    reject(new Error(`Erreur de conversion Base64 pour le fichier : ${file.name}`));
-                }
-
-                resolve({
-                    id: crypto.randomUUID(),
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    fileData: base64Data
-                });
-            };
-            reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async loadSavedDocuments() {
-        const documents = await this.storage.loadDocuments();
-        this.elements.documentList.innerHTML = '';
-
-        documents.forEach(doc => {
-            const element = this.createDocumentElement(doc);
-            this.elements.documentList.appendChild(element);
-        });
-    }
-
-    createDocumentElement(doc) {
-        const div = document.createElement('div');
-        div.className = 'document-item';
-        div.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="font-medium">${this.sanitizeString(doc.name)}</h3>
-                    <p class="text-sm opacity-70">${this.formatFileSize(doc.size)}</p>
-                </div>
-                <button class="text-red-500 hover:text-red-700" data-id="${doc.id}">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                </button>
-            </div>
-        `;
-
-        div.querySelector('button').addEventListener('click', async () => {
-            await this.deleteDocument(doc.id);
-        });
-
-        return div;
-    }
-
-    async deleteDocument(id) {
-        try {
-            const documents = await this.storage.loadDocuments();
-            const updatedDocuments = documents.filter(doc => doc.id !== id);
-            await this.storage.saveDocuments(updatedDocuments);
-            await this.loadSavedDocuments();
-        } catch (error) {
-            this.showError('Erreur lors de la suppression');
-        }
-    }
-
-    sanitizeString(str) {
-        return str.replace(/[<>&"']/g, '');
-    }
-
-    formatFileSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / 1048576).toFixed(1) + ' MB';
-    }
-
-    showError(message) {
-        this.elements.errorMessage.textContent = message;
-        this.elements.errorMessage.className = 'error-message bg-red-100 border-red-400 text-red-700';
-        this.elements.errorMessage.style.display = 'block';
-        setTimeout(() => {
-            this.elements.errorMessage.style.display = 'none';
-        }, 5000);
-    }
-
-    showSuccess(message) {
-        this.elements.errorMessage.textContent = message;
-        this.elements.errorMessage.className = 'error-message bg-green-100 border-green-400 text-green-700';
-        this.elements.errorMessage.style.display = 'block';
-        setTimeout(() => {
-            this.elements.errorMessage.style.display = 'none';
-        }, 3000);
-    }
-
-    async saveCurrentData() {
-        const notes = this.elements.notes.value.trim();
-        localStorage.setItem('document_notes', notes);
+        const result = await response.json();
+        console.log("[DiagnosticManager] Réponse analyse:", result);
+        return result;
     }
 }
 
-// Export des classes dans l'objet window
-window.DocumentManager = DocumentManager;
-
-// Initialisation au chargement de la page
-document.addEventListener('DOMContentLoaded', () => {
-    if (!window.PatientStorageManager) {
-        console.error('PatientStorageManager n’est pas chargé.');
-        const errorMessageElement = document.getElementById('errorMessage');
-        if (errorMessageElement) {
-            errorMessageElement.textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
-            errorMessageElement.style.display = "block";
-        }
-        return;
+class TreatmentManager {
+    constructor() {
+        this.apiEndpoint = 'https://physiocare-api.b00135522.workers.dev/'; // A adapter si besoin
+        this.currentPatientId = null; // Sera défini par PatientManager
     }
 
-    try {
-        window.documentManager = new DocumentManager();
-        console.log('DocumentManager initialisé');
+    /**
+     * Génère un plan de traitement à partir des diagnostics et des données du patient.
+     * @param {Object} data Données du patient incluant le diagnostic sélectionné
+     * @returns {Promise<Object>} L'objet de traitement renvoyé par l'API
+     */
+    async getTreatment(data) {
+        console.log("[TreatmentManager] Génération du plan de traitement...");
+        const response = await fetch(this.apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'treatment', data })
+        });
 
-        const nextButton = document.querySelector('.nav-button.primary');
-        if (nextButton) {
-            nextButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                window.location.href = 'diagnosis.html';
-            });
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Erreur API traitement: ${response.status} - ${text}`);
         }
-    } catch (error) {
-        console.error('Erreur lors de l\'initialisation du DocumentManager :', error);
+
+        const result = await response.json();
+        console.log("[TreatmentManager] Réponse traitement:", result);
+        return result;
     }
-});
+}
+
+class PatientManager {
+    constructor() {
+        this.currentPatientId = null;
+        this.loadCurrentPatientId();
+    }
+
+    /**
+     * Charge l'ID du patient en cours depuis localStorage
+     */
+    loadCurrentPatientId() {
+        const pid = localStorage.getItem('currentPatientId');
+        if (pid) {
+            this.currentPatientId = pid;
+        }
+    }
+
+    /**
+     * Définit l'ID du patient en cours et le sauvegarde dans localStorage
+     */
+    setCurrentPatientId(patientId) {
+        this.currentPatientId = patientId;
+        localStorage.setItem('currentPatientId', patientId);
+    }
+
+    /**
+     * Charge les données patient depuis localStorage, retourne un objet vide si non trouvé
+     * @returns {Object}
+     */
+    loadPatientData() {
+        if (!this.currentPatientId) return {};
+        const data = localStorage.getItem(`patient_${this.currentPatientId}`);
+        return data ? JSON.parse(data) : {};
+    }
+
+    /**
+     * Sauvegarde les données patient dans localStorage
+     * @param {Object} newData 
+     */
+    savePatientData(newData) {
+        if (!this.currentPatientId) {
+            // Génère un nouvel ID si inexistant
+            const newId = `patient_${Date.now()}`;
+            this.setCurrentPatientId(newId);
+        }
+        localStorage.setItem(`patient_${this.currentPatientId}`, JSON.stringify(newData));
+    }
+
+    /**
+     * Retourne la liste des patients enregistrés (IDs et quelques infos)
+     * @returns {Array} Liste des patients avec {id, name, firstName, lastName, ...}
+     */
+    listPatients() {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('patient_'));
+        return keys.map(k => {
+            const data = JSON.parse(localStorage.getItem(k));
+            return {
+                id: k.replace('patient_', ''),
+                personalInfo: data.personalInfo || {}
+            };
+        });
+    }
+
+    /**
+     * Crée un nouveau patient avec des données de base et le définit comme patient courant
+     * @param {Object} personalInfo 
+     */
+    createNewPatient(personalInfo) {
+        const newId = `patient_${Date.now()}`;
+        this.setCurrentPatientId(newId);
+        const newData = {
+            personalInfo: personalInfo || {},
+            physicalActivity: {},
+            symptoms: {},
+            documents: [],
+            remarks: '',
+            diagnosis: [],
+            treatment: {}
+        };
+        this.savePatientData(newData);
+        return newId;
+    }
+
+    /**
+     * Supprime un patient
+     * @param {string} patientId 
+     */
+    deletePatient(patientId) {
+        localStorage.removeItem(`patient_${patientId}`);
+        // Si on supprimait le patient courant, on réinitialise
+        if (this.currentPatientId === `patient_${patientId}`) {
+            localStorage.removeItem('currentPatientId');
+            this.currentPatientId = null;
+        }
+    }
+}
+
+/**
+ * Prépare les données pour l’analyse ou le traitement :
+ * Récupère les données du patient (personalInfo, physicalActivity, symptoms, remarks),
+ * Les documents (base64),
+ * Et éventuellement le diagnostic choisi.
+ * @returns {Object} Data prête pour l'API
+ */
+async function gatherPatientData() {
+    const pManager = window.patientManager;
+    const patientData = pManager.loadPatientData();
+
+    // Charger documents depuis IndexedDB
+    const documents = await window.PatientStorageManager.loadDocuments();
+    const formattedDocuments = documents.map(doc => ({
+        id: doc.id,
+        name: doc.name,
+        type: doc.type,
+        size: doc.size,
+        // On doit ré-attacher le préfixe data selon le type
+        // doc.fileData est déjà du base64 sans préfixe, on en a besoin complet:
+        // Pour simplifier, on va stocker doc.fileData tel quel lors de l'upload.
+        // Ici on assume que doc.fileData est déjà la donnée base64 pure sans data:image/...
+        // Pour l'API Worker, c'est le Worker qui gère le retrait du préfixe.
+        fileData: `data:${doc.type};base64,${doc.fileData}`
+    }));
+
+    const data = {
+        personalInfo: patientData.personalInfo || {},
+        physicalActivity: patientData.physicalActivity || {},
+        symptoms: patientData.symptoms || {},
+        remarks: patientData.remarks || '',
+        documents: formattedDocuments,
+        diagnosis: patientData.diagnosis || []
+    };
+
+    return data;
+}
+
+/**
+ * Met à jour le diagnostic dans les données du patient
+ * @param {Object} diagnosisResult 
+ */
+function updateDiagnosisData(diagnosisResult) {
+    const pManager = window.patientManager;
+    const patientData = pManager.loadPatientData();
+    patientData.diagnosis = diagnosisResult.diagnostics || [];
+    pManager.savePatientData(patientData);
+}
+
+/**
+ * Met à jour le plan de traitement dans les données du patient
+ * @param {Object} treatmentResult 
+ */
+function updateTreatmentData(treatmentResult) {
+    const pManager = window.patientManager;
+    const patientData = pManager.loadPatientData();
+    patientData.treatment = treatmentResult.treatmentPlan || {};
+    pManager.savePatientData(patientData);
+}
+
+// Exposer les managers globalement
+window.DiagnosticManager = DiagnosticManager;
+window.TreatmentManager = TreatmentManager;
+window.PatientManager = PatientManager;
+window.gatherPatientData = gatherPatientData;
+window.updateDiagnosisData = updateDiagnosisData;
+window.updateTreatmentData = updateTreatmentData;
