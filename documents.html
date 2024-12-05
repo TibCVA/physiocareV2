@@ -178,7 +178,7 @@
                     Retour
                 </a>
                 <span class="font-semibold">Patient (4/6)</span>
-                <a href="diagnosis.html" class="nav-button primary">Suivant</a>
+                <button id="nextButton" class="nav-button primary">Suivant</button>
             </div>
             <div class="progress-bar">
                 <div class="progress-bar-fill"></div>
@@ -190,7 +190,7 @@
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
-                <div class="error-message hidden" id="errorMessage"></div>
+                <div class="error-message" id="errorMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf,.heic">
@@ -205,5 +205,11 @@
             </div>
         </div>
     </main>
+
+    <script>
+        document.getElementById('nextButton').addEventListener('click', function() {
+            window.location.href = 'diagnosis.html';
+        });
+    </script>
 </body>
 </html>
