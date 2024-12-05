@@ -242,6 +242,16 @@
         transition: width 0.3s ease;
     }
 
+    .validation-button.secondary {
+        background: rgba(55, 167, 196, 0.1);
+        color: var(--brand-dark);
+        box-shadow: none;
+    }
+    
+    .validation-button.secondary:hover {
+        background: rgba(55, 167, 196, 0.2);
+    }
+
     @media (prefers-color-scheme: dark) {
         body {
             background: #0A1214;
@@ -366,7 +376,7 @@
 
         class DiagnosticManager {
             constructor() {
-                this.storage = StorageManager;
+                this.storage = window.PatientStorageManager;
                 this.abortController = null;
                 this.pendingRequests = new Set();
                 this.initializeElements();
@@ -603,7 +613,7 @@
                         throw new Error('Aucun diagnostic à sauvegarder');
                     }
 
-                    await Storage.save(CONFIG.storage.keys.diagnosis, data);
+                    await this.storage.save(CONFIG.storage.keys.diagnosis, data);
                     Logger.debug('Storage', 'Résultats sauvegardés');
                     return true;
                 } catch (error) {
@@ -723,7 +733,7 @@
             window.diagnosticManager = new DiagnosticManager();
             
             // Chargement des données précédentes
-            const savedData = window.StorageManager.loadDocuments();
+            const savedData = window.PatientStorageManager.loadDocuments();
             if (savedData?.diagnoses?.length) {
                 window.diagnosticManager.displayAndSaveResults(savedData);
                 Logger.debug('Init', 'Données précédentes chargées');
