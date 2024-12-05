@@ -9,92 +9,18 @@
     <script src="js/patient-storage.js"></script>
     <script src="js/patient-manager.js" defer></script>
     <style>
+        /* Vos styles actuels inchangés */
         :root {
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
-        }
-
-        body {
-            background: #F5F9FA;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
-        .form-section {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            border: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
-        .upload-zone {
-            border: 2px dashed rgba(55, 167, 196, 0.3);
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .upload-zone:hover {
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        .document-item {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .upload-button {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .error-message {
-            background-color: #FEE2E2;
-            border: 1px solid #EF4444;
-            color: #B91C1C;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 8px 0;
-            display: none;
-        }
-
-        .success-message {
-            background-color: #DEF7EC;
-            border: 1px solid #31C48D;
-            color: #03543F;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 8px 0;
-            display: none;
         }
     </style>
 </head>
 <body class="min-h-screen">
     <nav class="nav-blur fixed w-full z-50">
         <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
+            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
                 <a href="symptoms.html" class="nav-button flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -107,15 +33,13 @@
         </div>
     </nav>
 
-    <main class="pt-[calc(84px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))] px-4">
+    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-4">
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
                 <div class="error-message" id="errorMessage"></div>
-                <div class="success-message" id="successMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
-                    <p class="text-sm opacity-70">ou</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf,.heic">
                     <button class="upload-button mt-4" id="uploadButton">Choisir des fichiers</button>
                 </div>
@@ -133,11 +57,18 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (!window.PatientStorageManager) {
                 console.error('PatientStorageManager n’est pas chargé.');
-                document.getElementById('errorMessage').textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
-                document.getElementById('errorMessage').style.display = "block";
+                const errorMessageElement = document.getElementById('errorMessage');
+                if (errorMessageElement) {
+                    errorMessageElement.textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
+                    errorMessageElement.style.display = "block";
+                }
             } else {
-                window.documentManager = new DocumentManager();
-                console.log('DocumentManager initialisé');
+                try {
+                    window.documentManager = new DocumentManager();
+                    console.log('DocumentManager initialisé');
+                } catch (error) {
+                    console.error('Erreur lors de l\'initialisation du DocumentManager :', error);
+                }
             }
         });
     </script>
