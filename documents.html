@@ -13,10 +13,6 @@
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
-            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
         }
 
         body {
@@ -28,7 +24,6 @@
         .nav-blur {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
             border-bottom: 1px solid rgba(55, 167, 196, 0.1);
         }
 
@@ -37,7 +32,7 @@
             border-radius: 20px;
             padding: 24px;
             margin-bottom: 16px;
-            box-shadow: var(--elevation-1);
+            box-shadow: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
             border: 1px solid rgba(55, 167, 196, 0.1);
         }
 
@@ -61,7 +56,6 @@
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 8px;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -74,28 +68,6 @@
             border-radius: 12px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: var(--elevation-1);
-        }
-
-        .ios-input {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 16px;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 66.67%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
         }
 
         .error-message {
@@ -117,60 +89,12 @@
             margin: 8px 0;
             display: none;
         }
-        
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--brand-dark);
-            font-weight: 500;
-        }
-        
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight: 600;
-        }
-        
-        .upload-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-2);
-        }
-        
-        .upload-button:active {
-            transform: scale(0.98);
-        }
-        
-        .document-item:hover {
-            transform: translateX(4px);
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0A1214;
-                color: white;
-            }
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-            }
-            .form-section {
-                background: rgba(255, 255, 255, 0.05);
-            }
-            .document-item {
-                background: rgba(255, 255, 255, 0.1);
-                transition: all 0.3s ease;
-            }
-            .ios-input {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-            }
-        }
     </style>
 </head>
 <body class="min-h-screen">
     <nav class="nav-blur fixed w-full z-50">
         <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+            <div class="flex items-center justify-between h-[calc(44px+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]">
                 <a href="symptoms.html" class="nav-button flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -180,23 +104,16 @@
                 <span class="font-semibold">Patient (4/6)</span>
                 <a href="diagnosis.html" class="nav-button primary">Suivant</a>
             </div>
-            <div class="progress-bar">
-                <div class="progress-bar-fill"></div>
-            </div>
         </div>
     </nav>
 
-    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-4">
+    <main class="pt-[calc(84px+env(safe-area-inset-top))] pb-[calc(20px+env(safe-area-inset-bottom))] px-4">
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
                 <div class="error-message" id="errorMessage"></div>
                 <div class="success-message" id="successMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
-                    <svg class="w-12 h-12 mx-auto mb-4 text-[var(--brand-light)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                    </svg>
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
                     <p class="text-sm opacity-70">ou</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf,.heic">
@@ -207,11 +124,22 @@
 
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-4">Notes complémentaires</h2>
-                <textarea class="ios-input h-24" id="notes"
-                    placeholder="Ajoutez des informations sur les documents fournis (date des examens, contexte...)"></textarea>
+                <textarea class="ios-input h-24" id="notes" placeholder="Ajoutez des informations sur les documents fournis"></textarea>
             </div>
         </div>
     </main>
-    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.PatientStorageManager) {
+                console.error('PatientStorageManager n’est pas chargé.');
+                document.getElementById('errorMessage').textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
+                document.getElementById('errorMessage').style.display = "block";
+            } else {
+                window.documentManager = new DocumentManager();
+                console.log('DocumentManager initialisé');
+            }
+        });
+    </script>
 </body>
 </html>
