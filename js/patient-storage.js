@@ -26,6 +26,7 @@ const PatientStorageManager = {
         try {
             const validDocs=documents.filter(doc=>this.validateDocument(doc));
             if(validDocs.length===0)throw new Error('Aucun document valide à sauvegarder.');
+
             let totalSize=0;
             for(const doc of validDocs) {
                 const size=this.getBase64Size(doc.fileData);
