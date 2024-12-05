@@ -295,22 +295,54 @@ class DiagnosticManager {
     }
 
     async sendToAPI(data) {
+        console.log('Sending data to API:', data);
+        
         this.abortController = new AbortController();
         this.pendingRequests.add(this.abortController);
-
+        
         try {
-            const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'diagnosis', data }),
-                signal: this.abortController.signal
-            });
-
+            const response = await Promise.race([
+                fetch('https://physiocare-api.b00135522.workers.dev', {
+                    method: 'POST',
+                    signal: this.abortController.signal,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        type: 'diagnosis', 
+                        data: {
+                            ...data,
+                            documents: data.documents?.map(doc => ({
+                                ...doc,
+                                fileData: doc.fileData.startsWith('data:') 
+                                    ? doc.fileData 
+                                    : `data:${doc.type};base64,${doc.fileData}`
+                            }))
+                        }
+                    })
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout de la requête')), 30000)
+                )
+            ]);
+    
             if (!response.ok) {
-                throw new Error(`Erreur API: ${response.status}`);
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`Erreur API: ${response.status} - ${errorText}`);
             }
-
-            return response.json();
+    
+            const result = await response.json();
+            console.log('API Response:', result);
+            return result;
+    
+        } catch (error) {
+            console.error('API Request Error:', error);
+            if (error.name === 'AbortError') {
+                throw new Error('Requête annulée');
+            }
+            throw error;
         } finally {
             this.pendingRequests.delete(this.abortController);
         }
