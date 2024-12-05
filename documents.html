@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#37A7C4">
     <title>PhysioCare - Documents Médicaux</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <script src="js/patient-storage.js"></script>
+    <script src="js/patient-storage.js" defer></script>
     <script src="js/patient-manager.js" defer></script>
     <style>
         :root {
@@ -117,28 +117,28 @@
             margin: 8px 0;
             display: none;
         }
-        
+
         .nav-button {
             padding: 8px 16px;
             border-radius: 8px;
             color: var(--brand-dark);
             font-weight: 500;
         }
-        
+
         .nav-button.primary {
             color: var(--brand-light);
             font-weight: 600;
         }
-        
+
         .upload-button:hover {
             transform: translateY(-2px);
             box-shadow: var(--elevation-2);
         }
-        
+
         .upload-button:active {
             transform: scale(0.98);
         }
-        
+
         .document-item:hover {
             transform: translateX(4px);
             border-color: var(--brand-light);
@@ -150,16 +150,20 @@
                 background: #0A1214;
                 color: white;
             }
+
             .nav-blur {
                 background: rgba(10, 18, 20, 0.85);
             }
+
             .form-section {
                 background: rgba(255, 255, 255, 0.05);
             }
+
             .document-item {
                 background: rgba(255, 255, 255, 0.1);
                 transition: all 0.3s ease;
             }
+
             .ios-input {
                 background: rgba(255, 255, 255, 0.1);
                 color: white;
@@ -191,6 +195,7 @@
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
                 <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf,.heic">
@@ -201,14 +206,17 @@
 
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-4">Notes complémentaires</h2>
-                <textarea class="ios-input h-24" id="notes" placeholder="Ajoutez des informations sur les documents fournis"></textarea>
+                <textarea class="ios-input h-24" id="notes" placeholder="Ajoutez des informations sur les documents fournis (date des examens, contexte...)"></textarea>
             </div>
         </div>
     </main>
 
     <script>
-        document.getElementById('nextButton').addEventListener('click', function() {
-            window.location.href = 'diagnosis.html';
+        document.addEventListener('DOMContentLoaded', () => {
+            const nextButton = document.getElementById('nextButton');
+            nextButton.addEventListener('click', () => {
+                window.location.href = 'diagnosis.html';
+            });
         });
     </script>
 </body>
