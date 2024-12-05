@@ -1,353 +1,288 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#37A7C4" />
-    <title>PhysioCare - Activité Physique</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
-    <script src="js/patient-storage.js" defer></script>
-    <script src="js/patient-manager.js" defer></script>
-    <style>
-        :root {
-            --brand-light: #37A7C4;
-            --brand-medium: #2C89A0;
-            --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
-        }
-
-        body {
-            background: #F5F9FA;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            padding-bottom: calc(20px + var(--safe-bottom));
-        }
-
-        .nav-blur {
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55,167,196,0.1);
-        }
-
-        .form-section {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(30,95,110,0.05), 0 1px 2px rgba(30,95,110,0.1);
-        }
-
-        .ios-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(55,167,196,0.2);
-            border-radius: 12px;
-            margin: 8px 0;
-            font-size: 16px;
-            background: white;
-        }
-
-        .activity-option {
-            background: rgba(255,255,255,0.8);
-            border:1px solid rgba(55,167,196,0.2);
-            border-radius:12px;
-            padding:16px;
-            margin-bottom:8px;
-            transition:all 0.3s ease;
-            cursor:pointer;
-        }
-
-        .activity-option:hover {
-            transform:translateX(4px);
-            border-color:var(--brand-light);
-            background:rgba(55,167,196,0.05);
-        }
-
-        .activity-option.selected {
-            border-color: var(--brand-light);
-            background: rgba(55,167,196,0.05);
-        }
-
-        .intensity-selector {
-            display:flex;
-            gap:4px;
-            padding:4px;
-            background:rgba(55,167,196,0.1);
-            border-radius:12px;
-            margin:8px 0;
-        }
-
-        .intensity-option {
-            flex:1;
-            padding:12px 8px;
-            text-align:center;
-            border-radius:8px;
-            cursor:pointer;
-            font-size:14px;
-            font-weight:500;
-            transition:all 0.2s ease;
-        }
-
-        .intensity-option.selected {
-            background: var(--brand-light);
-            color:white;
-        }
-
-        .nav-button {
-            padding:8px 16px;
-            border-radius:8px;
-            color: var(--brand-dark);
-            font-weight:500;
-        }
-
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight:600;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: rgba(55,167,196,0.1);
-        }
-
-        .progress-bar-fill {
-            height:100%;
-            width:33.33%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            transition:width 0.3s ease;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background:#0A1214;
-                color:white;
-            }
-            .form-section {
-                background:rgba(255,255,255,0.05);
-            }
-            .activity-option {
-                background: rgba(255,255,255,0.1);
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#37A7C4" />
+<title>PhysioCare - Activité Physique</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+<script src="js/patient-storage.js" defer></script>
+<script src="js/patient-manager.js" defer></script>
+<style>
+:root {
+ --brand-light:#37A7C4; --brand-medium:#2C89A0; --brand-dark:#1E5F6E;
+ --pure-white:#FFFFFF;
+ --safe-top:env(safe-area-inset-top,47px);
+ --safe-bottom:env(safe-area-inset-bottom,34px);
+}
+body {
+ background:#F5F9FA;font-family:-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:calc(20px+var(--safe-bottom));
+}
+.nav-blur {
+ background:rgba(255,255,255,0.85);
+ backdrop-filter:saturate(180%) blur(20px);
+ border-bottom:1px solid rgba(55,167,196,0.1);
+}
+.form-section {
+ background:white; border-radius:20px; padding:24px; margin-bottom:16px;
+ box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
+}
+.ios-input {
+ width:100%;padding:12px;border:1px solid rgba(55,167,196,0.2);
+ border-radius:12px;margin:8px 0;font-size:16px;background:white;
+}
+.activity-option {
+ background:rgba(255,255,255,0.8);
+ border:1px solid rgba(55,167,196,0.2);
+ border-radius:12px;
+ padding:16px; margin-bottom:8px;
+ transition:all 0.3s ease; cursor:pointer;
+}
+.activity-option:hover {
+ transform:translateX(4px);
+ border-color:var(--brand-light);
+ background:rgba(55,167,196,0.05);
+}
+.activity-option.selected {
+ border-color:var(--brand-light);
+ background:rgba(55,167,196,0.05);
+}
+.intensity-selector {
+ display:flex;gap:4px;padding:4px;
+ background:rgba(55,167,196,0.1);
+ border-radius:12px;
+ margin:8px 0;
+}
+.intensity-option {
+ flex:1;padding:12px 8px;text-align:center;border-radius:8px;
+ cursor:pointer;font-size:14px;font-weight:500;transition:all 0.2s ease;
+}
+.intensity-option.selected {
+ background:var(--brand-light);color:white;
+}
+.nav-button {
+ padding:8px 16px;border-radius:8px;
+ color:var(--brand-dark);font-weight:500;
+}
+.nav-button.primary {
+ color:var(--brand-light);font-weight:600;
+}
+.progress-bar {
+ height:3px;background:rgba(55,167,196,0.1);
+}
+.progress-bar-fill {
+ height:100%;width:33.33%;
+ background:linear-gradient(to right,var(--brand-light),var(--brand-medium));
+ transition:width 0.3s ease;
+}
+@media (prefers-color-scheme: dark) {
+ body{background:#0A1214;color:white;}
+ .form-section{background:rgba(255,255,255,0.05);}
+ .activity-option{background:rgba(255,255,255,0.1);}
+}
+</style>
 </head>
 <body class="min-h-screen">
-    <nav class="nav-blur fixed w-full z-50">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <a href="patient-info.html" class="nav-button flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Retour
-                </a>
-                <span class="font-semibold">Patient (2/6)</span>
-                <a href="symptoms.html" class="nav-button primary" id="nextButton">Suivant</a>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-bar-fill"></div>
-            </div>
+<nav class="nav-blur fixed w-full z-50">
+ <div class="max-w-5xl mx-auto px-4">
+   <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+     <a href="patient-info.html" class="nav-button flex items-center gap-2">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+       </svg>
+       Retour
+     </a>
+     <span class="font-semibold">Patient (2/6)</span>
+     <a href="symptoms.html" class="nav-button primary" id="nextButton">Suivant</a>
+   </div>
+   <div class="progress-bar">
+     <div class="progress-bar-fill"></div>
+   </div>
+ </div>
+</nav>
+
+<main class="pt-[calc(120px+var(--safe-top))] px-6">
+<div class="max-w-xl mx-auto space-y-6">
+  <!-- Section Type d'activité -->
+  <div class="form-section">
+    <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Type d'activité</h2>
+    <div class="space-y-3" id="activities-container">
+      <div class="activity-option" data-no-activity>
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-medium mb-1">Aucune activité</h3>
+            <p class="text-sm opacity-70">Pas de pratique sportive régulière</p>
+          </div>
         </div>
-    </nav>
-
-    <main class="pt-[calc(84px+var(--safe-top))] px-6">
-        <div class="max-w-xl mx-auto space-y-6">
-            <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Type d'activité</h2>
-                <div class="space-y-3" id="activities-container">
-                    <div class="activity-option" data-no-activity>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Aucune activité</h3>
-                                <p class="text-sm opacity-70">Pas de pratique sportive régulière</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="activity-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Endurance</h3>
-                                <p class="text-sm opacity-70">Course à pied, vélo, natation...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="activity-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Sports collectifs</h3>
-                                <p class="text-sm opacity-70">Football, basketball, handball...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="activity-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Musculation</h3>
-                                <p class="text-sm opacity-70">Musculation, CrossFit, fitness...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Fréquence et intensité</h2>
-                <div class="space-y-6">
-                    <div>
-                        <label class="ios-label">Fréquence hebdomadaire</label>
-                        <div class="intensity-selector" id="frequencySelector">
-                            <div class="intensity-option">Aucune</div>
-                            <div class="intensity-option">1-2x</div>
-                            <div class="intensity-option selected">3-4x</div>
-                            <div class="intensity-option">5x ou +</div>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="ios-label">Intensité habituelle</label>
-                        <div class="intensity-selector" id="intensitySelector">
-                            <div class="intensity-option">Aucune</div>
-                            <div class="intensity-option">Légère</div>
-                            <div class="intensity-option selected">Modérée</div>
-                            <div class="intensity-option">Intense</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Objectifs</h2>
-                <div>
-                    <label class="ios-label" for="goals">Objectifs sportifs</label>
-                    <textarea id="goals" class="ios-input w-full h-32 resize-none"
-                              placeholder="Décrivez vos objectifs sportifs..."></textarea>
-                </div>
-            </div>
+      </div>
+      <div class="activity-option">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-medium mb-1">Endurance</h3>
+            <p class="text-sm opacity-70">Course à pied, vélo, natation...</p>
+          </div>
         </div>
-    </main>
+      </div>
+      <div class="activity-option">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-medium mb-1">Sports collectifs</h3>
+            <p class="text-sm opacity-70">Football, basketball, handball...</p>
+          </div>
+        </div>
+      </div>
+      <div class="activity-option">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="font-medium mb-1">Musculation</h3>
+            <p class="text-sm opacity-70">Musculation, CrossFit, fitness...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.patientManager = window.patientManager || new PatientManager();
-            const pManager = window.patientManager;
-            const patientData = pManager.loadPatientData();
+  <!-- Section Fréquence et intensité -->
+  <div class="form-section">
+    <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Fréquence et intensité</h2>
+    <div class="space-y-6">
+      <div>
+        <label class="ios-label">Fréquence hebdomadaire</label>
+        <div class="intensity-selector" id="frequencySelector">
+          <div class="intensity-option">Aucune</div>
+          <div class="intensity-option">1-2x</div>
+          <div class="intensity-option selected">3-4x</div>
+          <div class="intensity-option">5x ou +</div>
+        </div>
+      </div>
+      <div>
+        <label class="ios-label">Intensité habituelle</label>
+        <div class="intensity-selector" id="intensitySelector">
+          <div class="intensity-option">Aucune</div>
+          <div class="intensity-option">Légère</div>
+          <div class="intensity-option selected">Modérée</div>
+          <div class="intensity-option">Intense</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            const activitiesContainer = document.getElementById('activities-container');
-            const activityOptions = activitiesContainer.querySelectorAll('.activity-option');
+  <!-- Section Objectifs -->
+  <div class="form-section">
+    <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Objectifs</h2>
+    <div>
+      <label class="ios-label" for="goals">Objectifs sportifs</label>
+      <textarea id="goals" class="ios-input w-full h-32 resize-none"
+        placeholder="Décrivez vos objectifs sportifs..."></textarea>
+    </div>
+  </div>
+</div>
+</main>
 
-            activityOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    const isNoActivity = option.hasAttribute('data-no-activity');
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+    window.patientManager = window.patientManager || new PatientManager();
+    const pManager=window.patientManager;
+    const patientData=pManager.loadPatientData();
 
-                    if (isNoActivity) {
-                        activityOptions.forEach(o => {
-                            if (!o.hasAttribute('data-no-activity')) {
-                                o.classList.remove('selected');
-                            }
-                        });
-                    } else {
-                        activitiesContainer.querySelector('[data-no-activity]').classList.remove('selected');
-                    }
-                    option.classList.toggle('selected');
-                    saveCurrentData();
-                });
+    const activitiesContainer=document.getElementById('activities-container');
+    const activityOptions=activitiesContainer.querySelectorAll('.activity-option');
+
+    activityOptions.forEach(option=>{
+      option.addEventListener('click',()=>{
+        const isNoActivity=option.hasAttribute('data-no-activity');
+        if(isNoActivity) {
+          activityOptions.forEach(o=>{
+            if(!o.hasAttribute('data-no-activity'))o.classList.remove('selected');
+          });
+        } else {
+          activitiesContainer.querySelector('[data-no-activity]').classList.remove('selected');
+        }
+        option.classList.toggle('selected');
+        saveCurrentData();
+      });
+    });
+
+    const frequencySelector=document.getElementById('frequencySelector');
+    frequencySelector.querySelectorAll('.intensity-option').forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        frequencySelector.querySelectorAll('.intensity-option').forEach(o=>o.classList.remove('selected'));
+        opt.classList.add('selected');
+        saveCurrentData();
+      });
+    });
+
+    const intensitySelector=document.getElementById('intensitySelector');
+    intensitySelector.querySelectorAll('.intensity-option').forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        intensitySelector.querySelectorAll('.intensity-option').forEach(o=>o.classList.remove('selected'));
+        opt.classList.add('selected');
+        saveCurrentData();
+      });
+    });
+
+    const goalsInput=document.getElementById('goals');
+    goalsInput.addEventListener('input',saveCurrentData);
+
+    loadSavedData();
+
+    const nextButton=document.getElementById('nextButton');
+    nextButton.addEventListener('click',()=>{
+      saveCurrentData();
+      window.location.href='symptoms.html';
+    });
+
+    function saveCurrentData(){
+      const selectedActivities=Array.from(activityOptions).filter(o=>o.classList.contains('selected')).map(o=>{
+        return {
+          type:o.querySelector('h3')?.textContent||'',
+          description:o.querySelector('p')?.textContent||''
+        };
+      });
+
+      const frequency=frequencySelector.querySelector('.intensity-option.selected')?.textContent||'';
+      const intensity=intensitySelector.querySelector('.intensity-option.selected')?.textContent||'';
+      const goals=goalsInput.value||'';
+
+      const newData={...patientData};
+      newData.physicalActivity={
+        activities:selectedActivities,
+        frequency,
+        intensity,
+        goals
+      };
+      pManager.savePatientData(newData);
+    }
+
+    function loadSavedData(){
+      if(patientData.physicalActivity) {
+        const pa=patientData.physicalActivity;
+        if(pa.activities) {
+          pa.activities.forEach(a=>{
+            activityOptions.forEach(o=>{
+              const h3=o.querySelector('h3')?.textContent;
+              if(h3===a.type) {
+                o.classList.add('selected');
+              }
             });
-
-            const frequencySelector = document.getElementById('frequencySelector');
-            frequencySelector.querySelectorAll('.intensity-option').forEach(opt => {
-                opt.addEventListener('click', () => {
-                    frequencySelector.querySelectorAll('.intensity-option').forEach(o=>o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    saveCurrentData();
-                });
-            });
-
-            const intensitySelector = document.getElementById('intensitySelector');
-            intensitySelector.querySelectorAll('.intensity-option').forEach(opt => {
-                opt.addEventListener('click', () => {
-                    intensitySelector.querySelectorAll('.intensity-option').forEach(o=>o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    saveCurrentData();
-                });
-            });
-
-            const goalsInput = document.getElementById('goals');
-            goalsInput.addEventListener('input', saveCurrentData);
-
-            loadSavedData();
-
-            const nextButton = document.getElementById('nextButton');
-            nextButton.addEventListener('click', () => {
-                // Passage à l'étape (3/6): symptoms.html
-                saveCurrentData();
-                window.location.href='symptoms.html';
-            });
-
-            function saveCurrentData() {
-                const selectedActivities = Array.from(activityOptions).filter(o=>o.classList.contains('selected')).map(o=>{
-                    return {
-                        type: o.querySelector('h3')?.textContent || '',
-                        description: o.querySelector('p')?.textContent || ''
-                    };
-                });
-
-                const frequency = frequencySelector.querySelector('.intensity-option.selected')?.textContent || '';
-                const intensity = intensitySelector.querySelector('.intensity-option.selected')?.textContent || '';
-                const goals = goalsInput.value || '';
-
-                const newData = {...patientData};
-                newData.physicalActivity = {
-                    activities: selectedActivities,
-                    frequency,
-                    intensity,
-                    goals
-                };
-                pManager.savePatientData(newData);
-            }
-
-            function loadSavedData() {
-                if (patientData.physicalActivity) {
-                    const pa = patientData.physicalActivity;
-                    // Restaure activités
-                    if (pa.activities && pa.activities.length>0) {
-                        pa.activities.forEach(a => {
-                            activityOptions.forEach(o => {
-                                const h3 = o.querySelector('h3')?.textContent;
-                                if (h3 === a.type) {
-                                    o.classList.add('selected');
-                                }
-                            });
-                        });
-                    }
-                    // Restaure fréquence
-                    if (pa.frequency) {
-                        frequencySelector.querySelectorAll('.intensity-option').forEach(opt => {
-                            if (opt.textContent === pa.frequency) {
-                                opt.classList.add('selected');
-                            } else {
-                                opt.classList.remove('selected');
-                            }
-                        });
-                    }
-                    // Restaure intensité
-                    if (pa.intensity) {
-                        intensitySelector.querySelectorAll('.intensity-option').forEach(opt => {
-                            if (opt.textContent === pa.intensity) {
-                                opt.classList.add('selected');
-                            } else {
-                                opt.classList.remove('selected');
-                            }
-                        });
-                    }
-                    // Restaure objectifs
-                    if (pa.goals) {
-                        goalsInput.value = pa.goals;
-                    }
-                }
-            }
-        });
-    </script>
+          });
+        }
+        if(pa.frequency) {
+          frequencySelector.querySelectorAll('.intensity-option').forEach(opt=>{
+            if(opt.textContent===pa.frequency)opt.classList.add('selected');else opt.classList.remove('selected');
+          });
+        }
+        if(pa.intensity) {
+          intensitySelector.querySelectorAll('.intensity-option').forEach(opt=>{
+            if(opt.textContent===pa.intensity)opt.classList.add('selected');else opt.classList.remove('selected');
+          });
+        }
+        if(pa.goals) {
+          goalsInput.value=pa.goals;
+        }
+      }
+    }
+});
+</script>
 </body>
 </html>
