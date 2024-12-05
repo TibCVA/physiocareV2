@@ -8,7 +8,282 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="js/storage-manager.js"></script>
     <script src="js/managers.js"></script>
-    </head>
+<style>
+    :root {
+        --brand-light: #37A7C4;
+        --brand-medium: #2C89A0;
+        --brand-dark: #1E5F6E;
+        --pure-white: #FFFFFF;
+        --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
+        --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
+        --elevation-3: 0 10px 20px rgba(30, 95, 110, 0.15), 0 3px 6px rgba(30, 95, 110, 0.1);
+        --safe-top: env(safe-area-inset-top, 47px);
+        --safe-bottom: env(safe-area-inset-bottom, 34px);
+    }
+
+    body {
+        background: #F5F9FA;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .nav-blur {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: var(--elevation-1);
+        border: 1px solid rgba(55, 167, 196, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-section:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--elevation-2);
+    }
+
+    .ios-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(55, 167, 196, 0.2);
+        border-radius: 12px;
+        margin: 8px 0;
+        font-size: 16px;
+        background: white;
+        -webkit-appearance: none;
+        color: var(--brand-dark);
+        transition: all 0.3s ease;
+    }
+
+    .ios-input:focus {
+        border-color: var(--brand-light);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(55, 167, 196, 0.1);
+    }
+
+    .ios-input::placeholder {
+        color: rgba(30, 95, 110, 0.5);
+    }
+
+    .start-button {
+        background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+        border-radius: 12px;
+        padding: 16px 32px;
+        color: white;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: var(--elevation-2);
+        border: none;
+        cursor: pointer;
+    }
+
+    .start-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.2),
+            rgba(255, 255, 255, 0));
+        transition: opacity 0.3s ease;
+    }
+
+    .start-button:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--elevation-3);
+    }
+
+    .start-button:active {
+        transform: scale(0.98);
+        box-shadow: var(--elevation-1);
+    }
+
+    .loading-ring {
+        width: 64px;
+        height: 64px;
+        border: 4px solid rgba(55, 167, 196, 0.1);
+        border-left-color: var(--brand-light);
+        border-radius: 50%;
+        animation: rotate 1s linear infinite;
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .diagnostic-item {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(55, 167, 196, 0.2);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .diagnostic-item:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--elevation-2);
+    }
+
+    .diagnostic-item.primary {
+        background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+        color: white;
+        border: none;
+        box-shadow: var(--elevation-2);
+    }
+
+    .diagnostic-item.primary:hover {
+        box-shadow: var(--elevation-3);
+    }
+
+    .probability-bar {
+        height: 4px;
+        background: rgba(55, 167, 196, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .diagnostic-item.primary .probability-bar {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .probability-bar-fill {
+        height: 100%;
+        background: var(--brand-light);
+        transition: width 1s ease;
+    }
+
+    .diagnostic-item.primary .probability-bar-fill {
+        background: white;
+    }
+
+    .expand-button {
+        background: rgba(55, 167, 196, 0.1);
+        border: none;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        color: var(--brand-dark);
+        margin-top: 16px;
+        width: 100%;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .expand-button:hover {
+        background: rgba(55, 167, 196, 0.15);
+    }
+
+    .diagnostic-item.primary .expand-button {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .diagnostic-item.primary .expand-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .diagnostic-details {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease-out;
+    }
+
+    .diagnostic-details.expanded {
+        max-height: 1000px;
+        opacity: 1;
+        transform: translateY(0);
+        margin-top: 20px;
+    }
+
+    .details-section {
+        border-left: 3px solid var(--brand-light);
+        padding-left: 16px;
+        margin-top: 20px;
+    }
+
+    .diagnostic-item.primary .details-section {
+        border-left-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .details-section:first-child {
+        margin-top: 0;
+    }
+
+    .progress-bar {
+        height: 3px;
+        background: rgba(55, 167, 196, 0.1);
+        margin: 8px 0;
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        width: 83.33%;
+        background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
+        transition: width 0.3s ease;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        body {
+            background: #0A1214;
+            color: white;
+        }
+
+        .nav-blur {
+            background: rgba(10, 18, 20, 0.85);
+            border-bottom-color: rgba(55, 167, 196, 0.2);
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(55, 167, 196, 0.2);
+        }
+
+        .ios-input {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: rgba(55, 167, 196, 0.2);
+        }
+
+        .ios-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .diagnostic-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(55, 167, 196, 0.2);
+        }
+
+        .expand-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .expand-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    }
+</style>
+</head>
     <body class="min-h-screen">
         <nav class="nav-blur fixed w-full z-50">
             <div class="max-w-5xl mx-auto px-4">
