@@ -254,22 +254,32 @@ class DiagnosticManager {
     async gatherPatientData() {
         try {
             const docs = await this.storageManager.loadDocuments();
-            const validDocs = docs.filter(doc => {
-                try {
-                    return doc && doc.fileData && 
-                           this.validateDocumentSize(doc) && 
-                           this.validateDocumentType(doc.type);
-                } catch {
-                    return false;
-                }
-            });
-
+            const validDocs = await Promise.all(
+                docs.map(async (doc) => {
+                    if (!doc || !doc.fileData || !this.validateDocumentType(doc.type)) {
+                        console.warn(`Document ignoré : ${doc.name}`);
+                        return null;
+                    }
+    
+                    const base64Data = doc.fileData.includes('base64,') 
+                        ? doc.fileData.split('base64,')[1] 
+                        : doc.fileData;
+    
+                    return {
+                        id: doc.id,
+                        name: doc.name,
+                        type: doc.type,
+                        fileData: `data:${doc.type};base64,${base64Data}`,
+                    };
+                })
+            );
+    
             return {
                 personalInfo: this.loadStorageData('patient_personal_info'),
                 physicalActivity: this.loadStorageData('patient_physical_activity'),
                 symptoms: this.loadStorageData('patient_symptoms'),
-                documents: validDocs,
-                remarks: this.elements.remarksInput?.value?.trim() || ''
+                documents: validDocs.filter(Boolean), // Exclure les documents invalides
+                remarks: this.elements.remarksInput?.value?.trim() || '',
             };
         } catch (error) {
             console.error('Erreur collecte données:', error);
@@ -278,7 +288,7 @@ class DiagnosticManager {
                 physicalActivity: {},
                 symptoms: {},
                 documents: [],
-                remarks: this.elements.remarksInput?.value?.trim() || ''
+                remarks: this.elements.remarksInput?.value?.trim() || '',
             };
         }
     }
@@ -294,88 +304,105 @@ class DiagnosticManager {
         }
     }
 
-    async sendToAPI(data) {
-        console.log('Début envoi API');
-    
-        this.abortController = new AbortController();
-        this.pendingRequests.add(this.abortController);
-    
+async sendToAPI(data) {
+    console.log('Début envoi API');
+
+    this.abortController = new AbortController();
+    this.pendingRequests.add(this.abortController);
+
+    try {
+        // Timeout dynamique en fonction du nombre de documents (par exemple, 10s/document)
+        const timeoutId = setTimeout(() => {
+            this.abortController.abort();
+        }, Math.max(30000, data.documents?.length * 10000));
+
+        // Préparer les documents avec vérification stricte
+        const processedDocs = data.documents?.map(doc => {
+            if (!doc.fileData) {
+                console.warn('Document sans données:', doc.name);
+                return null;
+            }
+
+            const base64Data = doc.fileData.includes('base64,') 
+                ? doc.fileData.split('base64,')[1] 
+                : doc.fileData;
+
+            // Vérifiez que le contenu Base64 n'est pas vide
+            if (!base64Data || base64Data.length === 0) {
+                console.warn('Document avec contenu Base64 vide:', doc.name);
+                return null;
+            }
+
+            return {
+                id: doc.id,
+                name: doc.name,
+                type: doc.type,
+                fileData: `data:${doc.type};base64,${base64Data}`
+            };
+        }).filter(Boolean) || [];
+
+        if (processedDocs.length === 0) {
+            throw new Error('Aucun document valide à envoyer.');
+        }
+
+        const requestBody = JSON.stringify({
+            type: 'diagnosis',
+            data: {
+                ...data,
+                documents: processedDocs
+            }
+        });
+
+        console.log('Données préparées pour envoi:', {
+            dataSize: requestBody.length,
+            documentsCount: processedDocs.length
+        });
+
+        // Envoi à l'API
+        const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: requestBody,
+            signal: this.abortController.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        const responseText = await response.text();
+        console.log('Réponse brute du serveur:', responseText);
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} - ${responseText}`);
+        }
+
         try {
-            // Ajouter un timeout
-            const timeoutId = setTimeout(() => {
-                this.abortController.abort();
-            }, 30000);
-    
-            // Préparer les documents avec une vérification stricte
-            const processedDocs = data.documents?.map(doc => {
-                if (!doc.fileData) {
-                    console.log('Document sans données:', doc.name);
-                    return null;
-                }
-    
-                const base64Data = doc.fileData.includes('base64,') 
-                    ? doc.fileData.split('base64,')[1] 
-                    : doc.fileData;
-    
-                return {
-                    id: doc.id,
-                    name: doc.name,
-                    type: doc.type,
-                    fileData: `data:${doc.type};base64,${base64Data}`
-                };
-            }).filter(Boolean) || [];
-    
-            const requestBody = JSON.stringify({
-                type: 'diagnosis',
-                data: {
-                    ...data,
-                    documents: processedDocs
-                }
-            });
-    
-            console.log('Données préparées pour envoi:', {
-                dataSize: requestBody.length,
-                documentsCount: processedDocs.length
-            });
-    
-            const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: requestBody,
-                signal: this.abortController.signal
-            });
-    
-            clearTimeout(timeoutId);
-    
-            const responseText = await response.text();
-            console.log('Réponse brute du serveur:', responseText);
-    
-            if (!response.ok) {
-                throw new Error(`API Error: ${response.status} - ${responseText}`);
-            }
-    
-            try {
-                return JSON.parse(responseText);
-            } catch (e) {
-                console.error('Erreur parsing JSON:', e);
-                throw new Error('Réponse invalide du serveur');
-            }
-    
-        } catch (error) {
+            return JSON.parse(responseText);
+        } catch (e) {
+            console.error('Erreur parsing JSON:', e);
+            throw new Error('Réponse invalide du serveur');
+        }
+
+    } catch (error) {
+        // Différenciez les erreurs réseau des erreurs API
+        if (error.name === 'AbortError') {
+            console.error('Requête annulée : Timeout dépassé ou utilisateur a quitté la page.');
+        } else {
             console.error('Erreur complète:', {
                 name: error.name,
                 message: error.message,
                 cause: error.cause,
                 stack: error.stack
             });
-            throw error;
-        } finally {
-            this.pendingRequests.delete(this.abortController);
         }
+        throw error;
+    } finally {
+        this.pendingRequests.delete(this.abortController);
     }
+}
+
     
     async handleResponse(response) {
         try {
@@ -383,24 +410,25 @@ class DiagnosticManager {
                 throw new Error('Réponse invalide: pas de diagnostic');
             }
     
-            // Mise à jour du DOM
+            response.diagnostics.forEach((diagnostic) => {
+                if (diagnostic.details.some(detail => detail.title === 'Analyse documents')) {
+                    console.log('Analyse documents détectée dans les diagnostics');
+                }
+            });
+    
             this.elements.loadingSection.classList.add('hidden');
             this.elements.diagnosticResults.innerHTML = '';
     
-            // Afficher les diagnostics
-            response.diagnostics.forEach(diagnostic => {
+            response.diagnostics.forEach((diagnostic) => {
                 const element = this.createDiagnosticElement(diagnostic);
                 this.elements.diagnosticResults.appendChild(element);
             });
     
-            // Afficher les sections de résultats et validation
             this.elements.resultsSection.classList.remove('hidden');
             document.getElementById('validationSection').classList.remove('hidden');
     
-            // Sauvegarder les résultats
             await this.saveResults(response);
             console.log('Résultats affichés et sauvegardés');
-    
         } catch (error) {
             console.error('Erreur traitement réponse:', error);
             this.showError(error.message);
