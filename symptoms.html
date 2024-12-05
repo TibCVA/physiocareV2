@@ -1,221 +1,157 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#37A7C4">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#37A7C4" />
     <title>PhysioCare - Symptômes</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+    <script src="js/patient-storage.js" defer></script>
+    <script src="js/patient-manager.js" defer></script>
     <style>
         :root {
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
             --pure-white: #FFFFFF;
-            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
+            --safe-top: env(safe-area-inset-top,47px);
+            --safe-bottom: env(safe-area-inset-bottom,34px);
         }
 
         body {
             background: #F5F9FA;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             -webkit-font-smoothing: antialiased;
-            padding-top: calc(84px + var(--safe-top));
-            min-height: 100vh;
+            padding-bottom: calc(20px + var(--safe-bottom));
         }
 
         .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255,255,255,0.85);
             backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
-        .ios-input {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-        }
-
-        .ios-input:focus {
-            background: white;
-            border-color: var(--brand-light);
-            box-shadow: 0 0 0 4px rgba(55, 167, 196, 0.1);
-            outline: none;
-        }
-
-        .ios-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--brand-dark);
-            margin-bottom: 6px;
-            display: block;
+            border-bottom: 1px solid rgba(55,167,196,0.1);
         }
 
         .form-section {
             background: white;
             border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: var(--elevation-1);
-            border: 1px solid rgba(55, 167, 196, 0.1);
+            padding:24px;
+            margin-bottom:16px;
+            box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
+        }
+
+        .ios-input {
+            background:rgba(255,255,255,0.8);
+            border:1px solid rgba(55,167,196,0.2);
+            border-radius:12px;
+            padding:12px 16px;
+            font-size:16px;
+            width:100%;
+            transition: all 0.3s ease;
         }
 
         .body-part-option {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            background:rgba(255,255,255,0.8);
+            border:1px solid rgba(55,167,196,0.2);
+            border-radius:12px;
+            padding:16px;
+            margin-bottom:8px;
+            transition:all 0.3s ease;
+            cursor:pointer;
         }
 
         .body-part-option:hover {
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
+            border-color:var(--brand-light);
+            background:rgba(55,167,196,0.05);
         }
 
         .body-part-option.selected {
             border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        .body-part-option .checkmark {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .body-part-option.selected .checkmark {
-            opacity: 1;
+            background: rgba(55,167,196,0.05);
         }
 
         .intensity-selector {
-            display: flex;
-            gap: 8px;
-            padding: 4px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-            border: 1px solid rgba(55, 167, 196, 0.2);
+            display:flex;
+            gap:8px;
+            padding:4px;
+            background:rgba(255,255,255,0.8);
+            border-radius:12px;
+            border:1px solid rgba(55,167,196,0.2);
         }
 
         .intensity-option {
-            flex: 1;
-            padding: 12px 8px;
-            text-align: center;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            flex:1;
+            padding:12px 8px;
+            text-align:center;
+            border-radius:8px;
+            font-size:14px;
+            font-weight:500;
+            transition:all 0.3s ease;
+            cursor:pointer;
         }
 
         .intensity-option.selected {
             background: var(--brand-light);
-            color: white;
+            color:white;
         }
 
         .pain-level {
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            outline: none;
-            margin: 16px 0;
+            appearance:none;
+            width:100%;
+            height:6px;
+            border-radius:3px;
+            background:rgba(55,167,196,0.1);
+            outline:none;
+            margin:16px 0;
         }
 
         .pain-level::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(55, 167, 196, 0.2);
+            -webkit-appearance:none;
+            appearance:none;
+            width:24px;
+            height:24px;
+            border-radius:50%;
+            background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
+            cursor:pointer;
+            box-shadow:0 2px 6px rgba(55,167,196,0.2);
         }
 
         .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            margin: 8px 0;
+            height:3px;
+            background:rgba(55,167,196,0.1);
         }
 
         .progress-bar-fill {
-            height: 100%;
-            width: 50%;
+            height:100%;
+            width:50%;
             background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
             transition: width 0.3s ease;
         }
 
         .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding:8px 16px;
+            border-radius:8px;
             color: var(--brand-dark);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 4px;
+            font-weight:500;
+            display:flex;
+            align-items:center;
+            gap:4px;
         }
 
         .nav-button.primary {
             color: var(--brand-light);
-            font-weight: 600;
+            font-weight:600;
         }
 
         @media (prefers-color-scheme: dark) {
             body {
-                background: #0A1214;
-                color: white;
+                background:#0A1214;
+                color:white;
             }
-
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
-            }
-
             .form-section {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
+                background:rgba(255,255,255,0.05);
             }
-
-            .ios-input {
-                background: rgba(255, 255, 255, 0.1);
-                color: white;
-                border-color: rgba(55, 167, 196, 0.3);
-            }
-
-            .ios-input:focus {
-                background: rgba(255, 255, 255, 0.15);
-            }
-
-            .intensity-selector {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.3);
-            }
-
-            .ios-label {
-                color: rgba(255, 255, 255, 0.8);
-            }
-
             .body-part-option {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.3);
-            }
-
-            .nav-title {
-                font-weight: 700; /* Assure que le texte est en gras */
-                font-size: 1rem; /* Ajuste la taille si nécessaire */
-                color: var(--brand-dark); /* Couleur cohérente avec le thème */
+                background:rgba(255,255,255,0.1);
             }
         }
     </style>
@@ -226,12 +162,13 @@
             <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
                 <a href="physical-activity.html" class="nav-button">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 19l-7-7 7-7"/>
                     </svg>
                     Retour
                 </a>
-                <span class="nav-title font-bold">Patient (3/6)</span>
-                <a href="documents.html" class="nav-button primary">Suivant</a>
+                <span class="font-bold">Patient (3/6)</span>
+                <a href="documents.html" class="nav-button primary" id="nextButton">Suivant</a>
             </div>
             <div class="progress-bar">
                 <div class="progress-bar-fill"></div>
@@ -239,67 +176,31 @@
         </div>
     </nav>
 
-    <main class="px-6 pb-[calc(20px+var(--safe-bottom))]">
+    <main class="px-6 pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))]">
         <div class="max-w-xl mx-auto space-y-6">
             <!-- Localisation -->
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Localisation de la douleur</h2>
-                <div class="space-y-3">
+                <div class="space-y-3" id="bodyPartList">
                     <div class="body-part-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Cervicales</h3>
-                                <p class="text-sm opacity-70">Nuque et haut du dos</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <!-- Autres options de localisation -->
-                    <div class="body-part-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Dorsales</h3>
-                                <p class="text-sm opacity-70">Milieu du dos</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
+                        <h3 class="font-medium mb-1">Cervicales</h3>
+                        <p class="text-sm opacity-70">Nuque et haut du dos</p>
                     </div>
                     <div class="body-part-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Lombaires</h3>
-                                <p class="text-sm opacity-70">Bas du dos</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
+                        <h3 class="font-medium mb-1">Dorsales</h3>
+                        <p class="text-sm opacity-70">Milieu du dos</p>
                     </div>
                     <div class="body-part-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Membres supérieurs</h3>
-                                <p class="text-sm opacity-70">Épaules, bras, coudes, poignets</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
+                        <h3 class="font-medium mb-1">Lombaires</h3>
+                        <p class="text-sm opacity-70">Bas du dos</p>
                     </div>
                     <div class="body-part-option">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Membres inférieurs</h3>
-                                <p class="text-sm opacity-70">Hanches, genoux, chevilles</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
+                        <h3 class="font-medium mb-1">Membres supérieurs</h3>
+                        <p class="text-sm opacity-70">Épaules, bras, coudes, poignets</p>
+                    </div>
+                    <div class="body-part-option">
+                        <h3 class="font-medium mb-1">Membres inférieurs</h3>
+                        <p class="text-sm opacity-70">Hanches, genoux, chevilles</p>
                     </div>
                 </div>
             </div>
@@ -309,40 +210,40 @@
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Description des symptômes</h2>
                 <div class="space-y-4">
                     <div>
-                        <label class="ios-label">Depuis quand ?</label>
-                        <div class="intensity-selector">
+                        <label class="block mb-2 font-medium">Depuis quand ?</label>
+                        <div class="intensity-selector" id="durationSelector">
                             <div class="intensity-option">&lt; 1 semaine</div>
                             <div class="intensity-option selected">1-4 semaines</div>
                             <div class="intensity-option">&gt; 1 mois</div>
                         </div>
                     </div>
                     <div>
-                        <label class="ios-label">Type de douleur</label>
-                        <div class="intensity-selector">
+                        <label class="block mb-2 font-medium">Type de douleur</label>
+                        <div class="intensity-selector" id="painTypeSelector">
                             <div class="intensity-option">Continue</div>
                             <div class="intensity-option selected">Intermittente</div>
                             <div class="intensity-option">Ponctuelle</div>
                         </div>
                     </div>
                     <div>
-                        <label class="ios-label">Description détaillée</label>
-                        <textarea class="ios-input h-32 resize-none" 
-                                placeholder="Décrivez vos symptômes, leur évolution, les circonstances d'apparition..."></textarea>
+                        <label class="block mb-2 font-medium">Description détaillée</label>
+                        <textarea class="ios-input h-32 resize-none" id="descriptionInput"
+                                  placeholder="Décrivez vos symptômes..."></textarea>
                     </div>
                 </div>
             </div>
 
-            <!-- Intensité (déplacé à la fin) -->
+            <!-- Intensité -->
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Intensité de la douleur</h2>
                 <div class="space-y-6">
                     <div>
-                        <label class="ios-label">Niveau de douleur (1-10)</label>
-                        <input type="range" class="pain-level" min="1" max="10" value="5">
+                        <label class="block mb-2 font-medium">Niveau de douleur (1-10)</label>
+                        <input type="range" class="pain-level" min="1" max="10" value="5" id="painRange">
                         <div class="flex justify-between text-sm opacity-70 mt-2">
-                            <span>Légère</span>
-                            <span>Modérée</span>
-                            <span>Intense</span>
+                            <span id="lowLabel">Légère</span>
+                            <span id="midLabel">Modérée</span>
+                            <span id="highLabel">Intense</span>
                         </div>
                         <div class="text-center text-lg font-semibold mt-4" id="painValue">
                             5/10
@@ -354,181 +255,133 @@
     </main>
 
     <script>
-    // Utilitaires de stockage
-    const Storage = {
-        save: function(key, data) {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-                console.log(`Données sauvegardées (${key}):`, data);
-            } catch (e) {
-                console.error('Error saving data:', e);
-            }
-        },
-        
-        load: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                console.error('Error loading data:', e);
-                return null;
-            }
-        }
-    };
-    
-    // Gestion des body-part options avec multi-sélection
-    const bodyPartOptions = document.querySelectorAll('.body-part-option');
-    bodyPartOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            option.classList.toggle('selected');
-            saveCurrentData();
-        });
-    });
-    
-    // Gestion des intensity options
-    document.querySelectorAll('.intensity-selector').forEach(selector => {
-        selector.querySelectorAll('.intensity-option').forEach(option => {
-            option.addEventListener('click', () => {
-                selector.querySelectorAll('.intensity-option').forEach(o => {
-                    o.classList.remove('selected');
+        document.addEventListener('DOMContentLoaded', () => {
+            window.patientManager = window.patientManager || new PatientManager();
+            const pManager = window.patientManager;
+            const patientData = pManager.loadPatientData();
+
+            const bodyPartList = document.getElementById('bodyPartList');
+            const bodyPartOptions = bodyPartList.querySelectorAll('.body-part-option');
+
+            bodyPartOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    option.classList.toggle('selected');
+                    saveCurrentData();
                 });
-                option.classList.add('selected');
+            });
+
+            const durationSelector = document.getElementById('durationSelector');
+            durationSelector.querySelectorAll('.intensity-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    durationSelector.querySelectorAll('.intensity-option').forEach(o=>o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    saveCurrentData();
+                });
+            });
+
+            const painTypeSelector = document.getElementById('painTypeSelector');
+            painTypeSelector.querySelectorAll('.intensity-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    painTypeSelector.querySelectorAll('.intensity-option').forEach(o=>o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    saveCurrentData();
+                });
+            });
+
+            const descriptionInput = document.getElementById('descriptionInput');
+            descriptionInput.addEventListener('input', saveCurrentData);
+
+            const painRange = document.getElementById('painRange');
+            const painValue = document.getElementById('painValue');
+            painRange.addEventListener('input', () => {
+                const value = painRange.value;
+                painValue.textContent = `${value}/10`;
                 saveCurrentData();
             });
-        });
-    });
-    
-    // Gestion du slider de douleur
-    const painLevel = document.querySelector('.pain-level');
-    const painValue = document.getElementById('painValue');
-    
-    painLevel.addEventListener('input', (e) => {
-        const value = e.target.value;
-        painValue.textContent = `${value}/10`;
-        
-        // Mise à jour des labels
-        const labels = document.querySelectorAll('.flex.justify-between span');
-        labels.forEach(label => label.style.fontWeight = '400');
-        
-        if (value <= 3) {
-            labels[0].style.fontWeight = '600';
-        } else if (value <= 7) {
-            labels[1].style.fontWeight = '600';
-        } else {
-            labels[2].style.fontWeight = '600';
-        }
-        
-        saveCurrentData();
-    });
-    
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSavedData();
-        setupAdditionalListeners();
-        checkSavedData('patient_symptoms');
-    });
-    
-    // Vérification des données sauvegardées
-    function checkSavedData(key) {
-        const saved = Storage.load(key);
-        console.log(`Données chargées (${key}):`, saved);
-    }
-    
-    // Chargement des données sauvegardées
-    function loadSavedData() {
-        const savedData = Storage.load('patient_symptoms');
-        console.log("Chargement des données symptômes:", savedData);
-    
-        if (savedData) {
-            // Restaurer les zones douloureuses sélectionnées
-            if (savedData.bodyParts) {
-                bodyPartOptions.forEach(option => {
-                    const title = option.querySelector('h3')?.textContent;
-                    if (savedData.bodyParts.find(part => part.area === title)) {
-                        option.classList.add('selected');
+
+            const nextButton = document.getElementById('nextButton');
+            nextButton.addEventListener('click', () => {
+                saveCurrentData();
+                window.location.href='documents.html';
+            });
+
+            function saveCurrentData() {
+                const selectedParts = Array.from(bodyPartOptions).filter(o=>o.classList.contains('selected')).map(o=>{
+                    return {
+                        area: o.querySelector('h3').textContent,
+                        description: o.querySelector('p').textContent
+                    };
+                });
+
+                const duration = durationSelector.querySelector('.intensity-option.selected')?.textContent || '';
+                const painType = painTypeSelector.querySelector('.intensity-option.selected')?.textContent || '';
+                const painLvl = parseInt(painRange.value,10);
+                const desc = descriptionInput.value || '';
+
+                const newData = {...patientData};
+                newData.symptoms = {
+                    bodyParts: selectedParts,
+                    duration,
+                    painType,
+                    painLevel: painLvl,
+                    description: desc
+                };
+
+                pManager.savePatientData(newData);
+            }
+
+            loadSavedData();
+
+            function loadSavedData() {
+                if (patientData.symptoms) {
+                    const s = patientData.symptoms;
+                    // Restaure parties du corps
+                    if (s.bodyParts && s.bodyParts.length>0) {
+                        s.bodyParts.forEach(b => {
+                            bodyPartOptions.forEach(o => {
+                                const h3 = o.querySelector('h3')?.textContent;
+                                if (h3 === b.area) {
+                                    o.classList.add('selected');
+                                }
+                            });
+                        });
                     }
-                });
-            }
-    
-            // Restaurer la durée et le type de douleur
-            document.querySelectorAll('.intensity-selector').forEach((selector, index) => {
-                const value = index === 0 ? savedData.duration : savedData.painType;
-                if (value) {
-                    selector.querySelectorAll('.intensity-option').forEach(option => {
-                        if (option.textContent === value) {
-                            option.classList.add('selected');
-                        }
-                    });
+
+                    // Durée
+                    if (s.duration) {
+                        durationSelector.querySelectorAll('.intensity-option').forEach(opt=>{
+                            if(opt.textContent===s.duration) {
+                                opt.classList.add('selected');
+                            } else {
+                                opt.classList.remove('selected');
+                            }
+                        });
+                    }
+
+                    // Type de douleur
+                    if (s.painType) {
+                        painTypeSelector.querySelectorAll('.intensity-option').forEach(opt=>{
+                            if(opt.textContent===s.painType) {
+                                opt.classList.add('selected');
+                            } else {
+                                opt.classList.remove('selected');
+                            }
+                        });
+                    }
+
+                    // Niveau de douleur
+                    if (s.painLevel) {
+                        painRange.value = s.painLevel;
+                        painValue.textContent = `${s.painLevel}/10`;
+                    }
+
+                    // Description
+                    if (s.description) {
+                        descriptionInput.value = s.description;
+                    }
                 }
-            });
-    
-            // Restaurer le niveau de douleur
-            if (savedData.painLevel) {
-                painLevel.value = savedData.painLevel;
-                // Déclencher l'événement input pour mettre à jour l'affichage
-                const event = new Event('input');
-                painLevel.dispatchEvent(event);
             }
-    
-            // Restaurer la description
-            if (savedData.description) {
-                document.querySelector('textarea').value = savedData.description;
-            }
-        }
-    }
-    
-    // Configuration des écouteurs supplémentaires
-    function setupAdditionalListeners() {
-        // Écouter les changements sur la description
-        const textarea = document.querySelector('textarea');
-        if (textarea) {
-            textarea.addEventListener('input', saveCurrentData);
-            textarea.addEventListener('change', saveCurrentData);
-            textarea.addEventListener('blur', saveCurrentData);
-        }
-    
-        // Navigation
-        const prevButton = document.querySelector('a[href="physical-activity.html"]');
-        const nextButton = document.querySelector('a[href="documents.html"]');
-    
-        if (prevButton) {
-            prevButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    
-        if (nextButton) {
-            nextButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    }
-    
-    // Sauvegarde des données
-    function saveCurrentData() {
-        const data = {
-            // Zones douloureuses sélectionnées
-            bodyParts: Array.from(document.querySelectorAll('.body-part-option.selected')).map(part => ({
-                area: part.querySelector('h3')?.textContent || '',
-                description: part.querySelector('p')?.textContent || ''
-            })),
-    
-            // Durée (premier sélecteur)
-            duration: document.querySelector('.intensity-selector:first-child .intensity-option.selected')?.textContent || '',
-    
-            // Type de douleur (second sélecteur)
-            painType: document.querySelectorAll('.intensity-selector')[1]?.querySelector('.intensity-option.selected')?.textContent || '',
-    
-            // Niveau de douleur
-            painLevel: painLevel.value,
-    
-            // Description détaillée
-            description: document.querySelector('textarea')?.value || ''
-        };
-    
-        console.log("Sauvegarde des données symptômes:", data);
-        Storage.save('patient_symptoms', data);
-    }
+        });
     </script>
 </body>
 </html>
