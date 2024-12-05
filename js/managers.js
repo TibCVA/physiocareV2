@@ -87,6 +87,14 @@ class DocumentManager {
         this.loadDocuments();
     }
 
+    initializeElements() {
+        this.uploadButton = document.getElementById('uploadButton');
+        this.fileInput = document.getElementById('fileInput');
+        this.dropZone = document.getElementById('dropZone'); 
+        this.documentList = document.getElementById('documentList');
+        this.errorMessage = document.getElementById('errorMessage');
+        this.notesTextarea = document.getElementById('notes');
+    }
     async loadDocuments() {
         try {
             const docs = await this.storageManager.loadDocuments();
@@ -103,41 +111,44 @@ class DocumentManager {
         this.dropZone.addEventListener('touchstart', (e) => {
             e.stopPropagation();
         }, touchOptions);
-
+    
         this.dropZone.addEventListener('touchend', (e) => {
             e.preventDefault();
             e.stopPropagation();
             this.fileInput.click();
         }, { passive: false });
-
+    
         this.fileInput.addEventListener('change', () => {
             if (this.fileInput.files.length) {
                 this.handleFiles(this.fileInput.files);
             }
         }, touchOptions);
-
+    
         this.dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             this.dropZone.classList.add('dragover');
         });
-
+    
         this.dropZone.addEventListener('dragleave', () => {
             this.dropZone.classList.remove('dragover');
         });
-
+    
         this.dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             this.dropZone.classList.remove('dragover');
             this.handleFiles(e.dataTransfer.files);
         });
-
+    
+        // Ces deux lignes doivent être en dehors du if
+        this.uploadButton.addEventListener('click', () => this.fileInput.click());
+        this.dropZone.addEventListener('click', () => this.fileInput.click());
+    
         if (this.notesTextarea) {
             this.notesTextarea.addEventListener('input', this.debounce(() => {
                 this.saveCurrentData();
             }, 500));
         }
-
-        // Navigation synchronisée
+    
         document.querySelectorAll('a[href]').forEach(link => {
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -164,11 +175,11 @@ class DocumentManager {
         this.processingLock = true;
 
         try {
-            const currentFiles = await this.storage.loadDocuments();
+            const currentFiles = await this.storageManager.loadDocuments();
             const totalFiles = currentFiles.length + files.length;
 
-            if (totalFiles > this.storage.CONSTRAINTS.maxFiles) {
-                throw new Error(`Maximum ${this.storage.CONSTRAINTS.maxFiles} fichiers`);
+            if (totalFiles > this.storageManager.CONSTRAINTS.maxFiles) {
+                throw new Error(`Maximum ${this.storageManager.CONSTRAINTS.maxFiles} fichiers`);
             }
 
             const processedFiles = await Promise.all(
@@ -176,7 +187,7 @@ class DocumentManager {
             );
 
             const validFiles = processedFiles.filter(Boolean);
-            await this.storage.saveDocuments([...currentFiles, ...validFiles]);
+            await this.storageManager.saveDocuments([...currentFiles, ...validFiles]);
             await this.updateDocumentList();
 
         } catch (error) {
@@ -189,7 +200,7 @@ class DocumentManager {
 
     async processFile(file) {
         try {
-            if (!this.storage.CONSTRAINTS.allowedTypes.includes(file.type)) {
+            if (!this.storageManager.CONSTRAINTS.allowedTypes.includes(file.type)) {
                 throw new Error('Type non supporté');
             }
 
@@ -201,7 +212,7 @@ class DocumentManager {
                 fileData: base64
             };
 
-            if (!this.storage.validateDocument(doc)) {
+            if (!this.storageManager.validateDocument(doc)) {
                 throw new Error('Validation échouée');
             }
 
@@ -222,7 +233,7 @@ class DocumentManager {
     }
 
     async updateDocumentList() {
-        const documents = await this.storage.loadDocuments();
+        const documents = await this.storageManager.loadDocuments();
         this.documentList.innerHTML = '';
 
         documents.forEach(doc => {
@@ -241,7 +252,7 @@ class DocumentManager {
                 <div>
                     <p class="font-medium">${this.sanitizeString(doc.name)}</p>
                     <p class="text-sm opacity-70">
-                        ${doc.type} - ${Math.round(this.storage.getBase64Size(doc.fileData) / 1024)}KB
+                        ${doc.type} - ${Math.round(this.storageManager.getBase64Size(doc.fileData) / 1024)}KB
                     </p>
                 </div>
             </div>
@@ -261,9 +272,9 @@ class DocumentManager {
 
     async deleteDocument(id) {
         try {
-            const documents = await this.storage.loadDocuments();
+            const documents = await this.storageManager.loadDocuments();
             const updated = documents.filter(doc => doc.id !== id);
-            await this.storage.saveDocuments(updated);
+            await this.storageManager.saveDocuments(updated);
             await this.updateDocumentList();
         } catch (error) {
             console.error('[Delete] Erreur:', error);
@@ -345,11 +356,11 @@ class DiagnosticManager {
 
     validateDocumentSize(doc) {
         const size = this.getBase64Size(doc.fileData);
-        return size <= CONFIG.maxFileSize;
+        return size <= this.storageManager.CONSTRAINTS.maxFileSize;
     }
-
+    
     validateDocumentType(type) {
-        return CONFIG.allowedTypes.includes(type.toLowerCase());
+        return this.storageManager.CONSTRAINTS.allowedTypes.includes(type.toLowerCase());
     }
 
     getBase64Size(base64String) {
