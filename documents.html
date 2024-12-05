@@ -199,6 +199,7 @@
         const pManager=window.patientManager;
         const patientData=pManager.loadPatientData();
 
+        // On attend que DocumentManager soit défini par patient-manager.js
         window.documentManager=new DocumentManager();
 
         const notes=document.getElementById('notes');
