@@ -9,11 +9,161 @@
     <script src="js/patient-storage.js"></script>
     <script src="js/patient-manager.js" defer></script>
     <style>
-        /* Vos styles actuels inchangés */
         :root {
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
+            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
+            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
+            --safe-top: env(safe-area-inset-top, 47px);
+            --safe-bottom: env(safe-area-inset-bottom, 34px);
+        }
+
+        body {
+            background: #F5F9FA;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .nav-blur {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--elevation-1);
+            border: 1px solid rgba(55, 167, 196, 0.1);
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(55, 167, 196, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--brand-light);
+            background: rgba(55, 167, 196, 0.05);
+        }
+
+        .document-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(55, 167, 196, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .upload-button {
+            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--elevation-1);
+        }
+
+        .ios-input {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(55, 167, 196, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: rgba(55, 167, 196, 0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 66.67%;
+            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
+        }
+
+        .error-message {
+            background-color: #FEE2E2;
+            border: 1px solid #EF4444;
+            color: #B91C1C;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #DEF7EC;
+            border: 1px solid #31C48D;
+            color: #03543F;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: none;
+        }
+        
+        .nav-button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: var(--brand-dark);
+            font-weight: 500;
+        }
+        
+        .nav-button.primary {
+            color: var(--brand-light);
+            font-weight: 600;
+        }
+        
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--elevation-2);
+        }
+        
+        .upload-button:active {
+            transform: scale(0.98);
+        }
+        
+        .document-item:hover {
+            transform: translateX(4px);
+            border-color: var(--brand-light);
+            background: rgba(55, 167, 196, 0.05);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #0A1214;
+                color: white;
+            }
+            .nav-blur {
+                background: rgba(10, 18, 20, 0.85);
+            }
+            .form-section {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            .document-item {
+                background: rgba(255, 255, 255, 0.1);
+                transition: all 0.3s ease;
+            }
+            .ios-input {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
         }
     </style>
 </head>
@@ -30,6 +180,9 @@
                 <span class="font-semibold">Patient (4/6)</span>
                 <a href="diagnosis.html" class="nav-button primary">Suivant</a>
             </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill"></div>
+            </div>
         </div>
     </nav>
 
@@ -37,7 +190,7 @@
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
-                <div class="error-message" id="errorMessage"></div>
+                <div class="error-message hidden" id="errorMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
                     <p class="font-medium mb-2">Déposez vos documents ici</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf,.heic">
@@ -52,25 +205,5 @@
             </div>
         </div>
     </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!window.PatientStorageManager) {
-                console.error('PatientStorageManager n’est pas chargé.');
-                const errorMessageElement = document.getElementById('errorMessage');
-                if (errorMessageElement) {
-                    errorMessageElement.textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
-                    errorMessageElement.style.display = "block";
-                }
-            } else {
-                try {
-                    window.documentManager = new DocumentManager();
-                    console.log('DocumentManager initialisé');
-                } catch (error) {
-                    console.error('Erreur lors de l\'initialisation du DocumentManager :', error);
-                }
-            }
-        });
-    </script>
 </body>
 </html>
