@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#37A7C4">
-    <title>PhysioCare - Création Patient</title>
+    <title>PhysioCare - Sélection Patient</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="js/patient-storage.js" defer></script>
+    <script src="js/patient-manager.js" defer></script>
     <style>
         :root {
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
+            --safe-top: env(safe-area-inset-top,47px);
+            --safe-bottom: env(safe-area-inset-bottom,34px);
         }
 
         body {
@@ -22,116 +24,70 @@
         }
 
         .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255,255,255,0.85);
             backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
+            border-bottom: 1px solid rgba(55,167,196,0.1);
         }
 
-        .feature-card {
+        .form-section {
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(55, 167, 196, 0.1);
-            transition: all 0.3s ease;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(30,95,110,0.05), 0 1px 2px rgba(30,95,110,0.1);
         }
 
         .ios-input {
             width: 100%;
             padding: 12px;
-            border: 1px solid rgba(55, 167, 196, 0.2);
+            border: 1px solid rgba(55,167,196,0.2);
             border-radius: 12px;
             margin: 8px 0;
             font-size: 16px;
             background: white;
-            -webkit-appearance: none;
+            transition: all 0.3s ease;
         }
 
         .ios-input:focus {
             border-color: var(--brand-light);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(55, 167, 196, 0.1);
+            box-shadow: 0 0 0 3px rgba(55,167,196,0.1);
         }
 
-        .frequency-control {
-            display: flex;
-            gap: 4px;
-            padding: 4px;
-            background: rgba(55, 167, 196, 0.1);
+        .select-patient {
+            background: rgba(255,255,255,0.8);
+            border: 1px solid rgba(55,167,196,0.2);
             border-radius: 12px;
-            margin: 8px 0;
-        }
-
-        .frequency-option {
-            flex: 1;
-            padding: 12px 8px;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .frequency-option.selected {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            color: white;
-            box-shadow: 0 2px 4px rgba(55, 167, 196, 0.2);
-        }
-
-        .profession-option {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 8px;
+            padding:16px;
+            margin-bottom:8px;
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
-        .profession-option:hover {
-            background: rgba(55, 167, 196, 0.05);
+        .select-patient:hover {
+            background: rgba(55,167,196,0.05);
             transform: translateX(4px);
         }
 
-        .profession-option.selected {
-            border-color: var(--brand-light);
-            background: rgba(55, 167, 196, 0.05);
-        }
-
-        .profession-option .checkmark {
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .profession-option.selected .checkmark {
-            opacity: 1;
-        }
-
-        .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            margin: 8px 0;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 16.66%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            transition: width 0.3s ease;
-        }
-
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--brand-dark);
-            font-weight: 500;
-        }
-
-        .nav-button.primary {
-            color: var(--brand-light);
+        .app-button {
+            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
             font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            display: block;
+        }
+
+        .app-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.1);
+        }
+
+        .app-button:active {
+            transform: scale(0.98);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -139,295 +95,134 @@
                 background: #0A1214;
                 color: white;
             }
-
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
+            .form-section {
+                background: rgba(255,255,255,0.05);
             }
-
-            .feature-card {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .ios-input {
-                background: rgba(255, 255, 255, 0.05);
-                color: white;
-                border-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .profession-option {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.3);
-            }
-            
-            .profession-option:hover {
-                background: rgba(55, 167, 196, 0.15);
+            .select-patient {
+                background: rgba(255,255,255,0.1);
             }
         }
     </style>
 </head>
-<body class="min-h-screen">
-    <nav class="nav-blur fixed top-0 left-0 right-0 z-50" style="padding-top: var(--safe-top);">
+<body class="min-h-screen pb-[calc(20px+var(--safe-bottom))]">
+    <nav class="nav-blur fixed w-full z-50">
         <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a href="index.html" class="nav-button flex items-center gap-2">
+            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+                <a href="index.html" class="flex items-center gap-2 text-[var(--brand-dark)] font-medium">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
-                    Retour
+                    Accueil
                 </a>
-                <span class="font-bold">Patient (1/6)</span>
-                <a href="physical-activity.html" class="nav-button primary">Suivant</a>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-bar-fill"></div>
+                <span class="font-bold text-[var(--brand-dark)]">Sélection / Création Patient</span>
+                <span></span>
             </div>
         </div>
     </nav>
 
-    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
-        <div class="max-w-2xl mx-auto">
-            <div class="feature-card">
-                <h2 class="text-xl font-semibold mb-6">Informations personnelles</h2>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block mb-2 font-medium">Nom</label>
-                        <input type="text" class="ios-input" placeholder="Nom de famille">
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium">Prénom</label>
-                        <input type="text" class="ios-input" placeholder="Prénom">
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium">Date de naissance</label>
-                        <input type="date" class="ios-input">
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium">Genre</label>
-                        <div class="frequency-control">
-                            <div class="frequency-option selected">Homme</div>
-                            <div class="frequency-option">Femme</div>
-                            <div class="frequency-option">Autre</div>
-                        </div>
-                    </div>
-                </div>
+    <main class="pt-[calc(84px+var(--safe-top))] px-6">
+        <div class="max-w-xl mx-auto space-y-6">
+            <div class="form-section">
+                <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Patients existants</h2>
+                <div id="patientList" class="space-y-3"></div>
             </div>
 
-            <div class="feature-card">
-                <h2 class="text-xl font-semibold mb-6">Mensurations</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block mb-2 font-medium">Poids (kg)</label>
-                        <input type="number" class="ios-input" placeholder="70">
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium">Taille (cm)</label>
-                        <input type="number" class="ios-input" placeholder="175">
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-card">
-                <h2 class="text-xl font-semibold mb-6">Conditions médicales</h2>
+            <div class="form-section">
+                <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Créer un nouveau patient</h2>
                 <div>
-                    <label class="block mb-2 font-medium">Antécédents médicaux</label>
-                    <textarea class="ios-input" rows="4" placeholder="Notez ici les conditions médicales particulières, allergies, antécédents..."></textarea>
+                    <label class="block mb-2 font-medium">Nom</label>
+                    <input type="text" id="newLastName" class="ios-input" placeholder="Nom de famille">
                 </div>
-            </div>
-
-            <div class="feature-card">
-                <h2 class="text-xl font-semibold mb-6">Type de profession</h2>
-                <div class="space-y-3">
-                    <div class="profession-option" onclick="selectProfession(this)">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Sans emploi</h3>
-                                <p class="text-sm opacity-70">En recherche d'emploi, étudiant, retraité...</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="profession-option" onclick="selectProfession(this)">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Bureau, position assise</h3>
-                                <p class="text-sm opacity-70">Travail majoritairement sédentaire</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="profession-option" onclick="selectProfession(this)">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="font-medium mb-1">Activité physiquement intense</h3>
-                                <p class="text-sm opacity-70">Profession nécessitant un effort physique régulier</p>
-                            </div>
-                            <svg class="w-6 h-6 text-[var(--brand-light)] checkmark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block mb-2 font-medium">Prénom</label>
+                    <input type="text" id="newFirstName" class="ios-input" placeholder="Prénom">
                 </div>
+                <div>
+                    <label class="block mb-2 font-medium">Date de naissance</label>
+                    <input type="date" id="newBirthDate" class="ios-input">
+                </div>
+                <div>
+                    <label class="block mb-2 font-medium">Genre</label>
+                    <select id="newGender" class="ios-input">
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+                <button id="createPatientBtn" class="app-button w-full mt-4">Créer et commencer (Patient 1/6)</button>
             </div>
         </div>
     </main>
 
     <script>
-    // Utilitaires de stockage
-    const Storage = {
-        save: function(key, data) {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-                console.log(`Données sauvegardées (${key}):`, data);
-            } catch (e) {
-                console.error('Error saving data:', e);
+        document.addEventListener('DOMContentLoaded', () => {
+            window.patientManager = new PatientManager();
+
+            function renderPatients() {
+                const list = document.getElementById('patientList');
+                list.innerHTML = '';
+                const patients = patientManager.listPatients();
+                if (patients.length === 0) {
+                    const p = document.createElement('p');
+                    p.textContent = "Aucun patient enregistré.";
+                    p.className = "text-sm opacity-70";
+                    list.appendChild(p);
+                } else {
+                    patients.forEach(p => {
+                        const div = document.createElement('div');
+                        div.className = 'select-patient flex justify-between items-center';
+                        const name = p.personalInfo ? (p.personalInfo.firstName || '') + ' ' + (p.personalInfo.lastName || '') : 'Patient sans nom';
+                        div.innerHTML = `
+                            <span>${name.trim() || 'Patient sans nom'} (${p.id})</span>
+                            <div class="flex gap-2">
+                                <button class="text-red-500 hover:text-red-700" data-del="${p.id}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0
+                                      01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0
+                                      00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                                <button class="text-[var(--brand-dark)] font-medium" data-select="${p.id}">Sélectionner</button>
+                            </div>
+                        `;
+                        list.appendChild(div);
+
+                        const delBtn = div.querySelector(`[data-del="${p.id}"]`);
+                        delBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            patientManager.deletePatient(p.id);
+                            renderPatients();
+                        });
+
+                        const selBtn = div.querySelector(`[data-select="${p.id}"]`);
+                        selBtn.addEventListener('click', () => {
+                            patientManager.setCurrentPatientId(`patient_${p.id}`);
+                            // Redirection vers l'étape 1/6 (on considère patient-info.html est l'étape 1/6)
+                            window.location.href = 'physical-activity.html';
+                        });
+                    });
+                }
             }
-        },
-        
-        load: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                console.error('Error loading data:', e);
-                return null;
-            }
-        }
-    };
-    
-    // Gestion des sélections de genre
-    document.querySelectorAll('.frequency-control').forEach(control => {
-        const options = control.querySelectorAll('.frequency-option');
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                options.forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                saveCurrentData();
+
+            renderPatients();
+
+            const createBtn = document.getElementById('createPatientBtn');
+            createBtn.addEventListener('click', () => {
+                const lastName = document.getElementById('newLastName').value.trim();
+                const firstName = document.getElementById('newFirstName').value.trim();
+                const birthDate = document.getElementById('newBirthDate').value;
+                const gender = document.getElementById('newGender').value;
+
+                const personalInfo = {
+                    lastName, firstName, birthDate, gender
+                };
+
+                const newId = patientManager.createNewPatient(personalInfo);
+                // Redirection vers étape suivante (2/6) : physical-activity.html
+                window.location.href = 'physical-activity.html';
             });
         });
-    });
-    
-    // Gestion de la sélection des professions
-    function selectProfession(element) {
-        document.querySelectorAll('.profession-option').forEach(option => {
-            option.classList.remove('selected');
-        });
-        element.classList.add('selected');
-        saveCurrentData();
-    }
-    
-    // Initialisation au chargement de la page
-    document.addEventListener('DOMContentLoaded', function() {
-        loadSavedData();
-        setupAdditionalListeners();
-        checkSavedData('patient_personal_info');
-    });
-    
-    // Vérification des données sauvegardées
-    function checkSavedData(key) {
-        const saved = Storage.load(key);
-        console.log(`Données chargées (${key}):`, saved);
-    }
-    
-    // Chargement des données sauvegardées
-    function loadSavedData() {
-        const savedData = Storage.load('patient_personal_info');
-        console.log("Chargement des données:", savedData);
-    
-        if (savedData) {
-            // Informations personnelles
-            const lastNameInput = document.querySelector('input[placeholder="Nom de famille"]');
-            const firstNameInput = document.querySelector('input[placeholder="Prénom"]');
-            const birthDateInput = document.querySelector('input[type="date"]');
-            
-            if (lastNameInput) lastNameInput.value = savedData.lastName || '';
-            if (firstNameInput) firstNameInput.value = savedData.firstName || '';
-            if (birthDateInput) birthDateInput.value = savedData.birthDate || '';
-    
-            // Genre
-            if (savedData.gender) {
-                document.querySelectorAll('.frequency-option').forEach(option => {
-                    option.classList.remove('selected');
-                    if (option.textContent === savedData.gender) {
-                        option.classList.add('selected');
-                    }
-                });
-            }
-    
-            // Mensurations
-            const weightInput = document.querySelector('input[placeholder="70"]');
-            const heightInput = document.querySelector('input[placeholder="175"]');
-            
-            if (weightInput) weightInput.value = savedData.weight || '';
-            if (heightInput) heightInput.value = savedData.height || '';
-    
-            // Antécédents médicaux
-            const medicalHistoryInput = document.querySelector('textarea');
-            if (medicalHistoryInput) medicalHistoryInput.value = savedData.medicalHistory || '';
-    
-            // Profession
-            if (savedData.profession) {
-                document.querySelectorAll('.profession-option').forEach(option => {
-                    const title = option.querySelector('h3')?.textContent;
-                    option.classList.remove('selected');
-                    if (title === savedData.profession) {
-                        option.classList.add('selected');
-                    }
-                });
-            }
-        }
-    }
-    
-    // Configuration des écouteurs supplémentaires
-    function setupAdditionalListeners() {
-        // Écouter les changements sur tous les champs
-        const inputs = document.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('input', saveCurrentData);
-            input.addEventListener('change', saveCurrentData);
-            input.addEventListener('blur', saveCurrentData);
-        });
-    
-        // Navigation
-        const prevButton = document.querySelector('a[href="index.html"]');
-        const nextButton = document.querySelector('a[href="physical-activity.html"]');
-    
-        if (prevButton) {
-            prevButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    
-        if (nextButton) {
-            nextButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    }
-    
-    // Sauvegarde des données
-    function saveCurrentData() {
-        const data = {
-            lastName: document.querySelector('input[placeholder="Nom de famille"]')?.value || '',
-            firstName: document.querySelector('input[placeholder="Prénom"]')?.value || '',
-            birthDate: document.querySelector('input[type="date"]')?.value || '',
-            gender: document.querySelector('.frequency-option.selected')?.textContent || '',
-            weight: document.querySelector('input[placeholder="70"]')?.value || '',
-            height: document.querySelector('input[placeholder="175"]')?.value || '',
-            medicalHistory: document.querySelector('textarea')?.value || '',
-            profession: document.querySelector('.profession-option.selected')?.querySelector('h3')?.textContent || ''
-        };
-    
-        console.log("Sauvegarde des données:", data);
-        Storage.save('patient_personal_info', data);
-    }
     </script>
 </body>
 </html>
