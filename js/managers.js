@@ -1,5 +1,5 @@
 // Gestionnaire unifié de stockage
-const StorageManager = {
+const PatientStorageManager = {
     CONSTRAINTS: {
         maxFileSize: 10 * 1024 * 1024,
         maxTotalSize: 50 * 1024 * 1024,
@@ -81,7 +81,7 @@ const StorageManager = {
 
 class DocumentManager {
     constructor() {
-        this.storageManager = window.StorageManager;
+        this.storageManager = window.PatientStorageManager;
         this.initializeElements();
         this.setupEventListeners();
         this.loadDocuments();
@@ -309,10 +309,10 @@ class DocumentManager {
 
 class DiagnosticManager {
     constructor() {
-        if (!window.StorageManager) {
-            throw new Error('StorageManager non initialisé');
+        if (!window.PatientStorageManager) {
+            throw new Error('PatientStorageManager non initialisé');
         }
-        this.storageManager = window.StorageManager;
+        this.storageManager = window.PatientStorageManager;
         this.abortController = null;
         this.pendingRequests = new Set();
         this.initializeElements();
