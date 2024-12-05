@@ -1,9 +1,8 @@
-<!-- treatment.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover,width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#37A7C4">
     <title>PhysioCare - Plan de Traitement</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -15,6 +14,9 @@
             --brand-medium:#2C89A0;
             --brand-dark:#1E5F6E;
             --pure-white:#FFFFFF;
+            --elevation-1:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
+            --elevation-2:0 4px 6px rgba(30,95,110,0.1),0 2px 4px rgba(30,95,110,0.06);
+            --elevation-3:0 10px 20px rgba(30,95,110,0.15),0 3px 6px rgba(30,95,110,0.1);
             --safe-top:env(safe-area-inset-top,47px);
             --safe-bottom:env(safe-area-inset-bottom,34px);
         }
@@ -23,6 +25,8 @@
             background:#F5F9FA;
             font-family:-apple-system,BlinkMacSystemFont,sans-serif;
             -webkit-font-smoothing:antialiased;
+            padding-top:calc(120px+var(--safe-top));
+            padding-bottom:calc(20px+var(--safe-bottom));
         }
 
         .nav-blur {
@@ -31,12 +35,25 @@
             border-bottom:1px solid rgba(55,167,196,0.1);
         }
 
+        .nav-button {
+            padding:8px 16px;
+            border-radius:8px;
+            color:var(--brand-dark);
+            font-weight:500;
+        }
+
+        .nav-button.primary {
+            color: var(--brand-light);
+            font-weight:600;
+        }
+
         .form-section {
             background:white;
             border-radius:20px;
             padding:24px;
             margin-bottom:16px;
-            box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
+            box-shadow:var(--elevation-1);
+            border:1px solid rgba(55,167,196,0.1);
             transition:transform 0.3s ease,box-shadow 0.3s ease;
         }
 
@@ -83,36 +100,18 @@
         }
 
         .phase-number {
-            width:28px;
-            height:28px;
+            width:28px;height:28px;
             background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
             border-radius:50%;
-            color:white;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-weight:600;
-            font-size:14px;
+            color:white;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;
         }
 
-        .phase-header {
-            cursor:pointer;
-            display:flex;
-            justify-content:space-between;
-            align-items:flex-start;
-        }
-
+        .phase-header {cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;}
         .treatment-content {
-            max-height:0;
-            overflow:hidden;
-            transition:max-height 0.3s ease-out, opacity 0.3s ease-out;
-            opacity:0;
+            max-height:0;overflow:hidden;transition:max-height 0.3s ease-out, opacity 0.3s ease-out;opacity:0;
         }
-
         .treatment-phase.active .treatment-content {
-            max-height:500px;
-            opacity:1;
-            margin-top:16px;
+            max-height:500px;opacity:1;margin-top:16px;
         }
 
         .phase-toggle {
@@ -132,15 +131,11 @@
         }
 
         @media (prefers-color-scheme: dark) {
-            body {
-                background:#0A1214;
-                color:white;
-            }
-
+            body {background:#0A1214;color:white;}
             .nav-blur {
                 background:rgba(10,18,20,0.85);
+                border-bottom-color:rgba(55,167,196,0.2);
             }
-
             .form-section {
                 background:rgba(255,255,255,0.05);
                 border-color:rgba(55,167,196,0.2);
@@ -185,9 +180,9 @@
         </div>
     </nav>
 
-    <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
+    <main class="px-6">
         <div class="max-w-xl mx-auto space-y-6" id="mainContent">
-            <!-- Message initial -->
+            <!-- Le code pour l’affichage du traitement sera injecté depuis patient-manager.js une fois le diagnostic fait -->
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
                     Plan de traitement
@@ -195,7 +190,7 @@
                 <p class="text-[var(--brand-dark)] opacity-80 mb-6">
                     Veuillez d'abord compléter le diagnostic pour obtenir un plan de traitement personnalisé.
                 </p>
-                <a href="diagnosis.html" class="app-button inline-block">
+                <a href="diagnosis.html" class="download-button inline-block">
                     Retour au diagnostic
                 </a>
             </div>
@@ -203,164 +198,154 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded',async()=>{
-            window.patientManager=window.patientManager||new PatientManager();
-            const pManager=window.patientManager;
-            const patientData=pManager.loadPatientData();
+    document.addEventListener('DOMContentLoaded',async()=>{
+        window.patientManager=window.patientManager||new PatientManager();
+        const pManager=window.patientManager;
+        const patientData=pManager.loadPatientData();
 
-            window.treatmentManager=new TreatmentManager();
+        window.treatmentManager=new TreatmentManager();
 
-            const mainContent=document.getElementById('mainContent');
-            const initialMessage=document.getElementById('initialMessage');
+        const mainContent=document.getElementById('mainContent');
+        const initialMessage=document.getElementById('initialMessage');
 
-            // Vérif si un diagnostic est présent
-            if(patientData.diagnosis && patientData.diagnosis.length>0) {
-                initialMessage.classList.add('hidden');
-                const loadingDiv=document.createElement('div');
-                loadingDiv.className='form-section text-center';
-                loadingDiv.innerHTML=`
-                    <div class="loading-ring mx-auto mb-4"></div>
-                    <p class="text-[var(--brand-dark)]">Génération du plan de traitement...</p>
-                `;
-                mainContent.appendChild(loadingDiv);
+        const comingFromDiagnosis=(patientData.diagnosis && patientData.diagnosis.length>0);
+        if(comingFromDiagnosis) {
+            initialMessage.classList.add('hidden');
+            const loadingDiv=document.createElement('div');
+            loadingDiv.className='form-section text-center';
+            loadingDiv.innerHTML=`
+                <div class="loading-ring mx-auto mb-4 border-[var(--brand-light)]"></div>
+                <p class="text-[var(--brand-dark)]">Génération du plan de traitement...</p>
+            `;
+            mainContent.appendChild(loadingDiv);
 
-                try {
-                    const data=await gatherPatientData();
-                    const result=await treatmentManager.getTreatment(data);
-                    mainContent.removeChild(loadingDiv);
-                    displayTreatment(result);
-                } catch(e){
-                    console.error(e);
-                    loadingDiv.innerHTML='<p class="text-red-500">Erreur lors de la génération du traitement</p>';
-                }
-
-            } else {
-                // Pas de diagnostic
-                // initialMessage affiche déjà un message
+            try {
+                const data=await gatherPatientData();
+                const result=await treatmentManager.getTreatment(data);
+                mainContent.removeChild(loadingDiv);
+                displayTreatment(result);
+            } catch(e) {
+                console.error(e);
+                loadingDiv.innerHTML='<p class="text-red-500">Erreur lors de la génération du traitement</p>';
             }
+        }
 
-            function displayTreatment(result) {
-                updateTreatmentData(result);
-                mainContent.innerHTML='';
+        function displayTreatment(result) {
+            updateTreatmentData(result);
+            mainContent.innerHTML='';
 
-                const disclaimer=document.createElement('div');
-                disclaimer.className='disclaimer-banner';
-                disclaimer.innerHTML=`
-                    <div class="flex items-start gap-3">
-                        <svg class="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
-                                  1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34
-                                  16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        <p class="text-sm text-yellow-600">
-                            Ce plan de traitement est généré automatiquement et doit être validé par un professionnel de santé qualifié avant application.
-                        </p>
-                    </div>
-                `;
-                mainContent.appendChild(disclaimer);
+            const disclaimer=document.createElement('div');
+            disclaimer.className='disclaimer-banner';
+            disclaimer.innerHTML=`
+                <div class="flex items-start gap-3">
+                    <svg class="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0
+                              2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34
+                              16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <p class="text-sm text-yellow-600">
+                        Ce plan de traitement est généré automatiquement et doit être validé par un professionnel de santé.
+                    </p>
+                </div>
+            `;
+            mainContent.appendChild(disclaimer);
 
-                const plan=result.treatmentPlan;
-                const summarySection=document.createElement('div');
-                summarySection.className='form-section';
-                summarySection.innerHTML=`
-                    <h2 class="text-xl font-bold text-[var(--brand-dark)] mb-4">Plan de traitement</h2>
-                    <div class="space-y-2 mb-6">
-                        <p>${plan.summary||'Plan personnalisé'}</p>
-                    </div>
-                    <button class="download-button" id="downloadButton">Télécharger le protocole détaillé (PDF)</button>
-                `;
-                mainContent.appendChild(summarySection);
+            const plan=result.treatmentPlan;
+            const summarySection=document.createElement('div');
+            summarySection.className='form-section';
+            summarySection.innerHTML=`
+                <h2 class="text-xl font-bold text-[var(--brand-dark)] mb-4">
+                    Plan de traitement
+                </h2>
+                <div class="space-y-2 mb-6">
+                    <p>${plan.summary||'Plan personnalisé'}</p>
+                </div>
+                <button class="download-button" id="downloadButton">
+                    Télécharger le protocole détaillé (PDF)
+                </button>
+            `;
+            mainContent.appendChild(summarySection);
 
-                const protocolSection=document.createElement('div');
-                protocolSection.className='form-section';
-                protocolSection.innerHTML=`
-                    <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
-                        Protocole de rééducation
-                    </h2>
-                `;
-                const phasesContainer=document.createElement('div');
-                plan.phases.forEach((phase,idx)=>{
-                    const phaseDiv=document.createElement('div');
-                    phaseDiv.className='treatment-phase';
-                    phaseDiv.innerHTML=`
-                        <div class="phase-header">
-                            <div class="flex items-start gap-4">
-                                <div class="phase-number">${idx+1}</div>
-                                <div>
-                                    <h3 class="font-semibold">${phase.name||'Phase'}</h3>
-                                    <p class="text-sm opacity-70">${phase.goals||''}</p>
-                                </div>
-                            </div>
-                            <svg class="w-6 h-6 phase-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </div>
-                        <div class="treatment-content">
-                            ${phase.exercises?(phase.exercises.map(ex=>`
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">${ex.exercise||'Exercice'}</h4>
-                                    <p class="text-sm opacity-70">${ex.description||''}</p>
-                                    <p class="text-sm opacity-70 mt-1">${ex.frequency||''}</p>
-                                </div>
-                            `).join('')):''}
-                        </div>
-                    `;
-                    phasesContainer.appendChild(phaseDiv);
-
-                    const header=phaseDiv.querySelector('.phase-header');
-                    header.addEventListener('click',()=>{
-                        phaseDiv.classList.toggle('active');
-                        saveCurrentData();
-                    });
-                });
-                protocolSection.appendChild(phasesContainer);
-                mainContent.appendChild(protocolSection);
-
-                const recSection=document.createElement('div');
-                recSection.className='form-section';
-                recSection.innerHTML=`
-                    <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
-                        Recommandations complémentaires
-                    </h2>
-                    <div class="space-y-4">
-                        ${plan.recommendations?(plan.recommendations.map(r=>`
+            const protocolSection=document.createElement('div');
+            protocolSection.className='form-section';
+            protocolSection.innerHTML=`
+                <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
+                    Protocole de rééducation
+                </h2>
+            `;
+            const phasesContainer=document.createElement('div');
+            plan.phases.forEach((phase,idx)=>{
+                const phaseDiv=document.createElement('div');
+                phaseDiv.className='treatment-phase';
+                phaseDiv.innerHTML=`
+                    <div class="phase-header">
+                        <div class="flex items-start gap-4">
+                            <div class="phase-number">${idx+1}</div>
                             <div>
-                                <h3 class="font-medium mb-2">${r.title||''}</h3>
-                                <p class="text-sm opacity-70">${r.content||''}</p>
+                                <h3 class="font-semibold">${phase.name||'Phase'}</h3>
+                                <p class="text-sm opacity-70">${phase.goals||''}</p>
+                            </div>
+                        </div>
+                        <svg class="w-6 h-6 phase-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                    <div class="treatment-content">
+                        ${phase.exercises?(phase.exercises.map(ex=>`
+                            <div class="exercise-item">
+                                <h4 class="font-medium mb-1">${ex.exercise||'Exercice'}</h4>
+                                <p class="text-sm opacity-70">${ex.description||''}</p>
+                                <p class="text-sm opacity-70 mt-1">${ex.frequency||''}</p>
                             </div>
                         `).join('')):''}
                     </div>
                 `;
-                mainContent.appendChild(recSection);
+                phasesContainer.appendChild(phaseDiv);
 
-                const downloadButton=document.getElementById('downloadButton');
-                downloadButton.addEventListener('click',()=>{
-                    // Simulation téléchargement
-                    downloadButton.textContent='Téléchargement terminé !';
-                    setTimeout(()=>{downloadButton.textContent='Télécharger le protocole détaillé (PDF)';},2000);
+                const header=phaseDiv.querySelector('.phase-header');
+                header.addEventListener('click',()=>{
+                    phaseDiv.classList.toggle('active');
+                    saveCurrentData();
                 });
-            }
+            });
+            protocolSection.appendChild(phasesContainer);
+            mainContent.appendChild(protocolSection);
 
-            function saveCurrentData() {
-                // Sauvegarde l'état actuel (phases dépliées)
-                const phases=document.querySelectorAll('.treatment-phase');
-                const activePhases=[];
-                phases.forEach((p,i)=>{
-                    if(p.classList.contains('active')) activePhases.push(i);
-                });
+            const recSection=document.createElement('div');
+            recSection.className='form-section';
+            recSection.innerHTML=`
+                <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
+                    Recommandations complémentaires
+                </h2>
+                <div class="space-y-4">
+                    ${plan.recommendations?(plan.recommendations.map(r=>`
+                        <div>
+                            <h3 class="font-medium mb-2">${r.title||''}</h3>
+                            <p class="text-sm opacity-70">${r.content||''}</p>
+                        </div>
+                    `).join('')):''}
+                </div>
+            `;
+            mainContent.appendChild(recSection);
 
-                const newData={...patientData};
-                newData.treatment=newData.treatment||{};
-                newData.treatment.activePhases=activePhases;
-                pManager.savePatientData(newData);
-            }
+            const downloadButton=document.getElementById('downloadButton');
+            downloadButton.addEventListener('click',()=>{
+                downloadButton.textContent='Téléchargement terminé !';
+                setTimeout(()=>{downloadButton.textContent='Télécharger le protocole détaillé (PDF)';},2000);
+            });
+        }
 
-            const comingFromDiagnosis= (patientData.diagnosis && patientData.diagnosis.length>0);
-            if(comingFromDiagnosis) {
-                // déjà géré plus haut
-            }
-        });
+        function saveCurrentData() {
+            const phases=document.querySelectorAll('.treatment-phase');
+            const activePhases=Array.from(phases).map((p,i)=>p.classList.contains('active')?i:null).filter(i=>i!==null);
+            const data=pManager.loadPatientData();
+            data.treatment=data.treatment||{};
+            data.treatment.activePhases=activePhases;
+            pManager.savePatientData(data);
+        }
+    });
     </script>
 </body>
 </html>
