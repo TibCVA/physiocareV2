@@ -1,224 +1,177 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#37A7C4">
-    <title>PhysioCare - Sélection Patient</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <script src="js/patient-storage.js" defer></script>
-    <script src="js/patient-manager.js" defer></script>
-    <style>
-        :root {
-            --brand-light:#37A7C4;
-            --brand-medium:#2C89A0;
-            --brand-dark:#1E5F6E;
-            --safe-top:env(safe-area-inset-top,47px);
-            --safe-bottom:env(safe-area-inset-bottom,34px);
-        }
-
-        body {
-            background:#F5F9FA;
-            font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-            -webkit-font-smoothing:antialiased;
-        }
-
-        .nav-blur {
-            background:rgba(255,255,255,0.85);
-            backdrop-filter:saturate(180%) blur(20px);
-            border-bottom:1px solid rgba(55,167,196,0.1);
-        }
-
-        .form-section {
-            background:white;
-            border-radius:20px;
-            padding:24px;
-            margin-bottom:16px;
-            box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
-        }
-
-        .ios-input {
-            width:100%;
-            padding:12px;
-            border:1px solid rgba(55,167,196,0.2);
-            border-radius:12px;
-            margin:8px 0;
-            font-size:16px;
-            background:white;
-        }
-
-        .ios-input:focus {
-            border-color:var(--brand-light);
-            outline:none;
-            box-shadow:0 0 0 3px rgba(55,167,196,0.1);
-        }
-
-        .select-patient {
-            background:rgba(255,255,255,0.8);
-            border:1px solid rgba(55,167,196,0.2);
-            border-radius:12px;
-            padding:16px;
-            margin-bottom:8px;
-            transition:all 0.3s ease;
-            cursor:pointer;
-            display:flex;justify-content:space-between;align-items:center;
-        }
-
-        .select-patient:hover {
-            background:rgba(55,167,196,0.05);
-            transform:translateX(4px);
-        }
-
-        .app-button {
-            background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
-            border-radius:12px;
-            padding:12px 24px;
-            color:white;
-            font-weight:600;
-            transition:all 0.3s ease;
-            box-shadow:0 4px 6px rgba(0,0,0,0.1);
-            text-align:center;
-            display:block;
-        }
-
-        .app-button:hover {
-            transform:translateY(-2px);
-            box-shadow:0 6px 8px rgba(0,0,0,0.1);
-        }
-
-        .app-button:active {
-            transform:scale(0.98);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background:#0A1214;
-                color:white;
-            }
-            .form-section {
-                background:rgba(255,255,255,0.05);
-            }
-            .select-patient {
-                background:rgba(255,255,255,0.1);
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#37A7C4">
+<title>PhysioCare - Sélection Patient</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+<script src="js/patient-storage.js" defer></script>
+<script src="js/patient-manager.js" defer></script>
+<style>
+:root {
+ --brand-light:#37A7C4; --brand-medium:#2C89A0; --brand-dark:#1E5F6E;
+ --safe-top:env(safe-area-inset-top,47px);
+ --safe-bottom:env(safe-area-inset-bottom,34px);
+}
+body {
+ background:#F5F9FA; font-family:-apple-system,BlinkMacSystemFont,sans-serif; -webkit-font-smoothing:antialiased;
+}
+.nav-blur {
+ background:rgba(255,255,255,0.85);
+ backdrop-filter:saturate(180%) blur(20px);
+ border-bottom:1px solid rgba(55,167,196,0.1);
+}
+.form-section {
+ background:white; border-radius:20px; padding:24px; margin-bottom:16px;
+ box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
+}
+.ios-input {
+ width:100%; padding:12px; border:1px solid rgba(55,167,196,0.2);
+ border-radius:12px; margin:8px 0; font-size:16px; background:white;
+}
+.select-patient {
+ background:rgba(255,255,255,0.8);
+ border:1px solid rgba(55,167,196,0.2);
+ border-radius:12px;
+ padding:16px; margin-bottom:8px;
+ transition:all 0.3s ease; cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+}
+.select-patient:hover {
+ background:rgba(55,167,196,0.05);
+ transform:translateX(4px);
+}
+.app-button {
+ background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
+ border-radius:12px; padding:12px 24px; color:white; font-weight:600;
+ transition:all 0.3s ease; box-shadow:0 4px 6px rgba(0,0,0,0.1); text-align:center; display:block;
+}
+.app-button:hover {
+ transform:translateY(-2px); box-shadow:0 6px 8px rgba(0,0,0,0.1);
+}
+.app-button:active {transform:scale(0.98);}
+@media (prefers-color-scheme: dark) {
+ body{background:#0A1214;color:white;}
+ .form-section{background:rgba(255,255,255,0.05);}
+ .select-patient{background:rgba(255,255,255,0.1);}
+}
+</style>
 </head>
 <body class="min-h-screen pb-[calc(20px+var(--safe-bottom))]">
-    <nav class="nav-blur fixed w-full z-50">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <a href="index.html" class="flex items-center gap-2 text-[var(--brand-dark)] font-medium">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    Accueil
-                </a>
-                <span class="font-bold text-[var(--brand-dark)]">Sélection / Création Patient</span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
+<nav class="nav-blur fixed w-full z-50">
+<div class="max-w-5xl mx-auto px-4">
+ <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
+   <a href="index.html" class="flex items-center gap-2 text-[var(--brand-dark)] font-medium">
+     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+     </svg>
+     Accueil
+   </a>
+   <span class="font-bold text-[var(--brand-dark)]">Sélection / Création Patient</span>
+   <span></span>
+ </div>
+</div>
+</nav>
 
-    <main class="pt-[calc(84px+var(--safe-top))] px-6">
-        <div class="max-w-xl mx-auto space-y-6">
-            <div class="form-section">
-                <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Patients existants</h2>
-                <div id="patientList" class="space-y-3"></div>
-            </div>
+<main class="pt-[calc(84px+var(--safe-top))] px-6">
+<div class="max-w-xl mx-auto space-y-6">
+ <div class="form-section">
+   <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Patients existants</h2>
+   <div id="patientList" class="space-y-3"></div>
+ </div>
 
-            <div class="form-section">
-                <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Créer un nouveau patient</h2>
-                <div>
-                    <label class="block mb-2 font-medium">Nom</label>
-                    <input type="text" id="newLastName" class="ios-input" placeholder="Nom de famille">
-                </div>
-                <div>
-                    <label class="block mb-2 font-medium">Prénom</label>
-                    <input type="text" id="newFirstName" class="ios-input" placeholder="Prénom">
-                </div>
-                <div>
-                    <label class="block mb-2 font-medium">Date de naissance</label>
-                    <input type="date" id="newBirthDate" class="ios-input">
-                </div>
-                <div>
-                    <label class="block mb-2 font-medium">Genre</label>
-                    <select id="newGender" class="ios-input">
-                        <option value="Homme">Homme</option>
-                        <option value="Femme">Femme</option>
-                        <option value="Autre">Autre</option>
-                    </select>
-                </div>
-                <button id="createPatientBtn" class="app-button w-full mt-4">Créer et commencer (Patient 1/6)</button>
-            </div>
-        </div>
-    </main>
+ <div class="form-section">
+   <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Créer un nouveau patient</h2>
+   <div>
+     <label class="block mb-2 font-medium">Nom</label>
+     <input type="text" id="newLastName" class="ios-input" placeholder="Nom de famille">
+   </div>
+   <div>
+     <label class="block mb-2 font-medium">Prénom</label>
+     <input type="text" id="newFirstName" class="ios-input" placeholder="Prénom">
+   </div>
+   <div>
+     <label class="block mb-2 font-medium">Date de naissance</label>
+     <input type="date" id="newBirthDate" class="ios-input">
+   </div>
+   <div>
+     <label class="block mb-2 font-medium">Genre</label>
+     <select id="newGender" class="ios-input">
+       <option value="Homme">Homme</option>
+       <option value="Femme">Femme</option>
+       <option value="Autre">Autre</option>
+     </select>
+   </div>
+   <button id="createPatientBtn" class="app-button w-full mt-4">Créer et commencer (Patient 1/6)</button>
+ </div>
+</div>
+</main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded',()=>{
-            window.patientManager=new PatientManager();
-            const pManager=window.patientManager;
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  window.patientManager=new PatientManager();
+  const pManager=window.patientManager;
 
-            function renderPatients() {
-                const list=document.getElementById('patientList');
-                list.innerHTML='';
-                const patients=pManager.listPatients();
-                if(patients.length===0) {
-                    const p=document.createElement('p');
-                    p.textContent="Aucun patient enregistré.";
-                    p.className="text-sm opacity-70";
-                    list.appendChild(p);
-                } else {
-                    patients.forEach(p=>{
-                        const div=document.createElement('div');
-                        div.className='select-patient';
-                        const name=((p.personalInfo.firstName||'')+' '+(p.personalInfo.lastName||'')).trim()||'Patient sans nom';
-                        div.innerHTML=`
-                            <span>${name} (${p.id})</span>
-                            <div class="flex gap-2">
-                                <button class="text-red-500 hover:text-red-700" data-del="${p.id}">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 7l-.867 12.142A2 2 0
-                                      0116.138 21H7.862a2 2 0
-                                      01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0
-                                      00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                                <button class="text-[var(--brand-dark)] font-medium" data-select="${p.id}">Sélectionner</button>
-                            </div>
-                        `;
-                        list.appendChild(div);
+  function renderPatients() {
+      const list=document.getElementById('patientList');
+      list.innerHTML='';
+      const patients=pManager.listPatients();
+      if(patients.length===0) {
+         const p=document.createElement('p');
+         p.textContent="Aucun patient enregistré.";
+         p.className="text-sm opacity-70";
+         list.appendChild(p);
+      } else {
+         patients.forEach(p=>{
+           const div=document.createElement('div');
+           div.className='select-patient';
+           const name=((p.personalInfo.firstName||'')+' '+(p.personalInfo.lastName||'')).trim()||'Patient sans nom';
+           div.innerHTML=`
+           <span>${name} (${p.id})</span>
+           <div class="flex gap-2">
+             <button class="text-red-500 hover:text-red-700" data-del="${p.id}">
+               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                 d="M19 7l-.867 12.142A2 2 0
+                 0116.138 21H7.862a2 2 0
+                 01-1.995-1.858L5
+                 7m5 4v6m4-6v6m1-10V4a1 1 0
+                 00-1-1h-4a1 1 0 00-1 1v3M4
+                 7h16"></path>
+               </svg>
+             </button>
+             <button class="text-[var(--brand-dark)] font-medium" data-select="${p.id}">Sélectionner</button>
+           </div>`;
+           list.appendChild(div);
 
-                        const delBtn=div.querySelector(`[data-del="${p.id}"]`);
-                        delBtn.addEventListener('click',(e)=>{
-                            e.stopPropagation();
-                            pManager.deletePatient(p.id);
-                            renderPatients();
-                        });
+           const delBtn=div.querySelector(`[data-del="${p.id}"]`);
+           delBtn.addEventListener('click',(e)=>{
+             e.stopPropagation();
+             pManager.deletePatient(p.id);
+             renderPatients();
+           });
 
-                        const selBtn=div.querySelector(`[data-select="${p.id}"]`);
-                        selBtn.addEventListener('click',()=>{
-                            pManager.setCurrentPatientId(p.id);
-                            window.location.href='physical-activity.html';
-                        });
-                    });
-                }
-            }
-            renderPatients();
+           const selBtn=div.querySelector(`[data-select="${p.id}"]`);
+           selBtn.addEventListener('click',()=>{
+             pManager.setCurrentPatientId(p.id);
+             window.location.href='physical-activity.html';
+           });
+         });
+      }
+  }
+  renderPatients();
 
-            const createBtn=document.getElementById('createPatientBtn');
-            createBtn.addEventListener('click',()=>{
-                const lastName=document.getElementById('newLastName').value.trim();
-                const firstName=document.getElementById('newFirstName').value.trim();
-                const birthDate=document.getElementById('newBirthDate').value;
-                const gender=document.getElementById('newGender').value;
-                const personalInfo={lastName,firstName,birthDate,gender};
-                pManager.createNewPatient(personalInfo);
-                window.location.href='physical-activity.html';
-            });
-        });
-    </script>
+  const createBtn=document.getElementById('createPatientBtn');
+  createBtn.addEventListener('click',()=>{
+     const lastName=document.getElementById('newLastName').value.trim();
+     const firstName=document.getElementById('newFirstName').value.trim();
+     const birthDate=document.getElementById('newBirthDate').value;
+     const gender=document.getElementById('newGender').value;
+     const personalInfo={lastName,firstName,birthDate,gender};
+     pManager.createNewPatient(personalInfo);
+     window.location.href='physical-activity.html';
+  });
+});
+</script>
 </body>
 </html>
