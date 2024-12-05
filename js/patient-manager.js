@@ -22,7 +22,6 @@ class DocumentManager {
             notes: document.getElementById('notes')
         };
 
-        // Vérification des éléments requis
         Object.entries(this.elements).forEach(([key, element]) => {
             if (!element) {
                 console.error(`Élément ${key} non trouvé dans le DOM`);
@@ -31,7 +30,6 @@ class DocumentManager {
     }
 
     setupEventListeners() {
-        // Gestion du drag & drop
         const dropZone = this.elements.dropZone;
         if (dropZone) {
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -55,7 +53,6 @@ class DocumentManager {
             });
         }
 
-        // Gestion de l'upload par bouton
         this.elements.uploadButton?.addEventListener('click', () => {
             this.elements.fileInput?.click();
         });
@@ -64,7 +61,6 @@ class DocumentManager {
             await this.handleFiles(e.target.files);
         });
 
-        // Gestion des notes
         this.elements.notes?.addEventListener('input', () => this.saveCurrentData());
     }
 
@@ -100,12 +96,17 @@ class DocumentManager {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
+                const base64Data = e.target.result.split(',')[1]; // Supprime le préfixe "data:<type>;base64,"
+                if (!base64Data) {
+                    reject(new Error(`Erreur de conversion Base64 pour le fichier : ${file.name}`));
+                }
+
                 resolve({
                     id: crypto.randomUUID(),
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    fileData: e.target.result
+                    fileData: base64Data // Stockage uniquement du contenu Base64
                 });
             };
             reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
@@ -193,407 +194,20 @@ class DocumentManager {
     }
 }
 
-// Gestionnaire de Diagnostic
-class DiagnosticManager {
-    constructor() {
-        if (!window.PatientStorageManager) {
-            throw new Error('PatientStorageManager non initialisé');
-        }
-        this.storageManager = window.PatientStorageManager;
-        this.abortController = null;
-        this.pendingRequests = new Set();
-        this.initializeElements();
-        this.setupEventListeners();
-        this.loadSavedDiagnosis();
-    }
-
-    initializeElements() {
-        this.elements = {
-            remarksInput: document.getElementById('remarks'),
-            startButton: document.getElementById('startAnalysis'),
-            loadingSection: document.getElementById('loadingSection'),
-            resultsSection: document.getElementById('resultsSection'),
-            diagnosticResults: document.getElementById('diagnosticResults'),
-            validationButton: document.querySelector('.validation-button'),
-            remarksSection: document.getElementById('remarksSection')
-        };
-
-        Object.entries(this.elements).forEach(([key, element]) => {
-            if (!element) {
-                console.error(`Élément ${key} non trouvé dans le DOM`);
-            }
-        });
-    }
-
-    setupEventListeners() {
-        if (this.elements.startButton) {
-            this.elements.startButton.addEventListener('click', () => this.startAnalysis());
-        }
-
-        if (this.elements.validationButton) {
-            this.elements.validationButton.addEventListener('click', () => this.validateAndContinue());
-        }
-
-        window.addEventListener('beforeunload', () => {
-            this.abortController?.abort();
-            this.pendingRequests.forEach(request => request.abort());
-        });
-    }
-
-    async loadSavedDiagnosis() {
-        try {
-            const savedData = this.loadStorageData('patient_diagnosis');
-            if (savedData?.diagnoses?.length) {
-                this.displayResults(savedData.diagnoses);
-            }
-        } catch (error) {
-            console.error('Erreur chargement diagnostic:', error);
-        }
-    }
-
-    async gatherPatientData() {
-        try {
-            const docs = await this.storageManager.loadDocuments();
-            const validDocs = await Promise.all(
-                docs.map(async (doc) => {
-                    if (!doc || !doc.fileData || !this.validateDocumentType(doc.type)) {
-                        console.warn(`Document ignoré : ${doc.name}`);
-                        return null;
-                    }
-    
-                    const base64Data = doc.fileData.includes('base64,') 
-                        ? doc.fileData.split('base64,')[1] 
-                        : doc.fileData;
-    
-                    return {
-                        id: doc.id,
-                        name: doc.name,
-                        type: doc.type,
-                        fileData: `data:${doc.type};base64,${base64Data}`,
-                    };
-                })
-            );
-    
-            return {
-                personalInfo: this.loadStorageData('patient_personal_info'),
-                physicalActivity: this.loadStorageData('patient_physical_activity'),
-                symptoms: this.loadStorageData('patient_symptoms'),
-                documents: validDocs.filter(Boolean), // Exclure les documents invalides
-                remarks: this.elements.remarksInput?.value?.trim() || '',
-            };
-        } catch (error) {
-            console.error('Erreur collecte données:', error);
-            return {
-                personalInfo: {},
-                physicalActivity: {},
-                symptoms: {},
-                documents: [],
-                remarks: this.elements.remarksInput?.value?.trim() || '',
-            };
-        }
-    }
-
-    async startAnalysis() {
-        try {
-            this.showLoading();
-            const data = await this.gatherPatientData();
-            const response = await this.sendToAPI(data);
-            await this.handleResponse(response);
-        } catch (error) {
-            this.showError(error.message);
-        }
-    }
-
-async sendToAPI(data) {
-    console.log('Début envoi API');
-
-    this.abortController = new AbortController();
-    this.pendingRequests.add(this.abortController);
-
-    try {
-        // Timeout dynamique en fonction du nombre de documents (par exemple, 10s/document)
-        const timeoutId = setTimeout(() => {
-            this.abortController.abort();
-        }, Math.max(30000, data.documents?.length * 10000));
-
-        // Préparer les documents avec vérification stricte
-        const processedDocs = data.documents?.map(doc => {
-            if (!doc.fileData) {
-                console.warn('Document sans données:', doc.name);
-                return null;
-            }
-
-            const base64Data = doc.fileData.includes('base64,') 
-                ? doc.fileData.split('base64,')[1] 
-                : doc.fileData;
-
-            // Vérifiez que le contenu Base64 n'est pas vide
-            if (!base64Data || base64Data.length === 0) {
-                console.warn('Document avec contenu Base64 vide:', doc.name);
-                return null;
-            }
-
-            return {
-                id: doc.id,
-                name: doc.name,
-                type: doc.type,
-                fileData: `data:${doc.type};base64,${base64Data}`
-            };
-        }).filter(Boolean) || [];
-
-        if (processedDocs.length === 0) {
-            throw new Error('Aucun document valide à envoyer.');
-        }
-
-        const requestBody = JSON.stringify({
-            type: 'diagnosis',
-            data: {
-                ...data,
-                documents: processedDocs
-            }
-        });
-
-        console.log('Données préparées pour envoi:', {
-            dataSize: requestBody.length,
-            documentsCount: processedDocs.length
-        });
-
-        // Envoi à l'API
-        const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: requestBody,
-            signal: this.abortController.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        const responseText = await response.text();
-        console.log('Réponse brute du serveur:', responseText);
-
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status} - ${responseText}`);
-        }
-
-        try {
-            return JSON.parse(responseText);
-        } catch (e) {
-            console.error('Erreur parsing JSON:', e);
-            throw new Error('Réponse invalide du serveur');
-        }
-
-    } catch (error) {
-        // Différenciez les erreurs réseau des erreurs API
-        if (error.name === 'AbortError') {
-            console.error('Requête annulée : Timeout dépassé ou utilisateur a quitté la page.');
-        } else {
-            console.error('Erreur complète:', {
-                name: error.name,
-                message: error.message,
-                cause: error.cause,
-                stack: error.stack
-            });
-        }
-        throw error;
-    } finally {
-        this.pendingRequests.delete(this.abortController);
-    }
-}
-
-    
-    async handleResponse(response) {
-        try {
-            if (!response?.diagnostics?.length) {
-                throw new Error('Réponse invalide: pas de diagnostic');
-            }
-    
-            response.diagnostics.forEach((diagnostic) => {
-                if (diagnostic.details.some(detail => detail.title === 'Analyse documents')) {
-                    console.log('Analyse documents détectée dans les diagnostics');
-                }
-            });
-    
-            this.elements.loadingSection.classList.add('hidden');
-            this.elements.diagnosticResults.innerHTML = '';
-    
-            response.diagnostics.forEach((diagnostic) => {
-                const element = this.createDiagnosticElement(diagnostic);
-                this.elements.diagnosticResults.appendChild(element);
-            });
-    
-            this.elements.resultsSection.classList.remove('hidden');
-            document.getElementById('validationSection').classList.remove('hidden');
-    
-            await this.saveResults(response);
-            console.log('Résultats affichés et sauvegardés');
-        } catch (error) {
-            console.error('Erreur traitement réponse:', error);
-            this.showError(error.message);
-        }
-    }
-
-    displayResults(diagnoses) {
-        this.elements.loadingSection.classList.add('hidden');
-        this.elements.diagnosticResults.innerHTML = '';
-
-        diagnoses.forEach(diagnostic => {
-            const element = this.createDiagnosticElement(diagnostic);
-            this.elements.diagnosticResults.appendChild(element);
-        });
-
-        this.elements.resultsSection.classList.remove('hidden');
-    }
-
-    createDiagnosticElement(diagnostic) {
-        const element = document.createElement('div');
-        element.className = `diagnostic-item ${diagnostic.probability >= 80 ? 'primary' : ''}`;
-        element.innerHTML = this.getDiagnosticTemplate(diagnostic);
-        return element;
-    }
-
-    getDiagnosticTemplate(diagnostic) {
-        return `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h3 class="font-semibold text-lg">
-                        ${this.sanitizeString(diagnostic.name)}
-                    </h3>
-                    <p class="text-sm opacity-70">
-                        ${this.sanitizeString(diagnostic.shortDescription)}
-                    </p>
-                </div>
-                <span class="font-semibold">${diagnostic.probability}%</span>
-            </div>
-            <div class="probability-bar">
-                <div class="probability-bar-fill" 
-                     style="width: ${diagnostic.probability}%">
-                </div>
-            </div>
-            <button class="expand-button" onclick="window.diagnosticManager.toggleDetails(this)">
-                Voir les détails
-                <svg class="w-5 h-5 transform transition-transform duration-200"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-            <div class="diagnostic-details">
-                ${diagnostic.details.map(detail => `
-                    <div class="details-section">
-                        <h4 class="font-medium mb-2">
-                            ${this.sanitizeString(detail.title)}
-                        </h4>
-                        <p class="text-sm opacity-80">
-                            ${this.sanitizeString(detail.content)}
-                        </p>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    toggleDetails(button) {
-        const details = button.nextElementSibling;
-        const expanded = !details.classList.contains('expanded');
-        details.classList.toggle('expanded');
-        button.querySelector('svg').style.transform = expanded ? 'rotate(180deg)' : '';
-    }
-
-    validateDocumentSize(doc) {
-        const size = this.getBase64Size(doc.fileData);
-        return size <= this.storageManager.CONSTRAINTS.maxFileSize;
-    }
-
-    validateDocumentType(type) {
-        return this.storageManager.CONSTRAINTS.allowedTypes.includes(type.toLowerCase());
-    }
-
-    getBase64Size(base64String) {
-        try {
-            const base64Length = base64String.substring(base64String.indexOf(',') + 1).length;
-            return Math.floor((base64Length * 3) / 4);
-        } catch {
-            return Infinity;
-        }
-    }
-
-    loadStorageData(key) {
-        try {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : {};
-        } catch {
-            return {};
-        }
-    }
-
-    async saveResults(data) {
-        try {
-            localStorage.setItem('patient_diagnosis', JSON.stringify(data));
-            return true;
-        } catch (error) {
-            console.error('Erreur sauvegarde résultats:', error);
-            return false;
-        }
-    }
-
-    showLoading() {
-        this.elements.remarksSection.classList.add('hidden');
-        this.elements.loadingSection.classList.remove('hidden');
-    }
-
-    showError(message) {
-        this.elements.loadingSection.classList.add('hidden');
-        this.elements.remarksSection.classList.remove('hidden');
-
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4';
-        errorDiv.textContent = message;
-
-        this.elements.remarksSection.insertBefore(errorDiv, this.elements.remarksSection.firstChild);
-        setTimeout(() => errorDiv.remove(), 5000);
-    }
-
-    sanitizeString(str) {
-        if (!str || typeof str !== 'string') return '';
-        return str.trim().replace(/[<>&"']/g, '');
-    }
-
-    async validateAndContinue() {
-        try {
-            const currentData = this.loadStorageData('patient_diagnosis');
-            if (!currentData?.diagnoses?.length) {
-                throw new Error('Aucun diagnostic à sauvegarder');
-            }
-            window.location.href = 'treatment.html';
-        } catch (error) {
-            this.showError(error.message);
-        }
-    }
-}
-
 // Export des classes dans l'objet window
 window.DocumentManager = DocumentManager;
-window.DiagnosticManager = DiagnosticManager;
 
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
     try {
-        // Vérification de PatientStorageManager
         if (!window.PatientStorageManager) {
             throw new Error('PatientStorageManager doit être chargé avant patient-manager.js');
         }
 
-        // Initialisation en fonction de la page courante
         const pathname = window.location.pathname;
         if (pathname.includes('documents.html')) {
             window.documentManager = new DocumentManager();
             console.log('DocumentManager initialisé');
-        } else if (pathname.includes('diagnosis.html')) {
-            window.diagnosticManager = new DiagnosticManager();
-            console.log('DiagnosticManager initialisé');
         }
     } catch (error) {
         console.error('Erreur initialisation:', error);
