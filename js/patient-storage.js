@@ -1,8 +1,10 @@
+// patient-storage.js
+// Gestion du stockage des documents (IndexedDB) et de leurs métadonnées
+
 const PatientStorageManager = {
     CONSTRAINTS: {
         maxFileSize: 10 * 1024 * 1024, // 10 MB
         maxTotalSize: 50 * 1024 * 1024, // 50 MB
-        maxFiles: 5,
         allowedTypes: [
             'image/jpeg',
             'image/png',
@@ -30,7 +32,7 @@ const PatientStorageManager = {
         try {
             const validDocuments = documents.filter(doc => {
                 const isValid = this.validateDocument(doc);
-                console.log(`[DEBUG] Document ${doc.name} validité :`, isValid ? 'Valide' : 'Invalide');
+                console.log(`[Storage] Document ${doc.name} validité:`, isValid ? 'Valide' : 'Invalide');
                 return isValid;
             });
 
@@ -38,19 +40,34 @@ const PatientStorageManager = {
                 throw new Error('Aucun document valide à sauvegarder.');
             }
 
-            const totalSize = validDocuments.reduce((sum, doc) =>
-                sum + this.getBase64Size(doc.fileData), 0);
+            let totalSize = 0;
+            for (const doc of validDocuments) {
+                const size = this.getBase64Size(doc.fileData);
+                totalSize += size;
+            }
 
             if (totalSize > this.CONSTRAINTS.maxTotalSize) {
-                throw new Error(`La taille totale des fichiers (${(totalSize / 1024 / 1024).toFixed(2)} MB) dépasse la limite de ${this.CONSTRAINTS.maxTotalSize / 1024 / 1024} MB.`);
+                throw new Error(`La taille totale des fichiers (${(totalSize / 1024 / 1024).toFixed(2)} MB) dépasse la limite de ${this.CONSTRAINTS.maxTotalSize / (1024*1024)} MB.`);
             }
 
             const db = await this.initDB();
             const transaction = db.transaction('documents', 'readwrite');
             const store = transaction.objectStore('documents');
 
-            await store.clear();
-            await Promise.all(validDocuments.map(doc => store.put(doc)));
+            // On écrase tout l'existant, ce projet semble conçu pour un seul jeu de documents par patient
+            await new Promise((res, rej) => {
+                const clearReq = store.clear();
+                clearReq.onsuccess = () => res();
+                clearReq.onerror = () => rej(new Error('Erreur lors du clear IndexedDB'));
+            });
+
+            for (const doc of validDocuments) {
+                await new Promise((res, rej) => {
+                    const putReq = store.put(doc);
+                    putReq.onsuccess = () => res();
+                    putReq.onerror = () => rej(new Error('Erreur lors du put dans IndexedDB'));
+                });
+            }
 
             const metadata = validDocuments.map(({ id, name, type }) => ({
                 id, name, type
@@ -73,8 +90,10 @@ const PatientStorageManager = {
 
             return new Promise((resolve, reject) => {
                 const request = store.getAll();
-                request.onerror = () => reject(new Error('Erreur lecture'));
-                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(new Error('Erreur lecture documents'));
+                request.onsuccess = () => {
+                    resolve(request.result || []);
+                };
             });
         } catch (error) {
             console.error('[Storage] Erreur chargement:', error);
@@ -84,7 +103,8 @@ const PatientStorageManager = {
 
     getBase64Size(base64String) {
         if (!base64String) return 0;
-        const base64Length = base64String.length;
+        const base64 = base64String.replace(/^data:.*;base64,/, '');
+        const base64Length = base64.length;
         return Math.floor((base64Length * 3) / 4);
     },
 
@@ -95,7 +115,7 @@ const PatientStorageManager = {
 
         const size = this.getBase64Size(doc.fileData);
         if (size <= 0 || size > this.CONSTRAINTS.maxFileSize) {
-            console.warn(`Fichier invalide : ${doc.name} dépasse la taille autorisée ou est mal encodé.`);
+            console.warn(`Fichier invalide : ${doc.name} (taille incorrecte)`);
             return false;
         }
 
@@ -103,7 +123,7 @@ const PatientStorageManager = {
     }
 };
 
-// Exposition globale avec vérification
+// Exposition globale
 if (!window.PatientStorageManager) {
     window.PatientStorageManager = PatientStorageManager;
 } else {
