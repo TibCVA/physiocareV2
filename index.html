@@ -1,31 +1,19 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#37A7C4">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#37A7C4" />
     <title>PhysioCare</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
     <style>
         :root {
             --brand-light: #37A7C4;
             --brand-medium: #2C89A0;
             --brand-dark: #1E5F6E;
             --pure-white: #FFFFFF;
-            
-            --elevation-1: 
-                0 1px 3px rgba(30, 95, 110, 0.05),
-                0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 
-                0 4px 6px rgba(30, 95, 110, 0.1),
-                0 2px 4px rgba(30, 95, 110, 0.06);
-            --elevation-3: 
-                0 10px 20px rgba(30, 95, 110, 0.15),
-                0 3px 6px rgba(30, 95, 110, 0.1);
-            
             --safe-top: env(safe-area-inset-top, 47px);
             --safe-bottom: env(safe-area-inset-bottom, 34px);
-            --dynamic-island-padding: 59px;
         }
 
         body {
@@ -34,200 +22,51 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
         .app-button {
             background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
             border-radius: 12px;
             padding: 12px 24px;
             color: white;
             font-weight: 600;
-            position: relative;
-            overflow: hidden;
             transition: all 0.3s ease;
-            box-shadow: var(--elevation-2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .app-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(to bottom, 
-                rgba(255,255,255,0.2),
-                rgba(255,255,255,0));
-            transition: opacity 0.3s ease;
+        .app-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.1);
         }
 
         .app-button:active {
             transform: scale(0.98);
-            box-shadow: var(--elevation-1);
-        }
-
-        .feature-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            position: relative;
-            transition: all 0.4s ease;
-            overflow: hidden;
-            border: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--elevation-3);
-        }
-
-        .feature-card:hover::before {
-            opacity: 1;
-        }
-
-        .brand-gradient-text {
-            background: linear-gradient(135deg, var(--brand-dark), var(--brand-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--elevation-1);
-            position: relative;
-        }
-
-        .feature-icon::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom,
-                rgba(255,255,255,0.2),
-                rgba(255,255,255,0));
-            border-radius: inherit;
         }
 
         @media (prefers-color-scheme: dark) {
             body {
                 background: #0A1214;
-            }
-
-            .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
-            }
-
-            .feature-card {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
+                color: white;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="nav-blur fixed w-full z-50">
-        <div class="max-w-5xl mx-auto px-6">
-            <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-                <div class="flex items-center gap-3">
-                    <img src="assets/img/Logo.png" alt="PhysioCare Logo" class="w-8" />
-                    <span class="font-semibold text-[var(--brand-dark)]">PhysioCare AI</span>
-                </div>
-                <a href="patient-info.html" class="app-button">
-                  Commencer
-                </a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Contenu principal -->
-    <main class="pt-[calc(44px+var(--safe-top))] px-6">
-        <section class="max-w-5xl mx-auto text-center py-16">
-            <img src="assets/img/Logo.png" alt="PhysioCare Logo" class="w-32 mx-auto mb-8" />
-            
-            <h1 class="text-4xl font-bold brand-gradient-text mb-6 leading-tight">
-                L'excellence en kinésithérapie
-            </h1>
-            <p class="text-lg text-[var(--brand-dark)] opacity-80 max-w-xl mx-auto mb-8">
-                Optimisez votre pratique avec une analyse précise et des protocoles personnalisés par une IA entraînée sur l'état de l'art en kinésithérapie.
-            </p>
-            <a href="patient-info.html" class="app-button text-lg">
-              Découvrir PhysioCare AI
-            </a>
-        </section>
-
-        <section class="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 pb-16">
-            <div class="feature-card">
-                <div class="feature-icon mb-6">
-                    <svg class="w-6 h-6 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-[var(--brand-dark)] mb-3">
-                    Gestion intuitive
-                </h3>
-                <p class="text-[var(--brand-dark)] opacity-80">
-                    Interface optimisée pour une gestion efficace de vos patients.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon mb-6">
-                    <svg class="w-6 h-6 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-[var(--brand-dark)] mb-3">
-                    Analyse IA avancée et entraînée sur l'état de l'art en kinésithérapie.
-                </h3>
-                <p class="text-[var(--brand-dark)] opacity-80">
-                    Des diagnostics différentiels précis basés sur l'intelligence artificielle.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon mb-6">
-                    <svg class="w-6 h-6 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-[var(--brand-dark)] mb-3">
-                    Protocoles détaillés
-                </h3>
-                <p class="text-[var(--brand-dark)] opacity-80">
-                    Générez des protocoles de soins adaptés et personnalisés.
-                </p>
-            </div>
-        </section>
+    <main class="pt-[calc(44px+var(--safe-top))] px-6 min-h-screen flex flex-col items-center justify-center text-center">
+        <img src="assets/img/Logo.png" alt="PhysioCare Logo" class="w-32 mx-auto mb-8" />
+        <h1 class="text-4xl font-bold text-[var(--brand-dark)] mb-6 leading-tight">
+            L'excellence en kinésithérapie
+        </h1>
+        <p class="text-lg text-[var(--brand-dark)] opacity-80 max-w-xl mx-auto mb-8">
+            Optimisez votre pratique avec une analyse précise et des protocoles personnalisés par une IA entraînée sur l'état de l'art en kinésithérapie.
+        </p>
+        <a href="patient-info.html" class="app-button text-lg">
+            Commencer
+        </a>
     </main>
 
-    <footer class="text-center pb-[calc(20px+var(--safe-bottom))]">
+    <footer class="text-center pb-[calc(20px+var(--safe-bottom))] mt-8">
         <p class="text-[var(--brand-dark)] opacity-60 text-sm">
             © 2024 Thibaut Lacour - PhysioCare
         </p>
