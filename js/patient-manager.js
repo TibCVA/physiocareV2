@@ -96,7 +96,7 @@ class DocumentManager {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                const base64Data = e.target.result.split(',')[1]; // Supprime le préfixe "data:<type>;base64,"
+                const base64Data = e.target.result.split(',')[1];
                 if (!base64Data) {
                     reject(new Error(`Erreur de conversion Base64 pour le fichier : ${file.name}`));
                 }
@@ -106,7 +106,7 @@ class DocumentManager {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    fileData: base64Data // Stockage uniquement du contenu Base64
+                    fileData: base64Data
                 });
             };
             reader.onerror = () => reject(new Error('Erreur de lecture du fichier'));
@@ -189,7 +189,7 @@ class DocumentManager {
     }
 
     async saveCurrentData() {
-        const notes = this.elements.notes.value;
+        const notes = this.elements.notes.value.trim();
         localStorage.setItem('document_notes', notes);
     }
 }
@@ -206,15 +206,21 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessageElement.textContent = "Erreur : le gestionnaire de stockage n'est pas disponible.";
             errorMessageElement.style.display = "block";
         }
-        return; // Arrêtez l'exécution si PatientStorageManager n'est pas disponible
+        return;
     }
 
     try {
-        // Initialisation du DocumentManager si PatientStorageManager est disponible
         window.documentManager = new DocumentManager();
         console.log('DocumentManager initialisé');
+
+        const nextButton = document.querySelector('.nav-button.primary');
+        if (nextButton) {
+            nextButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                window.location.href = 'diagnosis.html';
+            });
+        }
     } catch (error) {
         console.error('Erreur lors de l\'initialisation du DocumentManager :', error);
     }
 });
-
