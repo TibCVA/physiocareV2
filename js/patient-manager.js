@@ -295,59 +295,84 @@ class DiagnosticManager {
     }
 
     async sendToAPI(data) {
-        console.log('Sending data to API:', data);
-        
+        console.log('Préparation données API:', {
+            personalInfo: data.personalInfo,
+            physicalActivity: data.physicalActivity,
+            symptoms: data.symptoms,
+            documentsCount: data.documents?.length || 0,
+            remarks: data.remarks
+        });
+    
         this.abortController = new AbortController();
         this.pendingRequests.add(this.abortController);
-        
+    
         try {
-            const response = await Promise.race([
-                fetch('https://physiocare-api.b00135522.workers.dev', {
-                    method: 'POST',
-                    signal: this.abortController.signal,
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        type: 'diagnosis', 
-                        data: {
-                            ...data,
-                            documents: data.documents?.map(doc => ({
-                                ...doc,
-                                fileData: doc.fileData.startsWith('data:') 
-                                    ? doc.fileData 
-                                    : `data:${doc.type};base64,${doc.fileData}`
-                            }))
-                        }
-                    })
-                }),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout de la requête')), 30000)
-                )
-            ]);
+            // Préparation des documents
+            const processedDocs = data.documents?.map(doc => {
+                console.log('Traitement document:', {
+                    name: doc.name,
+                    type: doc.type,
+                    size: doc.fileData.length
+                });
+    
+                return {
+                    id: doc.id,
+                    name: doc.name,
+                    type: doc.type,
+                    size: doc.size,
+                    fileData: `data:${doc.type};base64,${doc.fileData.split('base64,')[1]}`
+                };
+            }) || [];
+    
+            const payload = {
+                type: 'diagnosis',
+                data: {
+                    ...data,
+                    documents: processedDocs
+                }
+            };
+    
+            console.log('Envoi requête API avec payload:', {
+                type: payload.type,
+                dataKeys: Object.keys(payload.data),
+                documentsCount: payload.data.documents.length
+            });
+    
+            const response = await fetch('https://physiocare-api.b00135522.workers.dev', {
+                method: 'POST',
+                signal: this.abortController.signal,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
     
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('API Error Response:', errorText);
+                console.error('Erreur API détaillée:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorText
+                });
                 throw new Error(`Erreur API: ${response.status} - ${errorText}`);
             }
     
             const result = await response.json();
-            console.log('API Response:', result);
+            console.log('Réponse API reçue:', result);
             return result;
     
         } catch (error) {
-            console.error('API Request Error:', error);
-            if (error.name === 'AbortError') {
-                throw new Error('Requête annulée');
-            }
+            console.error('Erreur lors de l\'envoi:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             throw error;
         } finally {
             this.pendingRequests.delete(this.abortController);
         }
     }
-
     async handleResponse(response) {
         if (!response?.diagnoses?.length) {
             throw new Error('Réponse invalide');
