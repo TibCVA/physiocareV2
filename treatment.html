@@ -1,236 +1,168 @@
+<!-- treatment.html -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="viewport-fit=cover,width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
     <meta name="theme-color" content="#37A7C4">
     <title>PhysioCare - Plan de Traitement</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="js/patient-storage.js" defer></script>
+    <script src="js/patient-manager.js" defer></script>
     <style>
         :root {
-            --brand-light: #37A7C4;
-            --brand-medium: #2C89A0;
-            --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
-            
-            --elevation-1: 0 1px 3px rgba(30, 95, 110, 0.05), 0 1px 2px rgba(30, 95, 110, 0.1);
-            --elevation-2: 0 4px 6px rgba(30, 95, 110, 0.1), 0 2px 4px rgba(30, 95, 110, 0.06);
-            --elevation-3: 0 10px 20px rgba(30, 95, 110, 0.15), 0 3px 6px rgba(30, 95, 110, 0.1);
-            
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
+            --brand-light:#37A7C4;
+            --brand-medium:#2C89A0;
+            --brand-dark:#1E5F6E;
+            --pure-white:#FFFFFF;
+            --safe-top:env(safe-area-inset-top,47px);
+            --safe-bottom:env(safe-area-inset-bottom,34px);
         }
 
         body {
-            background: #F5F9FA;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
+            background:#F5F9FA;
+            font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+            -webkit-font-smoothing:antialiased;
         }
 
         .nav-blur {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: saturate(180%) blur(20px);
-            -webkit-backdrop-filter: saturate(180%) blur(20px);
-            border-bottom: 1px solid rgba(55, 167, 196, 0.1);
-        }
-
-        .nav-button {
-            padding: 8px 16px;
-            border-radius: 8px;
-            color: var(--brand-dark);
-            font-weight: 500;
-        }
-
-        .nav-button.primary {
-            color: var(--brand-light);
-            font-weight: 600;
-        }
-
-        .app-button {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            border-radius: 12px;
-            padding: 12px 24px;
-            color: white;
-            font-weight: 600;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: var(--elevation-2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .app-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-3);
-        }
-
-        .app-button:active {
-            transform: scale(0.98);
+            background:rgba(255,255,255,0.85);
+            backdrop-filter:saturate(180%) blur(20px);
+            border-bottom:1px solid rgba(55,167,196,0.1);
         }
 
         .form-section {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: var(--elevation-1);
-            border: 1px solid rgba(55, 167, 196, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background:white;
+            border-radius:20px;
+            padding:24px;
+            margin-bottom:16px;
+            box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
+            transition:transform 0.3s ease,box-shadow 0.3s ease;
         }
 
         .disclaimer-banner {
-            background: rgba(234, 179, 8, 0.1);
-            border: 1px solid rgba(234, 179, 8, 0.2);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
+            background:rgba(234,179,8,0.1);
+            border:1px solid rgba(234,179,8,0.2);
+            border-radius:12px;
+            padding:16px;
+            margin-bottom:24px;
         }
 
         .progress-bar {
-            height: 3px;
-            background: rgba(55, 167, 196, 0.1);
-            margin: 8px 0;
+            height:3px;
+            background:rgba(55,167,196,0.1);
+            margin:8px 0;
         }
 
         .progress-bar-fill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(to right, var(--brand-light), var(--brand-medium));
-            transition: width 0.3s ease;
+            height:100%;
+            width:100%;
+            background:linear-gradient(to right,var(--brand-light),var(--brand-medium));
+            transition:width 0.3s ease;
         }
 
         .download-button {
-            width: 100%;
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            border-radius: 12px;
-            padding: 16px 32px;
-            color: white;
-            font-weight: 600;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: var(--elevation-2);
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .download-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--elevation-3);
-        }
-
-        .download-button:active {
-            transform: scale(0.98);
-            box-shadow: var(--elevation-1);
+            width:100%;
+            background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
+            border-radius:12px;
+            padding:16px 32px;
+            color:white;
+            font-weight:600;
+            text-align:center;
+            cursor:pointer;
+            transition:all 0.3s ease;
         }
 
         .treatment-phase {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(55, 167, 196, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            transition: all 0.3s ease;
+            background:rgba(255,255,255,0.8);
+            border:1px solid rgba(55,167,196,0.2);
+            border-radius:12px;
+            padding:20px;
+            margin-bottom:16px;
+            transition:all 0.3s ease;
         }
 
         .phase-number {
-            width: 28px;
-            height: 28px;
-            aspect-ratio: 1 / 1; /* Assure que l'élément reste un cercle */
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            border-radius: 50%; /* Crée le cercle */
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
+            width:28px;
+            height:28px;
+            background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
+            border-radius:50%;
+            color:white;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:600;
+            font-size:14px;
         }
 
         .phase-header {
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            cursor:pointer;
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
         }
 
         .treatment-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            opacity: 0;
+            max-height:0;
+            overflow:hidden;
+            transition:max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity:0;
         }
 
         .treatment-phase.active .treatment-content {
-            max-height: 500px;
-            opacity: 1;
-            margin-top: 16px;
+            max-height:500px;
+            opacity:1;
+            margin-top:16px;
         }
 
         .phase-toggle {
-            transition: transform 0.3s ease;
+            transition:transform 0.3s ease;
         }
 
         .treatment-phase.active .phase-toggle {
-            transform: rotate(180deg);
+            transform:rotate(180deg);
         }
 
         .exercise-item {
-            border-left: 3px solid var(--brand-light);
-            padding: 12px 16px;
-            margin: 12px 0;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 0 8px 8px 0;
+            border-left:3px solid var(--brand-light);
+            padding:12px 16px;
+            margin:12px 0;
+            background:rgba(255,255,255,0.5);
+            border-radius:0 8px 8px 0;
         }
 
         @media (prefers-color-scheme: dark) {
             body {
-                background: #0A1214;
-                color: white;
+                background:#0A1214;
+                color:white;
             }
 
             .nav-blur {
-                background: rgba(10, 18, 20, 0.85);
-                border-bottom-color: rgba(55, 167, 196, 0.2);
+                background:rgba(10,18,20,0.85);
             }
 
             .form-section {
-                background: rgba(255, 255, 255, 0.05);
-                border-color: rgba(55, 167, 196, 0.2);
+                background:rgba(255,255,255,0.05);
+                border-color:rgba(55,167,196,0.2);
             }
 
             .treatment-phase {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: rgba(55, 167, 196, 0.3);
+                background:rgba(255,255,255,0.1);
+                border-color:rgba(55,167,196,0.3);
             }
 
             .treatment-phase.active {
-                background: rgba(55, 167, 196, 0.15);
+                background:rgba(55,167,196,0.15);
             }
 
             .exercise-item {
-                background: rgba(255, 255, 255, 0.05);
+                background:rgba(255,255,255,0.05);
             }
 
             .disclaimer-banner {
-                background: rgba(234, 179, 8, 0.1);
+                background:rgba(234,179,8,0.1);
             }
-
-            .phase-number {
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-            }
-        
-            @media (max-width: 767px) {
-                .phase-number {
-                    width: 32px;
-                    height: 32px;
-                    font-size: 16px;
-                }
-            }
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -239,7 +171,8 @@
             <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
                 <a href="diagnosis.html" class="nav-button flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 19l-7-7 7-7"/>
                     </svg>
                     Retour
                 </a>
@@ -253,7 +186,7 @@
     </nav>
 
     <main class="pt-[calc(84px+var(--safe-top))] pb-[calc(20px+var(--safe-bottom))] px-6">
-        <div class="max-w-xl mx-auto space-y-6">
+        <div class="max-w-xl mx-auto space-y-6" id="mainContent">
             <!-- Message initial -->
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
@@ -266,374 +199,168 @@
                     Retour au diagnostic
                 </a>
             </div>
+        </div>
+    </main>
 
-                <!-- Résumé -->
-                <div class="form-section">
-                    <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
-                        Plan de traitement
+    <script>
+        document.addEventListener('DOMContentLoaded',async()=>{
+            window.patientManager=window.patientManager||new PatientManager();
+            const pManager=window.patientManager;
+            const patientData=pManager.loadPatientData();
+
+            window.treatmentManager=new TreatmentManager();
+
+            const mainContent=document.getElementById('mainContent');
+            const initialMessage=document.getElementById('initialMessage');
+
+            // Vérif si un diagnostic est présent
+            if(patientData.diagnosis && patientData.diagnosis.length>0) {
+                initialMessage.classList.add('hidden');
+                const loadingDiv=document.createElement('div');
+                loadingDiv.className='form-section text-center';
+                loadingDiv.innerHTML=`
+                    <div class="loading-ring mx-auto mb-4"></div>
+                    <p class="text-[var(--brand-dark)]">Génération du plan de traitement...</p>
+                `;
+                mainContent.appendChild(loadingDiv);
+
+                try {
+                    const data=await gatherPatientData();
+                    const result=await treatmentManager.getTreatment(data);
+                    mainContent.removeChild(loadingDiv);
+                    displayTreatment(result);
+                } catch(e){
+                    console.error(e);
+                    loadingDiv.innerHTML='<p class="text-red-500">Erreur lors de la génération du traitement</p>';
+                }
+
+            } else {
+                // Pas de diagnostic
+                // initialMessage affiche déjà un message
+            }
+
+            function displayTreatment(result) {
+                updateTreatmentData(result);
+                mainContent.innerHTML='';
+
+                const disclaimer=document.createElement('div');
+                disclaimer.className='disclaimer-banner';
+                disclaimer.innerHTML=`
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667
+                                  1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34
+                                  16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <p class="text-sm text-yellow-600">
+                            Ce plan de traitement est généré automatiquement et doit être validé par un professionnel de santé qualifié avant application.
+                        </p>
+                    </div>
+                `;
+                mainContent.appendChild(disclaimer);
+
+                const plan=result.treatmentPlan;
+                const summarySection=document.createElement('div');
+                summarySection.className='form-section';
+                summarySection.innerHTML=`
+                    <h2 class="text-xl font-bold text-[var(--brand-dark)] mb-4">Plan de traitement</h2>
+                    <div class="space-y-2 mb-6">
+                        <p>${plan.summary||'Plan personnalisé'}</p>
+                    </div>
+                    <button class="download-button" id="downloadButton">Télécharger le protocole détaillé (PDF)</button>
+                `;
+                mainContent.appendChild(summarySection);
+
+                const protocolSection=document.createElement('div');
+                protocolSection.className='form-section';
+                protocolSection.innerHTML=`
+                    <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
+                        Protocole de rééducation
                     </h2>
-                     
-                <div class="hidden" id="treatmentContent">
-                    <!-- Disclaimer -->
-                    <div class="disclaimer-banner">
-                        <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                `;
+                const phasesContainer=document.createElement('div');
+                plan.phases.forEach((phase,idx)=>{
+                    const phaseDiv=document.createElement('div');
+                    phaseDiv.className='treatment-phase';
+                    phaseDiv.innerHTML=`
+                        <div class="phase-header">
+                            <div class="flex items-start gap-4">
+                                <div class="phase-number">${idx+1}</div>
+                                <div>
+                                    <h3 class="font-semibold">${phase.name||'Phase'}</h3>
+                                    <p class="text-sm opacity-70">${phase.goals||''}</p>
+                                </div>
+                            </div>
+                            <svg class="w-6 h-6 phase-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
-                            <p class="text-sm text-yellow-600">
-                                Ce plan de traitement est généré automatiquement et doit être validé par un professionnel de santé qualifié avant toute mise en application.
-                            </p>
                         </div>
-                    </div>
-            
-                    <!-- Résumé -->
-                    <div class="form-section">
-                        <h2 class="text-xl font-bold text-[var(--brand-dark)] mb-4">
-                            Plan de traitement
-                        </h2>
-                        <div class="space-y-2 mb-6">
-                            <p><strong>Diagnostic :</strong> Tendinopathie de la coiffe des rotateurs</p>
-                            <p><strong>Durée estimée :</strong> 6-8 semaines</p>
-                            <p><strong>Fréquence :</strong> 3 séances par semaine</p>
+                        <div class="treatment-content">
+                            ${phase.exercises?(phase.exercises.map(ex=>`
+                                <div class="exercise-item">
+                                    <h4 class="font-medium mb-1">${ex.exercise||'Exercice'}</h4>
+                                    <p class="text-sm opacity-70">${ex.description||''}</p>
+                                    <p class="text-sm opacity-70 mt-1">${ex.frequency||''}</p>
+                                </div>
+                            `).join('')):''}
                         </div>
-                        <button class="download-button">
-                            Télécharger le protocole détaillé (PDF)
-                        </button>
-                    </div>
-            
-                    <!-- Phases de traitement -->
-                    <div class="form-section">
-                        <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
-                            Protocole de rééducation
-                        </h2>
-                        
-                        <!-- Phase 1 -->
-                        <div class="treatment-phase">
-                            <div class="phase-header">
-                                <div class="flex items-start gap-4">
-                                    <div class="phase-number">1</div>
-                                    <div>
-                                        <h3 class="font-semibold">Phase aigüe (Semaines 1-2)</h3>
-                                        <p class="text-sm opacity-70">Diminution de la douleur et de l'inflammation</p>
-                                    </div>
-                                </div>
-                                <svg class="w-6 h-6 phase-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
-                            <div class="treatment-content">
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Cryothérapie</h4>
-                                    <p class="text-sm opacity-70">3x par jour, 15 minutes</p>
-                                </div>
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Mobilisation passive</h4>
-                                    <p class="text-sm opacity-70">Amplitudes indolores</p>
-                                </div>
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Protection articulaire</h4>
-                                    <p class="text-sm opacity-70">Éviter les mouvements douloureux</p>
-                                </div>
-                            </div>
-                        </div>
-            
-                        <!-- Phase 2 -->
-                        <div class="treatment-phase">
-                            <div class="phase-header">
-                                <div class="flex items-start gap-4">
-                                    <div class="phase-number">2</div>
-                                    <div>
-                                        <h3 class="font-semibold">Phase de récupération (Semaines 3-4)</h3>
-                                        <p class="text-sm opacity-70">Récupération des amplitudes et début du renforcement</p>
-                                    </div>
-                                </div>
-                                <svg class="w-6 h-6 phase-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
-                            <div class="treatment-content">
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Exercices isométriques</h4>
-                                    <p class="text-sm opacity-70">Progression selon tolérance</p>
-                                </div>
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Exercices pendulaires</h4>
-                                    <p class="text-sm opacity-70">3x par jour, 5 minutes</p>
-                                </div>
-                            </div>
-                        </div>
-            
-                        <!-- Phase 3 -->
-                        <div class="treatment-phase">
-                            <div class="phase-header">
-                                <div class="flex items-start gap-4">
-                                    <div class="phase-number">3</div>
-                                    <div>
-                                        <h3 class="font-semibold">Phase de renforcement (Semaines 5-8)</h3>
-                                        <p class="text-sm opacity-70">Renforcement musculaire et reprise d'activité</p>
-                                    </div>
-                                </div>
-                                <svg class="w-6 h-6 phase-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
-                            <div class="treatment-content">
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Exercices avec bande élastique</h4>
-                                    <p class="text-sm opacity-70">3 séries de 15 répétitions</p>
-                                </div>
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Exercices proprioceptifs</h4>
-                                    <p class="text-sm opacity-70">Progression en charge</p>
-                                </div>
-                                <div class="exercise-item">
-                                    <h4 class="font-medium mb-1">Renforcement scapulaire</h4>
-                                    <p class="text-sm opacity-70">Stabilisation et contrôle</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-            
-                    <!-- Recommandations -->
-                    <div class="form-section">
-                        <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
-                            Recommandations complémentaires
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="font-medium mb-2">Activités à éviter</h3>
-                                <p class="text-sm opacity-70">
-                                    Mouvements au-dessus de la tête, port de charges lourdes, sports de contact pendant la phase initiale.
-                                </p>
-                            </div>
-                            <div>
-                                <h3 class="font-medium mb-2">Hygiène de vie</h3>
-                                <p class="text-sm opacity-70">
-                                    Maintenir une bonne posture, éviter les positions prolongées, respecter les temps de repos.
-                                </p>
-                            </div>
-                            <div>
-                                <h3 class="font-medium mb-2">Suivi</h3>
-                                <p class="text-sm opacity-70">
-                                    Évaluation hebdomadaire de la progression, ajustement du protocole si nécessaire.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    `;
+                    phasesContainer.appendChild(phaseDiv);
 
-                <!-- Recommandations -->
-                <div class="form-section">
+                    const header=phaseDiv.querySelector('.phase-header');
+                    header.addEventListener('click',()=>{
+                        phaseDiv.classList.toggle('active');
+                        saveCurrentData();
+                    });
+                });
+                protocolSection.appendChild(phasesContainer);
+                mainContent.appendChild(protocolSection);
+
+                const recSection=document.createElement('div');
+                recSection.className='form-section';
+                recSection.innerHTML=`
                     <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
                         Recommandations complémentaires
                     </h2>
                     <div class="space-y-4">
-                        <div>
-                            <h3 class="font-medium mb-2">Activités à éviter</h3>
-                            <p class="text-sm opacity-70">
-                                Mouvements au-dessus de la tête, port de charges lourdes, sports de contact pendant la phase initiale.
-                            </p>
-                        </div>
-                        <div>
-                            <h3 class="font-medium mb-2">Hygiène de vie</h3>
-                            <p class="text-sm opacity-70">
-                                Maintenir une bonne posture, éviter les positions prolongées, respecter les temps de repos.
-                            </p>
-                        </div>
-                        <div>
-                            <h3 class="font-medium mb-2">Suivi</h3>
-                            <p class="text-sm opacity-70">
-                                Évaluation hebdomadaire de la progression, ajustement du protocole si nécessaire.
-                            </p>
-                        </div>
+                        ${plan.recommendations?(plan.recommendations.map(r=>`
+                            <div>
+                                <h3 class="font-medium mb-2">${r.title||''}</h3>
+                                <p class="text-sm opacity-70">${r.content||''}</p>
+                            </div>
+                        `).join('')):''}
                     </div>
-                </div>
-            </div>
-        </div>
-    </main>
+                `;
+                mainContent.appendChild(recSection);
 
-   <script>
-    // Utilitaires de stockage
-    const Storage = {
-        save: function(key, data) {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-                console.log(`Données sauvegardées (${key}):`, data);
-            } catch (e) {
-                console.error('Error saving data:', e);
-            }
-        },
-        
-        load: function(key) {
-            try {
-                const item = localStorage.getItem(key);
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                console.error('Error loading data:', e);
-                return null;
-            }
-        }
-    };
-    
-    // Gestion des phases de traitement
-    document.querySelectorAll('.treatment-phase').forEach(phase => {
-        const header = phase.querySelector('.phase-header');
-        header.addEventListener('click', () => {
-            phase.classList.toggle('active');
-            saveCurrentData();
-        });
-    });
-    
-    // Gestion du bouton de téléchargement
-    const downloadButton = document.querySelector('.download-button');
-    if (downloadButton) {
-        downloadButton.addEventListener('click', async () => {
-            try {
-                downloadButton.style.transform = 'scale(0.98)';
-                await generateAndDownloadPDF();
-                setTimeout(() => {
-                    downloadButton.style.transform = 'scale(1)';
-                }, 100);
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert('Erreur lors de la génération du PDF');
-            }
-        });
-    }
-    
-    // Initialisation
-    document.addEventListener('DOMContentLoaded', function() {
-        const diagnosisData = Storage.load('patient_diagnosis');
-        console.log("Données du diagnostic chargées:", diagnosisData);
-    
-        if (diagnosisData?.diagnoses?.length > 0) {
-            document.getElementById('initialMessage').classList.add('hidden');
-            document.getElementById('treatmentContent').classList.remove('hidden');
-            updateDiagnosisDisplay(diagnosisData.diagnoses[0]);
-        }
-        
-        loadSavedData();
-        setupAdditionalListeners();
-        checkSavedData('patient_treatment');
-    });
-    
-    // Vérification des données sauvegardées
-    function checkSavedData(key) {
-        const saved = Storage.load(key);
-        console.log(`Données chargées (${key}):`, saved);
-    }
-    
-    // Mise à jour de l'affichage du diagnostic
-    function updateDiagnosisDisplay(diagnosis) {
-        console.log("Mise à jour de l'affichage du diagnostic:", diagnosis);
-        const diagnosisElement = document.querySelector('[data-diagnosis]');
-        if (diagnosisElement && diagnosis) {
-            diagnosisElement.textContent = diagnosis.name;
-        }
-    }
-    
-    // Chargement des données sauvegardées
-    function loadSavedData() {
-        const savedData = Storage.load('patient_treatment');
-        console.log("Chargement du traitement:", savedData);
-    
-        if (savedData) {
-            // Restaurer l'état des phases
-            if (savedData.activePhases) {
-                savedData.activePhases.forEach(phaseIndex => {
-                    const phase = document.querySelectorAll('.treatment-phase')[phaseIndex];
-                    if (phase) {
-                        phase.classList.add('active');
-                    }
+                const downloadButton=document.getElementById('downloadButton');
+                downloadButton.addEventListener('click',()=>{
+                    // Simulation téléchargement
+                    downloadButton.textContent='Téléchargement terminé !';
+                    setTimeout(()=>{downloadButton.textContent='Télécharger le protocole détaillé (PDF)';},2000);
                 });
             }
-    
-            // Restaurer les autres états si nécessaire
-            if (savedData.sectionsState) {
-                if (savedData.sectionsState.planVisible) {
-                    document.getElementById('treatmentContent')?.classList.remove('hidden');
-                }
-                if (savedData.sectionsState.initialMessageVisible) {
-                    document.getElementById('initialMessage')?.classList.remove('hidden');
-                }
+
+            function saveCurrentData() {
+                // Sauvegarde l'état actuel (phases dépliées)
+                const phases=document.querySelectorAll('.treatment-phase');
+                const activePhases=[];
+                phases.forEach((p,i)=>{
+                    if(p.classList.contains('active')) activePhases.push(i);
+                });
+
+                const newData={...patientData};
+                newData.treatment=newData.treatment||{};
+                newData.treatment.activePhases=activePhases;
+                pManager.savePatientData(newData);
             }
-        }
-    }
-    
-    // Configuration des écouteurs supplémentaires
-    function setupAdditionalListeners() {
-        // Navigation
-        const prevButton = document.querySelector('a[href="diagnosis.html"]');
-        const nextButton = document.querySelector('a[href="index.html"]');
-    
-        if (prevButton) {
-            prevButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    
-        if (nextButton) {
-            nextButton.addEventListener('click', function() {
-                saveCurrentData();
-            });
-        }
-    }
-    
-    // Génération et téléchargement du PDF
-    async function generateAndDownloadPDF() {
-        try {
-            // Récupérer toutes les données patient
-            const patientData = {
-                personalInfo: Storage.load('patient_personal_info'),
-                physicalActivity: Storage.load('patient_physical_activity'),
-                symptoms: Storage.load('patient_symptoms'),
-                diagnosis: Storage.load('patient_diagnosis'),
-                treatment: Storage.load('patient_treatment')
-            };
-    
-            console.log("Données pour le PDF:", patientData);
-    
-            // Simuler la génération du PDF pour le moment
-            downloadButton.textContent = 'Téléchargement terminé !';
-            setTimeout(() => {
-                downloadButton.textContent = 'Télécharger le protocole détaillé (PDF)';
-            }, 2000);
-    
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            throw error;
-        }
-    }
-    
-    // Sauvegarde des données
-    function saveCurrentData() {
-        const data = {
-            activePhases: Array.from(document.querySelectorAll('.treatment-phase')).map(
-                (phase, index) => phase.classList.contains('active') ? index : null
-            ).filter(index => index !== null),
-            
-            sectionsState: {
-                planVisible: !document.getElementById('treatmentContent')?.classList.contains('hidden'),
-                initialMessageVisible: !document.getElementById('initialMessage')?.classList.contains('hidden')
-            },
-    
-            lastUpdated: new Date().toISOString()
-        };
-    
-        console.log("Sauvegarde du traitement:", data);
-        Storage.save('patient_treatment', data);
-    }
-    
-    // Vérification de la navigation depuis le diagnostic
-    const comingFromDiagnosis = document.referrer.includes('diagnosis.html') || 
-                              Storage.load('patient_diagnosis')?.diagnoses?.length > 0;
-    
-    if (comingFromDiagnosis) {
-        document.getElementById('initialMessage')?.classList.add('hidden');
-        document.getElementById('treatmentContent')?.classList.remove('hidden');
-    }
+
+            const comingFromDiagnosis= (patientData.diagnosis && patientData.diagnosis.length>0);
+            if(comingFromDiagnosis) {
+                // déjà géré plus haut
+            }
+        });
     </script>
 </body>
 </html>
