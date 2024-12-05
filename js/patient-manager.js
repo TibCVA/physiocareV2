@@ -378,12 +378,33 @@ class DiagnosticManager {
     }
     
     async handleResponse(response) {
-        if (!response?.diagnoses?.length) {
-            throw new Error('Réponse invalide');
+        try {
+            if (!response?.diagnostics?.length) {
+                throw new Error('Réponse invalide: pas de diagnostic');
+            }
+    
+            // Mise à jour du DOM
+            this.elements.loadingSection.classList.add('hidden');
+            this.elements.diagnosticResults.innerHTML = '';
+    
+            // Afficher les diagnostics
+            response.diagnostics.forEach(diagnostic => {
+                const element = this.createDiagnosticElement(diagnostic);
+                this.elements.diagnosticResults.appendChild(element);
+            });
+    
+            // Afficher les sections de résultats et validation
+            this.elements.resultsSection.classList.remove('hidden');
+            document.getElementById('validationSection').classList.remove('hidden');
+    
+            // Sauvegarder les résultats
+            await this.saveResults(response);
+            console.log('Résultats affichés et sauvegardés');
+    
+        } catch (error) {
+            console.error('Erreur traitement réponse:', error);
+            this.showError(error.message);
         }
-
-        await this.saveResults(response);
-        this.displayResults(response.diagnoses);
     }
 
     displayResults(diagnoses) {
