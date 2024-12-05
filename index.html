@@ -1,75 +1,63 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#37A7C4" />
-    <title>PhysioCare</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
-    <style>
-        :root {
-            --brand-light: #37A7C4;
-            --brand-medium: #2C89A0;
-            --brand-dark: #1E5F6E;
-            --pure-white: #FFFFFF;
-            --safe-top: env(safe-area-inset-top, 47px);
-            --safe-bottom: env(safe-area-inset-bottom, 34px);
-        }
-
-        body {
-            background: #F5F9FA;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .app-button {
-            background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
-            border-radius: 12px;
-            padding: 12px 24px;
-            color: white;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .app-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0,0,0,0.1);
-        }
-
-        .app-button:active {
-            transform: scale(0.98);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #0A1214;
-                color: white;
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#37A7C4" />
+<title>PhysioCare</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+<style>
+:root {
+ --brand-light:#37A7C4;
+ --brand-medium:#2C89A0;
+ --brand-dark:#1E5F6E;
+ --pure-white:#FFFFFF;
+ --safe-top:env(safe-area-inset-top,47px);
+ --safe-bottom:env(safe-area-inset-bottom,34px);
+}
+body{
+ background:#F5F9FA;
+ font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+ -webkit-font-smoothing:antialiased;
+}
+.app-button {
+ background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
+ border-radius:12px;
+ padding:12px 24px;
+ color:white;
+ font-weight:600;
+ transition:all 0.3s ease;
+ box-shadow:0 4px 6px rgba(0,0,0,0.1);
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+}
+.app-button:hover {
+ transform:translateY(-2px);
+ box-shadow:0 6px 8px rgba(0,0,0,0.1);
+}
+.app-button:active {
+ transform:scale(0.98);
+}
+</style>
 </head>
 <body>
-    <main class="pt-[calc(44px+var(--safe-top))] px-6 min-h-screen flex flex-col items-center justify-center text-center">
-        <img src="assets/img/Logo.png" alt="PhysioCare Logo" class="w-32 mx-auto mb-8" />
-        <h1 class="text-4xl font-bold text-[var(--brand-dark)] mb-6 leading-tight">
-            L'excellence en kinésithérapie
-        </h1>
-        <p class="text-lg text-[var(--brand-dark)] opacity-80 max-w-xl mx-auto mb-8">
-            Optimisez votre pratique avec une analyse précise et des protocoles personnalisés par une IA entraînée sur l'état de l'art en kinésithérapie.
-        </p>
-        <a href="patient-info.html" class="app-button text-lg">
-            Commencer
-        </a>
-    </main>
-
-    <footer class="text-center pb-[calc(20px+var(--safe-bottom))] mt-8">
-        <p class="text-[var(--brand-dark)] opacity-60 text-sm">
-            © 2024 Thibaut Lacour - PhysioCare
-        </p>
-    </footer>
+<main class="pt-[calc(44px+var(--safe-top))] px-6 min-h-screen flex flex-col items-center justify-center text-center">
+<img src="assets/img/Logo.png" alt="PhysioCare Logo" class="w-32 mx-auto mb-8" />
+<h1 class="text-4xl font-bold text-[var(--brand-dark)] mb-6 leading-tight">
+ L'excellence en kinésithérapie
+</h1>
+<p class="text-lg text-[var(--brand-dark)] opacity-80 max-w-xl mx-auto mb-8">
+ Optimisez votre pratique avec une analyse précise et des protocoles personnalisés par une IA entraînée.
+</p>
+<a href="patient-info.html" class="app-button text-lg">
+ Commencer
+</a>
+</main>
+<footer class="text-center pb-[calc(20px+var(--safe-bottom))] mt-8">
+<p class="text-[var(--brand-dark)] opacity-60 text-sm">
+© 2024 Thibaut Lacour - PhysioCare
+</p>
+</footer>
 </body>
 </html>
