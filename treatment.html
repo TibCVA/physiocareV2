@@ -182,7 +182,6 @@
 
     <main class="px-6">
         <div class="max-w-xl mx-auto space-y-6" id="mainContent">
-            <!-- Le code pour l’affichage du traitement sera injecté depuis patient-manager.js une fois le diagnostic fait -->
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
                     Plan de traitement
@@ -203,18 +202,21 @@
         const pManager=window.patientManager;
         const patientData=pManager.loadPatientData();
 
+        // Vérifier si le diagnostic est disponible
+        // Le diagnostic est sauvegardé via updateDiagnosisData(result) dans diagnosis.html
+        // Assurez-vous que cette fonction est bien appelée dans diagnosis.html après analyse.
         window.treatmentManager=new TreatmentManager();
 
         const mainContent=document.getElementById('mainContent');
         const initialMessage=document.getElementById('initialMessage');
 
-        const comingFromDiagnosis=(patientData.diagnosis && patientData.diagnosis.length>0);
-        if(comingFromDiagnosis) {
+        const hasDiagnosis = (patientData.diagnosis && patientData.diagnosis.length>0);
+        if(hasDiagnosis) {
             initialMessage.classList.add('hidden');
             const loadingDiv=document.createElement('div');
             loadingDiv.className='form-section text-center';
             loadingDiv.innerHTML=`
-                <div class="loading-ring mx-auto mb-4 border-[var(--brand-light)]"></div>
+                <div class="loading-ring mx-auto mb-4"></div>
                 <p class="text-[var(--brand-dark)]">Génération du plan de traitement...</p>
             `;
             mainContent.appendChild(loadingDiv);
@@ -239,7 +241,7 @@
             disclaimer.innerHTML=`
                 <div class="flex items-start gap-3">
                     <svg class="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0
                               2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34
                               16c-.77 1.333.192 3 1.732 3z"/>
@@ -275,7 +277,7 @@
                 </h2>
             `;
             const phasesContainer=document.createElement('div');
-            plan.phases.forEach((phase,idx)=>{
+            (plan.phases||[]).forEach((phase,idx)=>{
                 const phaseDiv=document.createElement('div');
                 phaseDiv.className='treatment-phase';
                 phaseDiv.innerHTML=`
@@ -293,13 +295,13 @@
                         </svg>
                     </div>
                     <div class="treatment-content">
-                        ${phase.exercises?(phase.exercises.map(ex=>`
+                        ${(phase.exercises||[]).map(ex=>`
                             <div class="exercise-item">
                                 <h4 class="font-medium mb-1">${ex.exercise||'Exercice'}</h4>
                                 <p class="text-sm opacity-70">${ex.description||''}</p>
                                 <p class="text-sm opacity-70 mt-1">${ex.frequency||''}</p>
                             </div>
-                        `).join('')):''}
+                        `).join('')}
                     </div>
                 `;
                 phasesContainer.appendChild(phaseDiv);
@@ -320,12 +322,12 @@
                     Recommandations complémentaires
                 </h2>
                 <div class="space-y-4">
-                    ${plan.recommendations?(plan.recommendations.map(r=>`
+                    ${(plan.recommendations||[]).map(r=>`
                         <div>
                             <h3 class="font-medium mb-2">${r.title||''}</h3>
                             <p class="text-sm opacity-70">${r.content||''}</p>
                         </div>
-                    `).join('')):''}
+                    `).join('')}
                 </div>
             `;
             mainContent.appendChild(recSection);
