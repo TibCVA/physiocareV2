@@ -177,7 +177,7 @@
             const remarks=document.getElementById('remarks');
             const nextButton=document.getElementById('nextButton');
 
-            // On utilise diagnosisRemarks
+            // Remplir les remarques de diagnostic si déjà existantes
             remarks.value=patientData.diagnosisRemarks||'';
 
             startAnalysis.addEventListener('click',async()=>{
@@ -217,6 +217,7 @@
                     return;
                 }
 
+                // Affichage des diagnostics
                 result.diagnostics.forEach(d=>{
                     const div=document.createElement('div');
                     div.className='diagnostic-item';
@@ -228,7 +229,10 @@
                     container.appendChild(div);
                 });
 
+                // Sauvegarder le diagnostic dans le localStorage
                 updateDiagnosisData(result);
+
+                // Une fois le diagnostic sauvegardé, afficher le bouton Suivant
                 nextButton.style.display='inline-block';
             }
 
