@@ -199,14 +199,14 @@
         const pManager=window.patientManager;
         const patientData=pManager.loadPatientData();
 
-        // On attend que DocumentManager soit défini par patient-manager.js
-        window.documentManager=new DocumentManager();
+        // On recrée le documentManager après le DOMContentLoaded
+        window.documentManager=new DocumentManager(); 
 
         const notes=document.getElementById('notes');
+        const nextButton=document.getElementById('nextButton');
         notes.value=patientData.remarks||'';
         notes.addEventListener('input',saveData);
 
-        const nextButton=document.getElementById('nextButton');
         nextButton.addEventListener('click',()=>{
             saveData();
             window.location.href='diagnosis.html';
