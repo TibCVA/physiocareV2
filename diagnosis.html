@@ -192,7 +192,7 @@
         document.addEventListener('DOMContentLoaded',async()=>{
             window.patientManager=window.patientManager||new PatientManager();
             const pManager=window.patientManager;
-            const patientData=pManager.loadPatientData();
+            let patientData=pManager.loadPatientData();
 
             window.diagnosticManager=new DiagnosticManager();
 
@@ -207,7 +207,7 @@
             const confirmDiagnosisBtn=document.getElementById('confirmDiagnosisBtn');
             const retryDiagnosisBtn=document.getElementById('retryDiagnosisBtn');
 
-            // Charger remarques diagnostic
+            // Charger les remarques du diagnostic existantes, s'il y en a
             remarks.value=patientData.diagnosisRemarks||'';
 
             startAnalysis.addEventListener('click',async()=>{
@@ -247,6 +247,7 @@
                     return;
                 }
 
+                // Affiche les diagnostics
                 result.diagnostics.forEach(d=>{
                     const div=document.createElement('div');
                     div.className='diagnostic-item';
@@ -258,22 +259,29 @@
                     container.appendChild(div);
                 });
 
+                // Sauvegarder le diagnostic
                 updateDiagnosisData(result);
 
-                // Afficher les boutons de validation
+                // Recharger patientData pour s'assurer que le diagnostic est bien sauvegardé
+                patientData=pManager.loadPatientData();
+
+                // Afficher la section de validation
                 validationSection.classList.remove('hidden');
             }
 
             confirmDiagnosisBtn.addEventListener('click',()=>{
-                // Le diagnostic est déjà sauvegardé par updateDiagnosisData
-                // On peut maintenant passer à la page Treatment
+                // Diagnostic déjà sauvegardé dans updateDiagnosisData
+                // On peut maintenant passer à la page traitement
                 nextButton.style.display='inline-block';
             });
 
             retryDiagnosisBtn.addEventListener('click',()=>{
-                // Permettre de relancer l'analyse : on cache results, on affiche remarks
+                // Ne pas effacer le diagnostic, l'utilisateur veut juste refaire l'analyse
+                // La prochaine analyse écrasera l'ancien diagnostic
                 resultsSection.classList.add('hidden');
                 remarksSection.classList.remove('hidden');
+                errorMessage.style.display='none';
+                validationSection.classList.add('hidden');
                 nextButton.style.display='none';
             });
 
