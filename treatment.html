@@ -202,15 +202,16 @@
         const pManager=window.patientManager;
         const patientData=pManager.loadPatientData();
 
-        // Vérifier si le diagnostic est disponible
-        // Le diagnostic est sauvegardé via updateDiagnosisData(result) dans diagnosis.html
-        // Assurez-vous que cette fonction est bien appelée dans diagnosis.html après analyse.
+        console.log("[DEBUG] treatment.html - patientData:", patientData);
+
         window.treatmentManager=new TreatmentManager();
 
         const mainContent=document.getElementById('mainContent');
         const initialMessage=document.getElementById('initialMessage');
 
         const hasDiagnosis = (patientData.diagnosis && patientData.diagnosis.length>0);
+        console.log("[DEBUG] treatment.html - hasDiagnosis:", hasDiagnosis, "diagnosis:", patientData.diagnosis);
+
         if(hasDiagnosis) {
             initialMessage.classList.add('hidden');
             const loadingDiv=document.createElement('div');
@@ -223,17 +224,23 @@
 
             try {
                 const data=await gatherPatientData();
+                console.log("[DEBUG] treatment.html - Data envoyées au traitement:", data);
                 const result=await treatmentManager.getTreatment(data);
+                console.log("[DEBUG] treatment.html - Resultat traitement:", result);
                 mainContent.removeChild(loadingDiv);
                 displayTreatment(result);
             } catch(e) {
-                console.error(e);
+                console.error("[DEBUG] treatment.html - Erreur getTreatment:", e);
                 loadingDiv.innerHTML='<p class="text-red-500">Erreur lors de la génération du traitement</p>';
             }
+        } else {
+            console.log("[DEBUG] treatment.html - Pas de diagnostic, on reste sur le message initial.");
         }
 
         function displayTreatment(result) {
             updateTreatmentData(result);
+            console.log("[DEBUG] treatment.html - Treatment mis à jour, patientData:", pManager.loadPatientData());
+
             mainContent.innerHTML='';
 
             const disclaimer=document.createElement('div');
@@ -253,7 +260,7 @@
             `;
             mainContent.appendChild(disclaimer);
 
-            const plan=result.treatmentPlan;
+            const plan=result.treatmentPlan||{};
             const summarySection=document.createElement('div');
             summarySection.className='form-section';
             summarySection.innerHTML=`
@@ -346,6 +353,7 @@
             data.treatment=data.treatment||{};
             data.treatment.activePhases=activePhases;
             pManager.savePatientData(data);
+            console.log("[DEBUG] treatment.html - Données sauvegardées après expansion de phases:", data);
         }
     });
     </script>
