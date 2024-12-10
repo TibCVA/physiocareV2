@@ -22,7 +22,7 @@
             background:#F5F9FA;
             font-family:-apple-system,BlinkMacSystemFont,sans-serif;
             -webkit-font-smoothing:antialiased;
-            padding-top:calc(120px+var(--safe-top));
+            padding-top:calc(200px+var(--safe-top));
             padding-bottom:calc(20px+var(--safe-bottom));
         }
 
@@ -127,28 +127,7 @@
             font-weight:600;
         }
 
-        @media (prefers-color-scheme: dark) {
-            body {
-                background:#0A1214;color:white;
-            }
-
-            .nav-blur {
-                background:rgba(10,18,20,0.85);
-            }
-
-            .form-section {
-                background:rgba(255,255,255,0.05);
-            }
-
-            .document-item {
-                background:rgba(255,255,255,0.1);
-            }
-
-            .ios-input {
-                background:rgba(255,255,255,0.1);
-                color:white;
-            }
-        }
+        /* Mode nuit supprimé */
     </style>
 </head>
 <body class="min-h-screen">
@@ -171,7 +150,7 @@
         </div>
     </nav>
 
-    <main class="pt-[calc(120px+var(--safe-top))] px-6">
+    <main class="pt-[calc(200px+var(--safe-top))] px-6">
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
@@ -200,7 +179,6 @@
         const pManager=window.patientManager;
         const patientData=pManager.loadPatientData();
 
-        // DocumentManager est déjà instancié dans le code original
         window.documentManager=new DocumentManager(); 
 
         const notes=document.getElementById('notes');
