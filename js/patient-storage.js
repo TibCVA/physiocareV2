@@ -28,6 +28,12 @@ const PatientStorageManager = {
 
     async saveDocuments(documents) {
         try {
+            // Récupérer l'id du patient courant
+            const pid = window.patientManager?.currentPatientId;
+            if(!pid) {
+                throw new Error("Aucun patient sélectionné.");
+            }
+
             // Filtrer les documents valides
             const validDocs = documents.filter(doc => this.validateDocument(doc));
 
@@ -45,15 +51,27 @@ const PatientStorageManager = {
             const transaction = db.transaction('documents', 'readwrite');
             const store = transaction.objectStore('documents');
 
-            // On efface les documents existants avant d'ajouter les nouveaux
-            await new Promise((res, rej) => {
-                const clearReq = store.clear();
-                clearReq.onsuccess = () => res();
-                clearReq.onerror = () => rej(new Error('Erreur lors de la réinitialisation des documents'));
+            // Charger tous les documents et supprimer ceux du patient courant
+            const allDocs = await new Promise((res, rej) => {
+                const req = store.getAll();
+                req.onsuccess = () => res(req.result||[]);
+                req.onerror = () => rej(new Error('Erreur lecture documents'));
             });
 
-            // Ajouter les documents valides (s'il y en a)
+            // Supprimer les docs du patient courant
+            for(const d of allDocs) {
+                if(d.id.startsWith(pid+'_')) {
+                    await new Promise((res, rej) => {
+                        const delReq = store.delete(d.id);
+                        delReq.onsuccess=()=>res();
+                        delReq.onerror=()=>rej(new Error('Erreur suppression doc patient'));
+                    });
+                }
+            }
+
+            // Ajouter les nouveaux documents avec id préfixé par pid
             for (const doc of validDocs) {
+                doc.id = pid + '_' + crypto.randomUUID(); 
                 await new Promise((res, rej) => {
                     const putReq = store.put(doc);
                     putReq.onsuccess = () => res();
@@ -61,9 +79,9 @@ const PatientStorageManager = {
                 });
             }
 
-            // Mettre à jour les métadonnées, même si la liste est vide (on autorise l'état vide)
+            // Mettre à jour les métadonnées spécifiques à ce patient
             const metadata = validDocs.map(({ id, name, type }) => ({ id, name, type }));
-            localStorage.setItem('document_metadata', JSON.stringify(metadata));
+            localStorage.setItem('document_metadata_'+pid, JSON.stringify(metadata));
 
             return true;
         } catch (error) {
@@ -74,15 +92,23 @@ const PatientStorageManager = {
 
     async loadDocuments() {
         try {
+            const pid = window.patientManager?.currentPatientId;
+            if(!pid) {
+                return [];
+            }
+
             const db = await this.initDB();
             const transaction = db.transaction('documents', 'readonly');
             const store = transaction.objectStore('documents');
 
-            return new Promise((resolve, reject) => {
+            const allDocs = await new Promise((resolve, reject) => {
                 const req = store.getAll();
                 req.onerror = () => reject(new Error('Erreur lors de la lecture des documents'));
                 req.onsuccess = () => resolve(req.result || []);
             });
+
+            // Ne retourner que les docs du patient courant
+            return allDocs.filter(d=>d.id.startsWith(pid+'_'));
         } catch (error) {
             console.error('[Storage] Erreur chargement:', error);
             return [];
@@ -91,7 +117,6 @@ const PatientStorageManager = {
 
     getBase64Size(base64String) {
         if (!base64String) return 0;
-        // Calcule la taille estimée du fichier à partir de la longueur base64
         const base64Length = base64String.length;
         return Math.floor((base64Length * 3) / 4);
     },
