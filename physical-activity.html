@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="viewport-fit=cover, width=device-width, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#37A7C4" />
 <title>PhysioCare - Activité Physique</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
@@ -20,7 +20,7 @@ body {
  background:#F5F9FA;
  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
  -webkit-font-smoothing:antialiased;
- padding-top:calc(120px+var(--safe-top));
+ padding-top:calc(200px+var(--safe-top));
  padding-bottom:calc(20px+var(--safe-bottom));
 }
 
@@ -111,21 +111,7 @@ body {
  transition:width 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
- body{background:#0A1214;color:white;}
- .nav-blur {
-   background:rgba(10,18,20,0.85);
-   border-bottom-color:rgba(55,167,196,0.2);
- }
-
- .form-section {
-   background:rgba(255,255,255,0.05);
- }
-
- .activity-option {
-   background:rgba(255,255,255,0.1);
- }
-}
+/* Mode nuit supprimé entièrement */
 </style>
 </head>
 <body class="min-h-screen">
@@ -147,7 +133,7 @@ body {
  </div>
 </nav>
 
-<main class="pt-[calc(120px+var(--safe-top))] px-6">
+<main class="pt-[calc(200px+var(--safe-top))] px-6">
 <div class="max-w-xl mx-auto space-y-6">
   <!-- Section Type d'activité -->
   <div class="form-section">
