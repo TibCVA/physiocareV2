@@ -110,7 +110,7 @@
             justify-content:center;
             font-weight:600;
             font-size:14px;
-            line-height:28px; /* Assure que le texte soit parfaitement centré verticalement */
+            line-height:normal; /* Assure de ne pas déformer le cercle */
         }
 
         .phase-header {
@@ -194,8 +194,8 @@
         </div>
     </nav>
 
-    <!-- Ajuster le padding-top pour éviter chevauchement : on calcule la hauteur nav (~44px+var(--safe-top)) + quelques pixels en plus -->
-    <main class="pt-[calc((44px+var(--safe-top))+80px)] px-6">
+    <!-- Augmenter le padding-top pour que le message soit entièrement visible -->
+    <main class="pt-[calc(240px+var(--safe-top))] px-6">
         <div class="max-w-xl mx-auto space-y-6" id="mainContent">
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
@@ -236,26 +236,31 @@
         const hasTreatment = (patientData.treatment && Object.keys(patientData.treatment).length>0);
 
         if(!hasDiagnosis) {
+            // Si pas de diagnostic, on affiche juste le message initial
             return;
         }
 
+        // Si diagnostic fait
         if(hasTreatment) {
+            // On a déjà un traitement, on masque le message initial
             initialMessage.classList.add('hidden');
             displayTreatment(patientData.treatment);
             return;
         }
 
+        // Si diagnostic fait mais pas de traitement, on masque le message initial
         initialMessage.classList.add('hidden');
 
+        // On affiche le bloc pour générer le plan
         const generateSection=document.createElement('div');
         generateSection.className='form-section text-center';
-        generateSection.innerHTML=`
+        generateSection.innerHTML=
             <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">Générer le plan de traitement</h2>
             <p class="text-[var(--brand-dark)] opacity-80 mb-6">
                 Cliquez sur le bouton ci-dessous pour générer un plan de traitement basé sur votre diagnostic.
             </p>
             <button class="generate-button" id="generateButton">Générer le plan</button>
-        `;
+        ;
         mainContent.appendChild(generateSection);
 
         const generateButton=document.getElementById('generateButton');
@@ -281,7 +286,7 @@
 
             const disclaimer=document.createElement('div');
             disclaimer.className='disclaimer-banner';
-            disclaimer.innerHTML=`
+            disclaimer.innerHTML=
                 <div class="flex items-start gap-3">
                     <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-top:2px;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -293,12 +298,12 @@
                         Ce plan de traitement est généré automatiquement et doit être validé par un professionnel de santé.
                     </p>
                 </div>
-            `;
+            ;
             mainContent.appendChild(disclaimer);
 
             const summarySection=document.createElement('div');
             summarySection.className='form-section';
-            summarySection.innerHTML=`
+            summarySection.innerHTML=
                 <h2 class="text-xl font-bold text-[var(--brand-dark)] mb-4">
                     Plan de traitement
                 </h2>
@@ -308,24 +313,24 @@
                 <button class="download-button" id="downloadButton">
                     Télécharger le protocole détaillé (PDF)
                 </button>
-            `;
+            ;
             mainContent.appendChild(summarySection);
 
             const protocolSection=document.createElement('div');
             protocolSection.className='form-section';
-            protocolSection.innerHTML=`
+            protocolSection.innerHTML=
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-6">
                     Protocole de rééducation
                 </h2>
-            `;
+            ;
             const phasesContainer=document.createElement('div');
             (plan.phases||[]).forEach((phase,idx)=>{
                 const phaseDiv=document.createElement('div');
                 phaseDiv.className='treatment-phase';
-                phaseDiv.innerHTML=`
+                phaseDiv.innerHTML=
                     <div class="phase-header">
                         <div class="flex items-center gap-4">
-                            <div class="phase-number" style="line-height:28px;">${idx+1}</div>
+                            <div class="phase-number" style="line-height: normal;">${idx+1}</div>
                             <div>
                                 <h3 class="font-semibold">${phase.name||'Phase'}</h3>
                                 <p class="text-sm opacity-70">${phase.goals||''}</p>
@@ -337,15 +342,15 @@
                         </svg>
                     </div>
                     <div class="treatment-content">
-                        ${(phase.exercises||[]).map(ex=>`
+                        ${(phase.exercises||[]).map(ex=>
                             <div class="exercise-item">
                                 <h4 class="font-medium mb-1">${ex.exercise||'Exercice'}</h4>
                                 <p class="text-sm opacity-70">${ex.description||''}</p>
                                 <p class="text-sm opacity-70 mt-1">${ex.frequency||''}</p>
                             </div>
-                        `).join('')}
+                        ).join('')}
                     </div>
-                `;
+                ;
                 phasesContainer.appendChild(phaseDiv);
 
                 const header=phaseDiv.querySelector('.phase-header');
@@ -359,19 +364,19 @@
 
             const recSection=document.createElement('div');
             recSection.className='form-section';
-            recSection.innerHTML=`
+            recSection.innerHTML=
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
                     Recommandations complémentaires
                 </h2>
                 <div class="space-y-4">
-                    ${(plan.recommendations||[]).map(r=>`
+                    ${(plan.recommendations||[]).map(r=>
                         <div>
                             <h3 class="font-medium mb-2">${r.title||''}</h3>
                             <p class="text-sm opacity-70">${r.content||''}</p>
                         </div>
-                    `).join('')}
+                    ).join('')}
                 </div>
-            `;
+            ;
             mainContent.appendChild(recSection);
 
             const downloadButton=document.getElementById('downloadButton');
@@ -398,7 +403,7 @@
 
             doc.setFontSize(12);
             doc.setTextColor(50);
-            doc.text(`Résumé : ${plan.summary||'Non spécifié'}`,40,100);
+            doc.text(Résumé : ${plan.summary||'Non spécifié'},40,100);
 
             let yPos=140;
             doc.setFontSize(14);
@@ -407,11 +412,11 @@
 
             (plan.phases||[]).forEach((phase,idx)=>{
                 doc.setFontSize(12);
-                doc.text(`${idx+1}. ${phase.name||'Phase'}`,40,yPos);
+                doc.text(${idx+1}. ${phase.name||'Phase'},40,yPos);
                 yPos+=15;
                 if(phase.goals) {
                     doc.setFontSize(11);
-                    doc.text(`Objectifs: ${phase.goals}`,50,yPos);
+                    doc.text(Objectifs: ${phase.goals},50,yPos);
                     yPos+=15;
                 }
 
@@ -419,7 +424,7 @@
                     doc.text("Exercices:",50,yPos);
                     yPos+=15;
                     phase.exercises.forEach(ex=>{
-                        doc.text(`- ${ex.exercise||'Exercice'}: ${ex.description||''} (${ex.frequency||''})`,60,yPos);
+                        doc.text(- ${ex.exercise||'Exercice'}: ${ex.description||''} (${ex.frequency||''}),60,yPos);
                         yPos+=15;
                     });
                 }
