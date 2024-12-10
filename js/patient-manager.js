@@ -60,6 +60,7 @@ class PatientManager {
         }
         localStorage.setItem(this.currentPatientId,JSON.stringify(newData));
     }
+
     listPatients() {
         const keys=Object.keys(localStorage).filter(k=>k.startsWith('patient_'));
         return keys.map(k=>{
@@ -70,7 +71,9 @@ class PatientManager {
             };
         });
     }
-    createNewPatient(personalInfo) {
+
+    // Ajout du mot-clé async ici
+    async createNewPatient(personalInfo) {
         const newId=`patient_${Date.now()}`;
         this.setCurrentPatientId(newId);
         const newData={
@@ -84,8 +87,13 @@ class PatientManager {
             treatment:{}
         };
         this.savePatientData(newData);
+
+        // Vider les documents pour un nouveau patient
+        await window.PatientStorageManager.saveDocuments([]);
+
         return newId;
     }
+
     deletePatient(patientId) {
         localStorage.removeItem(patientId);
         if(this.currentPatientId===patientId) {
