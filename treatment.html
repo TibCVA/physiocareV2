@@ -110,7 +110,7 @@
             justify-content:center;
             font-weight:600;
             font-size:14px;
-            line-height:normal; /* Assure de ne pas déformer le cercle */
+            line-height:28px; /* Assure que le texte soit parfaitement centré verticalement */
         }
 
         .phase-header {
@@ -194,8 +194,8 @@
         </div>
     </nav>
 
-    <!-- Augmenter le padding-top pour que le message soit entièrement visible -->
-    <main class="pt-[calc(240px+var(--safe-top))] px-6">
+    <!-- Ajuster le padding-top pour éviter chevauchement : on calcule la hauteur nav (~44px+var(--safe-top)) + quelques pixels en plus -->
+    <main class="pt-[calc((44px+var(--safe-top))+80px)] px-6">
         <div class="max-w-xl mx-auto space-y-6" id="mainContent">
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
@@ -236,22 +236,17 @@
         const hasTreatment = (patientData.treatment && Object.keys(patientData.treatment).length>0);
 
         if(!hasDiagnosis) {
-            // Si pas de diagnostic, on affiche juste le message initial
             return;
         }
 
-        // Si diagnostic fait
         if(hasTreatment) {
-            // On a déjà un traitement, on masque le message initial
             initialMessage.classList.add('hidden');
             displayTreatment(patientData.treatment);
             return;
         }
 
-        // Si diagnostic fait mais pas de traitement, on masque le message initial
         initialMessage.classList.add('hidden');
 
-        // On affiche le bloc pour générer le plan
         const generateSection=document.createElement('div');
         generateSection.className='form-section text-center';
         generateSection.innerHTML=`
@@ -330,7 +325,7 @@
                 phaseDiv.innerHTML=`
                     <div class="phase-header">
                         <div class="flex items-center gap-4">
-                            <div class="phase-number" style="line-height: normal;">${idx+1}</div>
+                            <div class="phase-number" style="line-height:28px;">${idx+1}</div>
                             <div>
                                 <h3 class="font-semibold">${phase.name||'Phase'}</h3>
                                 <p class="text-sm opacity-70">${phase.goals||''}</p>
