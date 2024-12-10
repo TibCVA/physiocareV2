@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#37A7C4">
     <title>PhysioCare - Symptômes</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -104,7 +104,10 @@
             cursor:pointer;box-shadow:0 2px 6px rgba(55,167,196,0.2);
         }
 
-        .progress-bar {height:3px;background:rgba(55,167,196,0.1);margin:8px 0;}
+        .progress-bar {
+            height:3px;background:rgba(55,167,196,0.1);margin:8px 0;
+        }
+
         .progress-bar-fill {
             height:100%;
             width:50%;
@@ -143,7 +146,7 @@
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen">
     <nav class="nav-blur fixed w-full z-50 top-0 left-0 right-0">
         <div class="max-w-5xl mx-auto px-4">
             <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
