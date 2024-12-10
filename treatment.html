@@ -109,8 +109,8 @@
             align-items:center;
             justify-content:center;
             font-weight:600;
-            font-size:14px; 
-            /* Supprimer line-height pour éviter la déformation */
+            font-size:14px;
+            line-height:normal; /* Assure de ne pas déformer le cercle */
         }
 
         .phase-header {
@@ -236,15 +236,22 @@
         const hasTreatment = (patientData.treatment && Object.keys(patientData.treatment).length>0);
 
         if(!hasDiagnosis) {
+            // Si pas de diagnostic, on affiche juste le message initial
             return;
         }
 
+        // Si diagnostic fait
         if(hasTreatment) {
+            // On a déjà un traitement, on masque le message initial
             initialMessage.classList.add('hidden');
             displayTreatment(patientData.treatment);
             return;
         }
 
+        // Si diagnostic fait mais pas de traitement, on masque le message initial
+        initialMessage.classList.add('hidden');
+
+        // On affiche le bloc pour générer le plan
         const generateSection=document.createElement('div');
         generateSection.className='form-section text-center';
         generateSection.innerHTML=`
@@ -323,7 +330,7 @@
                 phaseDiv.innerHTML=`
                     <div class="phase-header">
                         <div class="flex items-center gap-4">
-                            <div class="phase-number">${idx+1}</div>
+                            <div class="phase-number" style="line-height: normal;">${idx+1}</div>
                             <div>
                                 <h3 class="font-semibold">${phase.name||'Phase'}</h3>
                                 <p class="text-sm opacity-70">${phase.goals||''}</p>
