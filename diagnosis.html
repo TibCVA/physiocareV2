@@ -21,7 +21,7 @@
             background:#F5F9FA;
             font-family:-apple-system,BlinkMacSystemFont,sans-serif;
             -webkit-font-smoothing:antialiased;
-            padding-top:calc(120px+var(--safe-top));
+            padding-top:calc(200px+var(--safe-top));
             padding-bottom:calc(20px+var(--safe-bottom));
         }
 
@@ -149,15 +149,7 @@
             margin-bottom:24px;
         }
 
-        @media (prefers-color-scheme: dark) {
-            body {
-                background:#0A1214;
-                color:white;
-            }
-            .form-section {
-                background:rgba(255,255,255,0.05);
-            }
-        }
+        /* Mode nuit supprimé */
     </style>
 </head>
 <body class="min-h-screen">
@@ -181,7 +173,7 @@
         </div>
     </nav>
 
-    <main class="pt-[calc(120px+var(--safe-top))] px-6">
+    <main class="pt-[calc(200px+var(--safe-top))] px-6">
         <div class="max-w-md w-full mx-auto space-y-6">
             <div id="errorMessage" class="error-message">Erreur lors de l’analyse. Veuillez réessayer.</div>
 
@@ -248,7 +240,6 @@
 
             // Si un diagnostic existe déjà pour ce patient, on le réaffiche
             if(patientData.diagnosis && patientData.diagnosis.length>0) {
-                // On affiche directement les résultats
                 displayExistingDiagnosis(patientData.diagnosis);
             }
 
@@ -279,7 +270,6 @@
             }
 
             function displayExistingDiagnosis(diagnosis) {
-                // Affiche le résultat déjà existant
                 resultsSection.classList.remove('hidden');
                 remarksSection.classList.add('hidden');
                 diagnosticResults.innerHTML='';
@@ -297,18 +287,10 @@
                     diagnosticResults.appendChild(div);
                 });
 
-                // Un diagnostic est déjà présent, cela signifie qu'il a été confirmé précédemment ou pas ?
-                // On va considérer qu'un diagnostic existant est déjà confirmé.
-                // Donc on rend le bouton suivant actif et normal.
+                // Un diagnostic existant signifie qu'il a déjà été confirmé
                 nextButton.classList.remove('disabled-red');
                 nextButton.disabled=false;
                 validationSection.classList.remove('hidden');
-
-                // Comme le diagnostic est déjà validé (supposons), on peut rediriger directement sur "Traitement" si on le souhaite
-                // Mais la consigne dit: si confirmé, aller automatiquement ? On peut le faire ici:
-                //window.location.href='treatment.html';
-                // Si vous souhaitez que l'utilisateur puisse revalider ou reanalyser:
-                // On garde le bouton "Recommencer l'analyse".
             }
 
             function displayResults(result) {
@@ -342,22 +324,19 @@
             }
 
             confirmDiagnosisBtn.addEventListener('click',()=>{
-                // Diagnostic confirmé, on va directement à treatment.html
                 window.location.href='treatment.html';
             });
 
             retryDiagnosisBtn.addEventListener('click',()=>{
-                // Relancer l'analyse
                 resultsSection.classList.add('hidden');
                 remarksSection.classList.remove('hidden');
                 errorMessage.style.display='none';
                 validationSection.classList.add('hidden');
-                // Le bouton Suivant reste rouge et inactif
                 nextButton.classList.add('disabled-red');
                 nextButton.disabled=true;
             });
 
-            // Par défaut, le bouton Suivant est rouge et inactif tant que pas de diagnostic confirmé
+            // Par défaut, le bouton Suivant est rouge et inactif
             nextButton.classList.add('disabled-red');
             nextButton.disabled=true;
         });
