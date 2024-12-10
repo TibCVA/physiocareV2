@@ -27,7 +27,7 @@
             background:#F5F9FA;
             font-family:-apple-system,BlinkMacSystemFont,sans-serif;
             -webkit-font-smoothing:antialiased;
-            padding-top:calc(120px+var(--safe-top));
+            padding-top:calc(200px+var(--safe-top));
             padding-bottom:calc(20px+var(--safe-bottom));
         }
 
@@ -102,13 +102,28 @@
         }
 
         .phase-number {
-            width:28px;height:28px;
+            width:28px;
+            height:28px;
             background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
             border-radius:50%;
-            color:white;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;
+            color:white;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:600;
+            font-size:14px;
+            line-height:28px; /* Pour éviter la déformation */
+            text-align:center;
         }
 
-        .phase-header {cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start;}
+        /* Remplacer align-items:flex-start par align-items:center; dans la phase-header */
+        .phase-header {
+            cursor:pointer;
+            display:flex;
+            justify-content:space-between;
+            align-items:center; /* Changement ici */
+        }
+
         .treatment-content {
             max-height:0;overflow:hidden;transition:max-height 0.3s ease-out, opacity 0.3s ease-out;opacity:0;
         }
@@ -149,35 +164,7 @@
             transform:translateY(-2px);
         }
 
-        @media (prefers-color-scheme: dark) {
-            body {background:#0A1214;color:white;}
-            .nav-blur {
-                background:rgba(10,18,20,0.85);
-                border-bottom-color:rgba(55,167,196,0.2);
-            }
-
-            .form-section {
-                background:rgba(255,255,255,0.05);
-                border-color:rgba(55,167,196,0.2);
-            }
-
-            .treatment-phase {
-                background:rgba(255,255,255,0.1);
-                border-color:rgba(55,167,196,0.3);
-            }
-
-            .treatment-phase.active {
-                background:rgba(55,167,196,0.15);
-            }
-
-            .exercise-item {
-                background:rgba(255,255,255,0.05);
-            }
-
-            .disclaimer-banner {
-                background:rgba(234,179,8,0.1);
-            }
-        }
+        /* Mode nuit supprimé */
     </style>
 </head>
 <body class="min-h-screen">
@@ -200,7 +187,7 @@
         </div>
     </nav>
 
-    <main class="pt-[calc(120px+var(--safe-top))] px-6">
+    <main class="pt-[calc(200px+var(--safe-top))] px-6">
         <div class="max-w-xl mx-auto space-y-6" id="mainContent">
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
@@ -263,9 +250,10 @@
 
         const generateButton=document.getElementById('generateButton');
         generateButton.addEventListener('click', async ()=>{
+            // Même effet de chargement que diagnosis : loading ring + "Génération en cours..."
             generateSection.innerHTML=`
                 <div class="loading-ring mx-auto mb-4"></div>
-                <p class="text-[var(--brand-dark)]">Génération du plan de traitement...</p>
+                <p class="text-[var(--brand-dark)]">Génération en cours...</p>
             `;
             try {
                 const data=await gatherPatientData();
@@ -331,7 +319,7 @@
                 phaseDiv.className='treatment-phase';
                 phaseDiv.innerHTML=`
                     <div class="phase-header">
-                        <div class="flex items-start gap-4">
+                        <div class="flex items-center gap-4">
                             <div class="phase-number">${idx+1}</div>
                             <div>
                                 <h3 class="font-semibold">${phase.name||'Phase'}</h3>
@@ -409,7 +397,6 @@
             doc.setTextColor(50);
             doc.text(`Résumé : ${plan.summary||'Non spécifié'}`,40,100);
 
-            // Espacement
             let yPos=140;
             doc.setFontSize(14);
             doc.text("Protocole de rééducation",40,yPos);
@@ -436,7 +423,6 @@
                 yPos+=10;
             });
 
-            // Recommandations
             doc.setFontSize(14);
             doc.text("Recommandations complémentaires",40,yPos);
             yPos+=20;
@@ -445,7 +431,6 @@
                 doc.text(r.title||'Sans titre',40,yPos);
                 yPos+=15;
                 doc.setFontSize(11);
-                // Gérer le retour à la ligne manuel si besoin
                 const lines = doc.splitTextToSize(r.content||'', 500);
                 lines.forEach(line=>{
                     doc.text(line,50,yPos);
