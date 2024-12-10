@@ -257,9 +257,7 @@
         const hasDiagnosis = (patientData.diagnosis && patientData.diagnosis.length>0);
         const hasTreatment = (patientData.treatment && Object.keys(patientData.treatment).length>0);
 
-        // Si aucun diagnostic, on ne fait rien de plus, le message initial reste.
         if(hasDiagnosis && !hasTreatment) {
-            // Diagnostic fait mais pas de traitement : proposer de générer
             initialMessage.classList.add('hidden');
             const generateSection=document.createElement('div');
             generateSection.className='form-section text-center';
@@ -288,7 +286,6 @@
                 }
             });
         } else if(hasDiagnosis && hasTreatment) {
-            // Déjà un traitement, l'afficher directement
             initialMessage.classList.add('hidden');
             displayTreatment(patientData.treatment);
         }
@@ -340,6 +337,7 @@
             (plan.phases||[]).forEach((phase,idx)=>{
                 const phaseDiv=document.createElement('div');
                 phaseDiv.className='treatment-phase';
+                // Remplace "exercises" par "manipulations"
                 phaseDiv.innerHTML=`
                     <div class="phase-header">
                         <div class="flex items-center gap-4">
@@ -355,11 +353,10 @@
                         </svg>
                     </div>
                     <div class="treatment-content">
-                        ${(phase.exercises||[]).map(ex=>`
+                        ${(phase.manipulations||[]).map(m=>`
                             <div class="exercise-item">
-                                <h4 class="font-medium mb-1">${ex.exercise||'Exercice'}</h4>
-                                <p class="text-sm opacity-70">${ex.description||''}</p>
-                                <p class="text-sm opacity-70 mt-1">${ex.frequency||''}</p>
+                                <h4 class="font-medium mb-1">${m.manipulation||'Manipulation'}</h4>
+                                <p class="text-sm opacity-70">${m.description||''}</p>
                             </div>
                         `).join('')}
                     </div>
@@ -433,11 +430,11 @@
                     yPos+=15;
                 }
 
-                if(phase.exercises && phase.exercises.length>0) {
-                    doc.text("Exercices:",50,yPos);
+                if(phase.manipulations && phase.manipulations.length>0) {
+                    doc.text("Manipulations:",50,yPos);
                     yPos+=15;
-                    phase.exercises.forEach(ex=>{
-                        doc.text(`- ${ex.exercise||'Exercice'}: ${ex.description||''} (${ex.frequency||''})`,60,yPos);
+                    phase.manipulations.forEach(m=>{
+                        doc.text(`- ${m.manipulation||'Manipulation'}: ${m.description||''}`,60,yPos);
                         yPos+=15;
                     });
                 }
