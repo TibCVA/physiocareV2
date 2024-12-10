@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="viewport-fit=cover, width=device-width, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#37A7C4">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="color-scheme" content="light">
 <title>PhysioCare - Sélection Patient</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 <script src="js/patient-storage.js" defer></script>
@@ -106,12 +107,14 @@ body {
  transition:width 0.3s ease;
 }
 
-/* Mettre en avant le bouton "Sélectionner" */
 .select-button {
- @apply app-button; 
- padding:8px 16px; 
- font-size:14px;
- white-space: nowrap; /* Ajouté pour éviter le débordement du texte */
+    background: linear-gradient(135deg, var(--brand-light), var(--brand-medium));
+    color: white;
+    font-weight: 600;
+    border-radius:8px;
+    padding:8px 16px;
+    text-align:center;
+    display:inline-block;
 }
 
 /* Retiré complètement le mode nuit (aucun @media ...) */
