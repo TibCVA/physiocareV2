@@ -28,16 +28,13 @@ const PatientStorageManager = {
 
     async saveDocuments(documents) {
         try {
-            // Récupérer l'id du patient courant
             const pid = window.patientManager?.currentPatientId;
             if(!pid) {
                 throw new Error("Aucun patient sélectionné.");
             }
 
-            // Filtrer les documents valides
             const validDocs = documents.filter(doc => this.validateDocument(doc));
 
-            // Calculer la taille totale
             let totalSize = 0;
             for (const doc of validDocs) {
                 const size = this.getBase64Size(doc.fileData);
@@ -51,7 +48,6 @@ const PatientStorageManager = {
             const transaction = db.transaction('documents', 'readwrite');
             const store = transaction.objectStore('documents');
 
-            // Charger tous les documents et supprimer ceux du patient courant
             const allDocs = await new Promise((res, rej) => {
                 const req = store.getAll();
                 req.onsuccess = () => res(req.result||[]);
@@ -79,9 +75,8 @@ const PatientStorageManager = {
                 });
             }
 
-            // Mettre à jour les métadonnées spécifiques à ce patient
-            const metadata = validDocs.map(({ id, name, type }) => ({ id, name, type }));
-            localStorage.setItem('document_metadata_'+pid, JSON.stringify(metadata));
+            // Retirer le code de métadonnées inutilisé
+            // Aucune métadonnée n'est enregistrée, ce qui évite les interférences.
 
             return true;
         } catch (error) {
@@ -107,7 +102,6 @@ const PatientStorageManager = {
                 req.onsuccess = () => resolve(req.result || []);
             });
 
-            // Ne retourner que les docs du patient courant
             return allDocs.filter(d=>d.id.startsWith(pid+'_'));
         } catch (error) {
             console.error('[Storage] Erreur chargement:', error);
@@ -135,7 +129,6 @@ const PatientStorageManager = {
     }
 };
 
-// Exposer PatientStorageManager globalement
 if (!window.PatientStorageManager) {
     window.PatientStorageManager = PatientStorageManager;
 }
