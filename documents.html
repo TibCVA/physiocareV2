@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#37A7C4">
     <title>PhysioCare - Documents Médicaux</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -175,10 +175,11 @@
         <div class="max-w-md mx-auto">
             <div class="form-section">
                 <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-6">Documents médicaux</h2>
+                <p class="text-sm opacity-80 mb-4">Formats autorisés: JPG, PNG, GIF, HEIC, PDF. Taille maximale : 10 Mo par fichier, 50 Mo total.</p>
                 <div class="error-message" id="errorMessage"></div>
                 <div class="success-message" id="successMessage"></div>
                 <div class="upload-zone mb-6" id="dropZone">
-                    <p class="font-medium mb-2">Déposez vos documents ici</p>
+                    <p class="font-medium mb-2">Déposez vos documents ici ou cliquez pour en choisir</p>
                     <input type="file" id="fileInput" class="hidden" multiple accept="image/*,.pdf,.heic">
                     <button class="upload-button mt-4" id="uploadButton">Choisir des fichiers</button>
                 </div>
@@ -199,7 +200,7 @@
         const pManager=window.patientManager;
         const patientData=pManager.loadPatientData();
 
-        // On recrée le documentManager après le DOMContentLoaded
+        // DocumentManager est déjà instancié dans le code original
         window.documentManager=new DocumentManager(); 
 
         const notes=document.getElementById('notes');
