@@ -26,7 +26,6 @@
             background:#F5F9FA;
             font-family:-apple-system,BlinkMacSystemFont,sans-serif;
             -webkit-font-smoothing:antialiased;
-            /* Retirer le padding-top du body */
             padding-bottom:calc(20px+var(--safe-bottom));
         }
 
@@ -110,16 +109,15 @@
             align-items:center;
             justify-content:center;
             font-weight:600;
-            font-size:14px;
-            line-height:28px;
-            text-align:center;
+            font-size:14px; 
+            /* Supprimer line-height pour éviter la déformation */
         }
 
         .phase-header {
             cursor:pointer;
             display:flex;
             justify-content:space-between;
-            align-items:center; /* Alignement centré verticalement */
+            align-items:center;
         }
 
         .treatment-content {
@@ -174,8 +172,6 @@
             0%{transform:rotate(0deg);}
             100%{transform:rotate(360deg);}
         }
-
-        /* Mode nuit supprimé */
     </style>
 </head>
 <body class="min-h-screen">
@@ -198,7 +194,8 @@
         </div>
     </nav>
 
-    <main class="pt-[calc(200px+var(--safe-top))] px-6">
+    <!-- Augmenter le padding-top pour que le message soit entièrement visible -->
+    <main class="pt-[calc(240px+var(--safe-top))] px-6">
         <div class="max-w-xl mx-auto space-y-6" id="mainContent">
             <div class="form-section text-center" id="initialMessage">
                 <h2 class="text-xl font-semibold text-[var(--brand-dark)] mb-4">
@@ -212,7 +209,6 @@
                 </a>
             </div>
 
-            <!-- Section loading identique à diagnosis (cachée par défaut) -->
             <div id="loadingSection" class="form-section text-center hidden">
                 <div class="loading-ring mx-auto mb-4"></div>
                 <p class="text-[var(--brand-dark)]">Génération en cours...</p>
@@ -239,11 +235,7 @@
         const hasDiagnosis = (patientData.diagnosis && patientData.diagnosis.length>0);
         const hasTreatment = (patientData.treatment && Object.keys(patientData.treatment).length>0);
 
-        console.log("[DEBUG] treatment.html - hasDiagnosis:", hasDiagnosis, "diagnosis:", patientData.diagnosis);
-        console.log("[DEBUG] treatment.html - hasTreatment:", hasTreatment, "treatment:", patientData.treatment);
-
         if(!hasDiagnosis) {
-            console.log("[DEBUG] Pas de diagnostic, on reste sur le message initial.");
             return;
         }
 
@@ -253,8 +245,6 @@
             return;
         }
 
-        // Afficher le bouton générer
-        initialMessage.classList.add('hidden');
         const generateSection=document.createElement('div');
         generateSection.className='form-section text-center';
         generateSection.innerHTML=`
@@ -268,37 +258,30 @@
 
         const generateButton=document.getElementById('generateButton');
         generateButton.addEventListener('click', async ()=>{
-            // Cacher le bouton et afficher loadingSection
             generateSection.classList.add('hidden');
             loadingSection.classList.remove('hidden');
 
             try {
                 const data=await gatherPatientData();
-                console.log("[DEBUG] Data envoyées au traitement:", data);
                 const result=await treatmentManager.getTreatment(data);
-                console.log("[DEBUG] Resultat traitement:", result);
-
-                // Cacher loadingSection et afficher le plan
                 loadingSection.classList.add('hidden');
                 displayTreatment(result.treatmentPlan);
 
             } catch(e) {
-                console.error("[DEBUG] Erreur getTreatment:", e);
+                console.error(e);
                 loadingSection.innerHTML='<p class="text-red-500">Erreur lors de la génération du traitement</p>';
             }
         });
 
         function displayTreatment(plan) {
             updateTreatmentData({treatmentPlan:plan});
-            console.log("[DEBUG] Treatment mis à jour:", pManager.loadPatientData());
-
             mainContent.innerHTML='';
 
             const disclaimer=document.createElement('div');
             disclaimer.className='disclaimer-banner';
             disclaimer.innerHTML=`
                 <div class="flex items-start gap-3">
-                    <svg class="w-6 h-6 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-top:2px;">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0
                               2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34
