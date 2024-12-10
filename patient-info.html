@@ -7,8 +7,6 @@
 <meta name="color-scheme" content="light">
 <title>PhysioCare - Sélection Patient</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-<script src="js/patient-storage.js" defer></script>
-<script src="js/patient-manager.js" defer></script>
 <style>
 :root {
  --brand-light:#37A7C4; --brand-medium:#2C89A0; --brand-dark:#1E5F6E;
@@ -56,12 +54,10 @@ body {
  margin-bottom:8px;
  transition:all 0.3s ease; 
  display:flex;justify-content:space-between;align-items:center;
- /* Retiré cursor:pointer et transform */
 }
 
 .select-patient:hover {
  background:rgba(55,167,196,0.05);
- /* Retiré transform:translateX(4px); */
 }
 
 .app-button {
@@ -116,10 +112,9 @@ body {
     text-align:center;
     display:inline-block;
 }
-
-/* Retiré complètement le mode nuit (aucun @media ...) */
-
 </style>
+<script src="js/patient-storage.js" defer></script>
+<script src="js/patient-manager.js" defer></script>
 </head>
 <body class="min-h-screen">
 <nav class="nav-blur fixed w-full z-50">
@@ -193,6 +188,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   let selectedPatientId=null;
 
+  function clearCreateForm(){
+    document.getElementById('newLastName').value='';
+    document.getElementById('newFirstName').value='';
+    document.getElementById('newBirthDate').value='';
+    document.getElementById('newGender').value='Homme';
+    document.getElementById('newProfession').value='bureau';
+  }
+
   function renderPatients() {
       const list=document.getElementById('patientList');
       list.innerHTML='';
@@ -241,6 +244,8 @@ document.addEventListener('DOMContentLoaded',()=>{
              e.stopPropagation();
              selectedPatientId=p.id;
              pManager.setCurrentPatientId(p.id);
+             // Nettoyer le formulaire de création pour éviter les données précédentes
+             clearCreateForm();
              updateNextButtonState();
            });
          });
@@ -248,22 +253,23 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   renderPatients();
 
-  createBtn.addEventListener('click',()=>{
+  createBtn.addEventListener('click',async()=>{
      const lastName=document.getElementById('newLastName').value.trim();
      const firstName=document.getElementById('newFirstName').value.trim();
      const birthDate=document.getElementById('newBirthDate').value;
      const gender=document.getElementById('newGender').value;
      const profession=document.getElementById('newProfession').value;
      const personalInfo={lastName,firstName,birthDate,gender,profession};
-     const newId=pManager.createNewPatient(personalInfo);
+     const newId=await pManager.createNewPatient(personalInfo);
 
-     // Après la création du nouveau patient, on réaffiche immédiatement la liste
+     // Après la création du nouveau patient, on réinitialise également le formulaire
+     clearCreateForm();
+
      renderPatients();
 
      selectedPatientId=newId;
      pManager.setCurrentPatientId(newId);
      updateNextButtonState();
-     // On passe directement à l'écran suivant
      window.location.href='physical-activity.html';
   });
 
