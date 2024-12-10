@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="viewport-fit=cover, width=device-width, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#37A7C4">
 <title>PhysioCare - Sélection Patient</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -14,66 +14,140 @@
  --safe-top:env(safe-area-inset-top,47px);
  --safe-bottom:env(safe-area-inset-bottom,34px);
 }
+
 body {
- background:#F5F9FA; font-family:-apple-system,BlinkMacSystemFont,sans-serif; -webkit-font-smoothing:antialiased;
+ background:#F5F9FA; 
+ font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+ -webkit-font-smoothing:antialiased;
+ padding-top:calc(120px+var(--safe-top));
+ padding-bottom:calc(20px+var(--safe-bottom));
 }
+
 .nav-blur {
  background:rgba(255,255,255,0.85);
  backdrop-filter:saturate(180%) blur(20px);
  border-bottom:1px solid rgba(55,167,196,0.1);
 }
+
 .form-section {
- background:white; border-radius:20px; padding:24px; margin-bottom:16px;
+ background:white; 
+ border-radius:20px; 
+ padding:24px; 
+ margin-bottom:16px;
  box-shadow:0 1px 3px rgba(30,95,110,0.05),0 1px 2px rgba(30,95,110,0.1);
 }
+
 .ios-input {
- width:100%; padding:12px; border:1px solid rgba(55,167,196,0.2);
- border-radius:12px; margin:8px 0; font-size:16px; background:white;
+ width:100%; 
+ padding:12px; 
+ border:1px solid rgba(55,167,196,0.2);
+ border-radius:12px; 
+ margin:8px 0; 
+ font-size:16px; 
+ background:white;
 }
+
 .select-patient {
  background:rgba(255,255,255,0.8);
  border:1px solid rgba(55,167,196,0.2);
  border-radius:12px;
- padding:16px; margin-bottom:8px;
- transition:all 0.3s ease; cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+ padding:16px; 
+ margin-bottom:8px;
+ transition:all 0.3s ease; 
+ display:flex;justify-content:space-between;align-items:center;
+ cursor:pointer;
 }
+
 .select-patient:hover {
  background:rgba(55,167,196,0.05);
  transform:translateX(4px);
 }
+
 .app-button {
  background:linear-gradient(135deg,var(--brand-light),var(--brand-medium));
- border-radius:12px; padding:12px 24px; color:white; font-weight:600;
- transition:all 0.3s ease; box-shadow:0 4px 6px rgba(0,0,0,0.1); text-align:center; display:block;
+ border-radius:12px; 
+ padding:12px 24px; 
+ color:white; 
+ font-weight:600;
+ transition:all 0.3s ease; 
+ box-shadow:0 4px 6px rgba(0,0,0,0.1); 
+ text-align:center; 
+ display:inline-block;
+ font-size:14px;
 }
 .app-button:hover {
- transform:translateY(-2px); box-shadow:0 6px 8px rgba(0,0,0,0.1);
+ transform:translateY(-2px); 
+ box-shadow:0 6px 8px rgba(0,0,0,0.1);
 }
 .app-button:active {transform:scale(0.98);}
+
+.nav-button {
+ padding:8px 16px;
+ border-radius:8px;
+ color:var(--brand-dark);
+ font-weight:500;
+}
+
+.nav-button.primary {
+ color: var(--brand-light);
+ font-weight:600;
+}
+
+.progress-bar {
+ height:3px;
+ background:rgba(55,167,196,0.1);
+ margin:8px 0;
+}
+
+.progress-bar-fill {
+ height:100%;
+ width:16.66%;
+ background:linear-gradient(to right,var(--brand-light),var(--brand-medium));
+ transition:width 0.3s ease;
+}
+
+/* Mettre en avant le bouton "Sélectionner" */
+.select-button {
+ @apply app-button; 
+ padding:8px 16px; 
+ font-size:14px;
+}
+
 @media (prefers-color-scheme: dark) {
  body{background:#0A1214;color:white;}
+ .nav-blur {
+   background:rgba(10,18,20,0.85);
+   border-bottom-color:rgba(55,167,196,0.2);
+ }
  .form-section{background:rgba(255,255,255,0.05);}
  .select-patient{background:rgba(255,255,255,0.1);}
+ .ios-input {
+   background:rgba(255,255,255,0.1);
+   color:white;
+ }
 }
 </style>
 </head>
-<body class="min-h-screen pb-[calc(20px+var(--safe-bottom))]">
+<body class="min-h-screen">
 <nav class="nav-blur fixed w-full z-50">
 <div class="max-w-5xl mx-auto px-4">
  <div class="flex items-center justify-between h-[calc(44px+var(--safe-top))] pt-[var(--safe-top)]">
-   <a href="index.html" class="flex items-center gap-2 text-[var(--brand-dark)] font-medium">
+   <a href="index.html" class="nav-button flex items-center gap-2">
      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
      </svg>
-     Accueil
+     Retour
    </a>
-   <span class="font-bold text-[var(--brand-dark)]">Sélection / Création Patient</span>
-   <span></span>
+   <span class="font-semibold">Patient (1/6)</span>
+   <button id="nextButton" class="nav-button primary" disabled>Suivant</button>
+ </div>
+ <div class="progress-bar">
+   <div class="progress-bar-fill"></div>
  </div>
 </div>
 </nav>
 
-<main class="pt-[calc(84px+var(--safe-top))] px-6">
+<main class="px-6">
 <div class="max-w-xl mx-auto space-y-6">
  <div class="form-section">
    <h2 class="text-xl font-semibold mb-4 text-[var(--brand-dark)]">Patients existants</h2>
@@ -102,7 +176,15 @@ body {
        <option value="Autre">Autre</option>
      </select>
    </div>
-   <button id="createPatientBtn" class="app-button w-full mt-4">Créer et commencer (Patient 1/6)</button>
+   <div>
+     <label class="block mb-2 font-medium">Situation professionnelle</label>
+     <select id="newProfession" class="ios-input">
+       <option value="bureau">Travail de bureau (assis)</option>
+       <option value="modere">Activité modérée</option>
+       <option value="physique">Travail physique intense</option>
+     </select>
+   </div>
+   <button id="createPatientBtn" class="app-button w-full mt-4">Créer le patient</button>
  </div>
 </div>
 </main>
@@ -111,6 +193,11 @@ body {
 document.addEventListener('DOMContentLoaded',()=>{
   window.patientManager=new PatientManager();
   const pManager=window.patientManager;
+
+  const nextButton=document.getElementById('nextButton');
+  const createBtn=document.getElementById('createPatientBtn');
+
+  let selectedPatientId=null;
 
   function renderPatients() {
       const list=document.getElementById('patientList');
@@ -137,10 +224,10 @@ document.addEventListener('DOMContentLoaded',()=>{
                  01-1.995-1.858L5
                  7m5 4v6m4-6v6m1-10V4a1 1 0
                  00-1-1h-4a1 1 0 00-1 1v3M4
-                 7h16"></path>
+                 7h16"/>
                </svg>
              </button>
-             <button class="text-[var(--brand-dark)] font-medium" data-select="${p.id}">Sélectionner</button>
+             <button class="select-button" data-select="${p.id}">Sélectionner</button>
            </div>`;
            list.appendChild(div);
 
@@ -148,28 +235,56 @@ document.addEventListener('DOMContentLoaded',()=>{
            delBtn.addEventListener('click',(e)=>{
              e.stopPropagation();
              pManager.deletePatient(p.id);
+             if(selectedPatientId===p.id) {
+                selectedPatientId=null;
+                updateNextButtonState();
+             }
              renderPatients();
            });
 
            const selBtn=div.querySelector(`[data-select="${p.id}"]`);
            selBtn.addEventListener('click',()=>{
+             selectedPatientId=p.id;
              pManager.setCurrentPatientId(p.id);
-             window.location.href='physical-activity.html';
+             updateNextButtonState();
            });
          });
       }
   }
   renderPatients();
 
-  const createBtn=document.getElementById('createPatientBtn');
   createBtn.addEventListener('click',()=>{
      const lastName=document.getElementById('newLastName').value.trim();
      const firstName=document.getElementById('newFirstName').value.trim();
      const birthDate=document.getElementById('newBirthDate').value;
      const gender=document.getElementById('newGender').value;
-     const personalInfo={lastName,firstName,birthDate,gender};
-     pManager.createNewPatient(personalInfo);
-     window.location.href='physical-activity.html';
+     const profession=document.getElementById('newProfession').value;
+     const personalInfo={lastName,firstName,birthDate,gender,profession};
+     const newId=pManager.createNewPatient(personalInfo);
+     selectedPatientId=newId;
+     pManager.setCurrentPatientId(newId);
+     updateNextButtonState();
+  });
+
+  function updateNextButtonState(){
+    // Le bouton "Suivant" devient actif si un patient est sélectionné ou créé
+    if(selectedPatientId) {
+      nextButton.disabled=false;
+      nextButton.classList.remove('opacity-50','cursor-not-allowed');
+    } else {
+      nextButton.disabled=true;
+      nextButton.classList.add('opacity-50','cursor-not-allowed');
+    }
+  }
+
+  // Initialement désactivé
+  nextButton.disabled=true;
+  nextButton.classList.add('opacity-50','cursor-not-allowed');
+
+  nextButton.addEventListener('click',()=>{
+    if(selectedPatientId) {
+      window.location.href='physical-activity.html';
+    }
   });
 });
 </script>
