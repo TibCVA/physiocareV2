@@ -250,7 +250,7 @@
                 remarksSection.classList.add('hidden');
                 loadingSection.classList.remove('hidden');
                 saveDiagnosisRemarks();
-
+            
                 try {
                     const data=await gatherPatientData();
                     const result=await diagnosticManager.analyze(data);
@@ -260,7 +260,13 @@
                     console.error(e);
                     loadingSection.classList.add('hidden');
                     remarksSection.classList.remove('hidden');
-                    errorMessage.textContent=e.message;
+            
+                    if(e.message.includes('overloaded_error')) {
+                        errorMessage.textContent="L’IA reçoit trop de requêtes en ce moment. Veuillez réessayer dans quelques secondes.";
+                    } else {
+                        errorMessage.textContent=e.message;
+                    }
+                    
                     errorMessage.style.display='block';
                 }
             });
