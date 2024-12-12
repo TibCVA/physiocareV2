@@ -284,7 +284,11 @@
             generateButton.addEventListener('click', async ()=>{
                 generateSection.classList.add('hidden');
                 loadingSection.classList.remove('hidden');
-
+                loadingSection.innerHTML=`
+                    <div class="loading-ring mx-auto mb-4"></div>
+                    <div class="h-20"></div> 
+                    <p class="text-[var(--brand-dark)]">Génération en cours...</p>
+                `;
                 try {
                     const data=await gatherPatientData();
                     const result=await treatmentManager.getTreatment(data);
@@ -322,7 +326,6 @@
             `;
             mainContent.appendChild(disclaimer);
 
-            // Bouton pour régénérer le plan
             const regenerateSection=document.createElement('div');
             regenerateSection.className='form-section text-center';
             regenerateSection.innerHTML=`
@@ -419,14 +422,14 @@
             const regenerateButton=document.getElementById('regenerateButton');
             regenerateButton.addEventListener('click', async ()=>{
                 mainContent.innerHTML='';
+                // Réinsérer loadingSection
+                mainContent.appendChild(loadingSection);
                 loadingSection.classList.remove('hidden');
-                // Afficher le cercle qui tourne et le texte
                 loadingSection.innerHTML=`
                     <div class="loading-ring mx-auto mb-4"></div>
                     <div class="h-20"></div> 
                     <p class="text-[var(--brand-dark)]">Génération du plan de traitement en cours...</p>
                 `;
-
                 try {
                     const data=await gatherPatientData();
                     const result=await treatmentManager.getTreatment(data);
