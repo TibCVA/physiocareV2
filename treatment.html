@@ -169,8 +169,7 @@
         }
 
         .loading-ring {
-            width:64px;
-            height:64px;
+            width:64px;height:64px;
             border:4px solid rgba(55,167,196,0.1);
             border-left-color:var(--brand-light);
             border-radius:50%;
@@ -323,6 +322,18 @@
             `;
             mainContent.appendChild(disclaimer);
 
+            // Bouton pour régénérer le plan
+            const regenerateSection=document.createElement('div');
+            regenerateSection.className='form-section text-center';
+            regenerateSection.innerHTML=`
+                <h2 class="text-lg font-semibold text-[var(--brand-dark)] mb-4">Régénérer le plan</h2>
+                <p class="text-[var(--brand-dark)] opacity-80 mb-6">
+                    Si vous avez mis à jour le diagnostic, vous pouvez régénérer le plan.
+                </p>
+                <button class="generate-button" id="regenerateButton">Régénérer le plan</button>
+            `;
+            mainContent.appendChild(regenerateSection);
+
             const summarySection=document.createElement('div');
             summarySection.className='form-section';
             summarySection.innerHTML=`
@@ -349,7 +360,6 @@
             (plan.phases||[]).forEach((phase,idx)=>{
                 const phaseDiv=document.createElement('div');
                 phaseDiv.className='treatment-phase';
-                // Remplace "exercises" par "manipulations"
                 phaseDiv.innerHTML=`
                     <div class="phase-header">
                         <div class="flex items-center gap-4">
@@ -405,6 +415,22 @@
             downloadButton.addEventListener('click',()=>{
                 generatePDF(plan);
             });
+
+            // Action régénérer le plan
+            const regenerateButton=document.getElementById('regenerateButton');
+            regenerateButton.addEventListener('click', async ()=>{
+                mainContent.innerHTML='';
+                loadingSection.classList.remove('hidden');
+                try {
+                    const data=await gatherPatientData();
+                    const result=await treatmentManager.getTreatment(data);
+                    loadingSection.classList.add('hidden');
+                    displayTreatment(result.treatmentPlan);
+                } catch(e) {
+                    console.error(e);
+                    loadingSection.innerHTML='<p class="text-red-500">Erreur lors de la régénération du traitement</p>';
+                }
+            });
         }
 
         function saveCurrentData() {
@@ -424,14 +450,12 @@
                 orientation: 'portrait'
             });
         
-            // Constantes pour la mise en page
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
             const margin = 40;
             const contentWidth = pageWidth - (margin * 2);
             let yPos = margin;
         
-            // Fonction utilitaire pour gérer les sauts de page
             const checkPageBreak = (height) => {
                 if (yPos + height > pageHeight - margin) {
                     doc.addPage();
@@ -441,7 +465,6 @@
                 return false;
             };
         
-            // Fonction pour wrapper le texte
             const addWrappedText = (text, x, fontSize, fontStyle = 'normal') => {
                 doc.setFontSize(fontSize);
                 if (fontStyle === 'bold') {
@@ -458,7 +481,6 @@
                 yPos += 5;
             };
         
-            // En-tête
             doc.setFillColor(55, 167, 196);
             doc.rect(0, 0, pageWidth, 60, 'F');
             doc.setTextColor(255);
@@ -466,12 +488,10 @@
             doc.text("EtioCare AI", margin, 40);
             yPos = 80;
         
-            // Titre principal
             doc.setTextColor(50);
             addWrappedText("Plan de Traitement", margin, 20, 'bold');
             yPos += 10;
         
-            // Résumé
             doc.setDrawColor(55, 167, 196);
             doc.setLineWidth(0.5);
             doc.line(margin, yPos, pageWidth - margin, yPos);
@@ -480,26 +500,19 @@
             addWrappedText(plan.summary || 'Plan personnalisé', margin, 12);
             yPos += 20;
         
-            // Protocole de rééducation
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 20;
             addWrappedText("Protocole de rééducation", margin, 16, 'bold');
             yPos += 10;
         
-            // Phases
             (plan.phases || []).forEach((phase, idx) => {
                 checkPageBreak(60);
-                
-                // Numéro et nom de la phase
                 addWrappedText(`Phase ${idx + 1}: ${phase.name || 'Phase'}`, margin, 14, 'bold');
-                
-                // Objectifs
                 if (phase.goals) {
                     addWrappedText("Objectifs:", margin + 20, 12, 'bold');
                     addWrappedText(phase.goals, margin + 20, 11);
                 }
         
-                // Manipulations
                 if (phase.manipulations && phase.manipulations.length > 0) {
                     addWrappedText("Manipulations:", margin + 20, 12, 'bold');
                     phase.manipulations.forEach(m => {
@@ -510,7 +523,6 @@
                 yPos += 10;
             });
         
-            // Recommandations
             doc.line(margin, yPos, pageWidth - margin, yPos);
             yPos += 20;
             addWrappedText("Recommandations complémentaires", margin, 16, 'bold');
@@ -523,7 +535,6 @@
                 yPos += 10;
             });
         
-            // Pied de page sur chaque page
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
