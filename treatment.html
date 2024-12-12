@@ -418,62 +418,125 @@
 
         function generatePDF(plan) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({unit:'pt', format:'a4'});
-
-            doc.setFontSize(18);
-            doc.text("Plan de Traitement PhysioCare", 40, 60);
-
-            doc.setFontSize(12);
-            doc.setTextColor(50);
-            doc.text(`Résumé : ${plan.summary||'Non spécifié'}`,40,100);
-
-            let yPos=140;
-            doc.setFontSize(14);
-            doc.text("Protocole de rééducation",40,yPos);
-            yPos+=20;
-
-            (plan.phases||[]).forEach((phase,idx)=>{
-                doc.setFontSize(12);
-                doc.text(`${idx+1}. ${phase.name||'Phase'}`,40,yPos);
-                yPos+=15;
-                if(phase.goals) {
-                    doc.setFontSize(11);
-                    doc.text(`Objectifs: ${phase.goals}`,50,yPos);
-                    yPos+=15;
+            const doc = new jsPDF({
+                unit: 'pt', 
+                format: 'a4',
+                orientation: 'portrait'
+            });
+        
+            // Constantes pour la mise en page
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 40;
+            const contentWidth = pageWidth - (margin * 2);
+            let yPos = margin;
+        
+            // Fonction utilitaire pour gérer les sauts de page
+            const checkPageBreak = (height) => {
+                if (yPos + height > pageHeight - margin) {
+                    doc.addPage();
+                    yPos = margin;
+                    return true;
                 }
-
-                if(phase.manipulations && phase.manipulations.length>0) {
-                    doc.text("Manipulations:",50,yPos);
-                    yPos+=15;
-                    phase.manipulations.forEach(m=>{
-                        doc.text(`- ${m.manipulation||'Manipulation'}: ${m.description||''}`,60,yPos);
-                        yPos+=15;
+                return false;
+            };
+        
+            // Fonction pour wrapper le texte
+            const addWrappedText = (text, x, fontSize, fontStyle = 'normal') => {
+                doc.setFontSize(fontSize);
+                if (fontStyle === 'bold') {
+                    doc.setFont('helvetica', 'bold');
+                } else {
+                    doc.setFont('helvetica', 'normal');
+                }
+                const lines = doc.splitTextToSize(text, contentWidth);
+                lines.forEach(line => {
+                    checkPageBreak(fontSize + 5);
+                    doc.text(line, x, yPos);
+                    yPos += fontSize + 5;
+                });
+                yPos += 5;
+            };
+        
+            // En-tête
+            doc.setFillColor(55, 167, 196); // Couleur de la marque
+            doc.rect(0, 0, pageWidth, 60, 'F');
+            doc.setTextColor(255);
+            doc.setFontSize(24);
+            doc.text("EtioCare AI", margin, 40);
+            yPos = 80;
+        
+            // Titre principal
+            doc.setTextColor(50);
+            addWrappedText("Plan de Traitement", margin, 20, 'bold');
+            yPos += 10;
+        
+            // Résumé
+            doc.setDrawColor(55, 167, 196);
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 20;
+            addWrappedText("Résumé", margin, 16, 'bold');
+            addWrappedText(plan.summary || 'Plan personnalisé', margin, 12);
+            yPos += 20;
+        
+            // Protocole de rééducation
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 20;
+            addWrappedText("Protocole de rééducation", margin, 16, 'bold');
+            yPos += 10;
+        
+            // Phases
+            (plan.phases || []).forEach((phase, idx) => {
+                checkPageBreak(60);
+                
+                // Numéro et nom de la phase
+                doc.setFillColor(55, 167, 196, 0.1);
+                doc.rect(margin, yPos - 15, contentWidth, 30, 'F');
+                addWrappedText(`Phase ${idx + 1}: ${phase.name || 'Phase'}`, margin + 10, 14, 'bold');
+                
+                // Objectifs
+                if (phase.goals) {
+                    addWrappedText("Objectifs:", margin + 20, 12, 'bold');
+                    addWrappedText(phase.goals, margin + 20, 11);
+                }
+        
+                // Manipulations
+                if (phase.manipulations && phase.manipulations.length > 0) {
+                    addWrappedText("Manipulations:", margin + 20, 12, 'bold');
+                    phase.manipulations.forEach(m => {
+                        addWrappedText(`• ${m.manipulation || 'Manipulation'}:`, margin + 30, 11, 'bold');
+                        addWrappedText(m.description || '', margin + 40, 11);
                     });
                 }
-                yPos+=10;
+                yPos += 10;
             });
-
-            doc.setFontSize(14);
-            doc.text("Recommandations complémentaires",40,yPos);
-            yPos+=20;
-            (plan.recommendations||[]).forEach(r=>{
-                doc.setFontSize(12);
-                doc.text(r.title||'Sans titre',40,yPos);
-                yPos+=15;
-                doc.setFontSize(11);
-                const lines = doc.splitTextToSize(r.content||'', 500);
-                lines.forEach(line=>{
-                    doc.text(line,50,yPos);
-                    yPos+=15;
-                });
-                yPos+=10;
+        
+            // Recommandations
+            doc.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 20;
+            addWrappedText("Recommandations complémentaires", margin, 16, 'bold');
+            yPos += 10;
+        
+            (plan.recommendations || []).forEach(r => {
+                checkPageBreak(40);
+                addWrappedText(r.title || 'Sans titre', margin, 12, 'bold');
+                addWrappedText(r.content || '', margin + 10, 11);
+                yPos += 10;
             });
-
-            doc.setFontSize(10);
-            doc.setTextColor(100);
-            doc.text("Ce plan est généré automatiquement par PhysioCare. Veuillez le faire valider par un professionnel de santé.",40,yPos);
-
-            doc.save("Plan_Traitement.pdf");
+        
+            // Pied de page sur chaque page
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(100);
+                const footerText = "Ce plan est généré automatiquement par EtioCare AI. Veuillez le faire valider par un professionnel de santé.";
+                doc.text(footerText, pageWidth/2, pageHeight - 20, { align: 'center' });
+                doc.text(`Page ${i}/${pageCount}`, pageWidth - margin, pageHeight - 20);
+            }
+        
+            doc.save("Plan_Traitement_EtioCare.pdf");
         }
     });
     </script>
