@@ -459,7 +459,7 @@
             };
         
             // En-tête
-            doc.setFillColor(55, 167, 196); // Couleur de la marque
+            doc.setFillColor(55, 167, 196);
             doc.rect(0, 0, pageWidth, 60, 'F');
             doc.setTextColor(255);
             doc.setFontSize(24);
@@ -491,9 +491,7 @@
                 checkPageBreak(60);
                 
                 // Numéro et nom de la phase
-                doc.setFillColor(55, 167, 196, 0.1);
-                doc.rect(margin, yPos - 15, contentWidth, 30, 'F');
-                addWrappedText(`Phase ${idx + 1}: ${phase.name || 'Phase'}`, margin + 10, 14, 'bold');
+                addWrappedText(`Phase ${idx + 1}: ${phase.name || 'Phase'}`, margin, 14, 'bold');
                 
                 // Objectifs
                 if (phase.goals) {
